@@ -4,6 +4,7 @@ import cn.kmbeast.aop.Pager;
 import cn.kmbeast.aop.Protector;
 import cn.kmbeast.pojo.api.Result;
 import cn.kmbeast.pojo.dto.query.extend.UserQueryDto;
+import cn.kmbeast.pojo.dto.update.GoogleLoginDTO;
 import cn.kmbeast.pojo.dto.update.UserLoginDTO;
 import cn.kmbeast.pojo.dto.update.UserRegisterDTO;
 import cn.kmbeast.pojo.dto.update.UserUpdateDTO;
@@ -31,6 +32,15 @@ public class UserController {
     @ResponseBody
     public Result<Object> login(@RequestBody UserLoginDTO userLoginDTO) {
         return userService.login(userLoginDTO);
+    }
+    
+    /**
+     * Google sign-in / sign-up
+     */
+    @PostMapping(value = "/google-login")
+    @ResponseBody
+    public Result<Object> googleLogin(@RequestBody GoogleLoginDTO googleLoginDTO) {
+        return userService.googleLogin(googleLoginDTO);
     }
 
     /**

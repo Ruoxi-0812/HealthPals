@@ -1,112 +1,122 @@
-# **Personal Health Management Website**
+# HealthPals
 
-## **Overview**
-The Personal Health Management Website is an application that helps people track, manage, and visualize their health data. The system allows users to record various health indicators, access health-related news, receive notifications, and interact with other users through discussions and comments.
+HealthPals is a personal health management web application with user/admin roles, health indicator tracking, health news, community interaction, and notifications.
 
-## **Technology Stack**
+This repository currently contains:
+- `frontend`: Vue 2.7 + Vue CLI 5 + Element UI
+- `backend`: Spring Boot 2.2 + MyBatis + MySQL
 
-### **Backend**
-- Spring Boot
+## Tech Stack
+
+### Frontend
+- Vue 2.7
+- Vue Router 3
+- Vue CLI Service 5
+- Element UI
+- Axios
+- Sass
+
+### Backend
+- Spring Boot 2.2.4
 - Spring MVC
 - MyBatis
-
-### **Frontend**
-- Vue.js
-- Axios
-- Router
-
-### **Database**
 - MySQL
+- JWT
 
-## **Features**
+### Database
+- MySQL (`personal_health`)
 
-### **User Management**
-- User registration & login
-- Role-based access control (User/Admin)
-- Profile updates & password changes
+## Key Features
 
-### **Health Tracking**
-- Record and visualize health indicators (height, weight, blood pressure, blood sugar, steps, etc.)
-- Personalized health model configurations
+- User registration/login, profile update, password reset
+- Role-based pages (User/Admin)
+- Health indicator records and visualization
+- Health news browsing, tagging, comments, favorites
+- Message/notification center
+- Admin operations (users, news, health model configs)
+- Google one-click sign-in/sign-up (requires OAuth configuration)
 
-### **Health Information & Community**
-- View, search, and filter health-related news
-- Like, comment, and save health articles
-- Tag-based article categorization
+## Project Structure
 
-### **Notifications & Messaging**
-- System notifications for health updates and user interactions
-- Interactive message notifications
-
-
-## **Setup Instructions**
-
-### **Backend Setup**
-1. **Configure Maven** and install dependencies.
-2. **Set up MySQL database** and update connection in `resources/application.yml`.
-3. **Run the backend service**:
-   - Run `PersonalHealthApplication.java` 
-4. **Successful startup confirmation**.
-
-### **Frontend Setup**
-1. **Navigate to the frontend directory**:
-```
-cd src
-```
-2. **Install dependencies**:
-```
-npm i
+```text
+Personal-Health-Management-Web/
+├── frontend/   # Vue app
+├── backend/    # Spring Boot API
+└── README.md
 ```
 
-3. **Run the frontend application**:
+## Environment Configuration
+
+### Frontend
+
+Create `frontend/.env.development`:
+
+```env
+VUE_APP_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
+
+Reference template: `frontend/.env.example`
+
+### Backend
+
+Configure `backend/src/main/resources/application.yml`:
+
+- Database connection (`spring.datasource.*`)
+- Google OAuth client ID:
+
+```yml
+google:
+  oauth:
+    client-id: "your-google-oauth-client-id.apps.googleusercontent.com"
+```
+
+> Frontend and backend Google Client ID should be the same.
+
+## Run Locally
+
+### 1) Start MySQL
+
+Ensure database `personal_health` exists and credentials in `application.yml` are correct.
+
+### 2) Start Backend
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+Default API base URL:
+
+`http://localhost:21090/api/personal-heath/v1.0`
+
+Quick check:
+
+```bash
+curl -i "http://localhost:21090/api/personal-heath/v1.0/user/auth"
+```
+
+### 3) Start Frontend
+
+```bash
+cd frontend
+npm install
 npm run dev
 ```
 
-4. **Access the application by opening the displayed local development URL in your browser**.
+Open the local URL printed by Vue CLI (commonly `http://localhost:21092`).
 
+## Build Commands
 
-## **Project Showcase**
-Below are screenshots of the Personal Health Management Website, highlighting key features such as user authentication, health tracking, news management, and admin panel controls.
+### Frontend
 
-### **User Login**
-<img src="images/user-login.png" width="40%">
+```bash
+cd frontend
+npm run build
+```
 
-### **Health News List**
-<img src="images/Health-News-List.png" width="80%">
+### Backend
 
-### **News Details**
-<img src="images/News-Details.png" width="80%">
-
-### **News Favorites**
-<img src="images/News-Favorites.png" width="80%">
-
-### **Model Management and Indicator Documentation**
-<img src="images/Model-Management-Indicator-Documentation.png" width="80%">
-
-### **Message Notifications**
-<img src="images/Message-notifications.png" width="80%">
-
-### **Health Indicator Visualization**
-<img src="images/Health-Indicator-Visualization.png" width="80%">
-
-## **Admin Panel**
-
-### **Home Page Visualization**
-<img src="images/Home-Page-Visualization.png" width="80%">
-
-### **User Management**
-<img src="images/User-Management.png" width="80%">
-
-### **News Classification**
-<img src="images/News-Classification.png" width="80%">
-
-### **News Management**
-<img src="images/News-Management.png" width="80%">
-
-### **Health Model Management**
-<img src="images/Health-Model-Management.png" width="80%">
-
-
-
-## Start tracking your health today with the Personal Health Management Website!
+```bash
+cd backend
+mvn package -DskipTests
+```

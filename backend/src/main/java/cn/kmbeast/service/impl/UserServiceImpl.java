@@ -7,6 +7,7 @@ import cn.kmbeast.pojo.api.PageResult;
 import cn.kmbeast.pojo.api.Result;
 import cn.kmbeast.pojo.dto.query.base.QueryDto;
 import cn.kmbeast.pojo.dto.query.extend.UserQueryDto;
+import cn.kmbeast.pojo.dto.update.GoogleLoginDTO;
 import cn.kmbeast.pojo.dto.update.UserLoginDTO;
 import cn.kmbeast.pojo.dto.update.UserRegisterDTO;
 import cn.kmbeast.pojo.dto.update.UserUpdateDTO;
@@ -19,8 +20,14 @@ import cn.kmbeast.pojo.vo.UserVO;
 import cn.kmbeast.service.UserService;
 import cn.kmbeast.utils.DateUtil;
 import cn.kmbeast.utils.JwtUtil;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +48,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private UserMapper userMapper;
+    
+    @Value("${google.oauth.client-id:}")
+    private String googleClientId;
 
     /**
      * user registration
@@ -94,6 +105,59 @@ public class UserServiceImpl implements UserService {
         map.put("token", token);
         map.put("role", user.getUserRole());
         return ApiResult.success("login successfully", map);
+    }
+    
+    @Override
+    public Result<Object> googleLogin(GoogleLoginDTO googleLoginDTO) {
+        if (googleLoginDTO == null || StringUtils.isBlank(googleLoginDTO.getIdToken())) {
+            return ApiResult.error("Google credential is required");
+        }
+        if (StringUtils.isBlank(googleClientId)) {
+            return ApiResult.error("Google OAuth client id is not configured on server");
+        }
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    GsonFactory.getDefaultInstance()
+            ).setAudience(java.util.Collections.singletonList(googleClientId)).build();
+            GoogleIdToken idToken = verifier.verify(googleLoginDTO.getIdToken());
+            if (idToken == null) {
+                return ApiResult.error("Invalid Google credential");
+            }
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String sub = payload.getSubject();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String picture = (String) payload.get("picture");
+            String account = "google_" + sub;
+            User user = userMapper.getByActive(User.builder().userAccount(account).build());
+            if (user == null) {
+                String fallbackName = StringUtils.isNotBlank(name)
+                        ? name
+                        : (StringUtils.isNotBlank(email) ? email.split("@")[0] : "GoogleUser");
+                User newUser = User.builder()
+                        .userRole(RoleEnum.USER.getRole())
+                        .userName(fallbackName)
+                        .userAccount(account)
+                        .userAvatar(picture)
+                        .userPwd(UUID.randomUUID().toString().replace("-", ""))
+                        .userEmail(email)
+                        .createTime(LocalDateTime.now())
+                        .isLogin(LoginStatusEnum.USE.getFlag())
+                        .isWord(WordStatusEnum.USE.getFlag())
+                        .build();
+                userMapper.insert(newUser);
+                user = userMapper.getByActive(User.builder().userAccount(account).build());
+            }
+            String token = JwtUtil.toToken(user.getId(), user.getUserRole());
+            Map<String, Object> map = new HashMap<>();
+            map.put("token", token);
+            map.put("role", user.getUserRole());
+            return ApiResult.success("google login successfully", map);
+        } catch (Exception e) {
+            log.error("Google login failed", e);
+            return ApiResult.error("Google login failed");
+        }
     }
 
     /**

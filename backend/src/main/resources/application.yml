@@ -21,6 +21,9 @@ spring:
 mybatis:
   mapper-locations: classpath:mapper/*.xml
 
+google:
+  oauth:
+    client-id: ""
 
 
 

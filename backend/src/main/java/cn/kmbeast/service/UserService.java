@@ -1,6 +1,7 @@
 package cn.kmbeast.service;
 
 import cn.kmbeast.pojo.api.Result;
+import cn.kmbeast.pojo.dto.update.GoogleLoginDTO;
 import cn.kmbeast.pojo.dto.update.UserLoginDTO;
 import cn.kmbeast.pojo.dto.update.UserRegisterDTO;
 import cn.kmbeast.pojo.dto.update.UserUpdateDTO;
@@ -19,6 +20,8 @@ public interface UserService {
     Result<String> register(UserRegisterDTO userRegisterDTO);
 
     Result<Object> login(UserLoginDTO userLoginDTO);
+    
+    Result<Object> googleLogin(GoogleLoginDTO googleLoginDTO);
 
     Result<UserVO> auth();
 
