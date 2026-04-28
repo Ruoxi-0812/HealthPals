@@ -1,9 +1,9 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import ElementUI from 'element-ui';
-import 'element-ui/lib/theme-chalk/index.css';
+import ElementUI from "element-ui";
+import "element-ui/lib/theme-chalk/index.css";
 import { getToken } from "@/utils/storage.js";
-import echarts from 'echarts';
+import echarts from "echarts";
 Vue.prototype.$echarts = echarts;
 Vue.use(ElementUI);
 Vue.use(VueRouter);
@@ -11,23 +11,23 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "*",
-    redirect: "/login"
+    redirect: "/login",
   },
   {
     path: "/login",
-    component: () => import(`@/views/login/Login.vue`)
+    component: () => import(`@/views/login/Login.vue`),
   },
   {
     path: "/register",
-    component: () => import(`@/views/register/Register.vue`)
+    component: () => import(`@/views/register/Register.vue`),
   },
   {
     path: "/message",
-    component: () => import(`@/views/user/Message.vue`)
+    component: () => import(`@/views/user/Message.vue`),
   },
   {
     path: "/record",
-    component: () => import(`@/views/user/Record.vue`)
+    component: () => import(`@/views/user/Record.vue`),
   },
   {
     path: "/admin",
@@ -38,61 +38,61 @@ const routes = [
     children: [
       {
         path: "/adminLayout",
-        name: 'Indicator Panel',
-        icon: 'el-icon-pie-chart',
+        name: "Indicator Panel",
+        icon: "el-icon-pie-chart",
         component: () => import(`@/views/admin/Main.vue`),
         meta: { requireAuth: true },
       },
       {
         path: "/userManage",
-        name: 'User Manage',
-        icon: 'el-icon-user',
+        name: "User Manage",
+        icon: "el-icon-user",
         component: () => import(`@/views/admin/UserManage.vue`),
         meta: { requireAuth: true },
       },
       {
         path: "/tagsManage",
-        name: 'News Classification',
-        icon: 'el-icon-house',
+        name: "News Classification",
+        icon: "el-icon-house",
         component: () => import(`@/views/admin/TagsManage.vue`),
         meta: { requireAuth: true },
       },
       {
         path: "/newsManage",
-        name: 'News Manage',
-        icon: 'el-icon-document',
+        name: "News Manage",
+        icon: "el-icon-document",
         component: () => import(`@/views/admin/NewsManage.vue`),
         meta: { requireAuth: true },
       },
       {
         path: "/healthModelConfigManage",
-        name: 'Health Model Manage',
-        icon: 'el-icon-files',
+        name: "Health Model Manage",
+        icon: "el-icon-files",
         component: () => import(`@/views/admin/HealthModelConfigManage.vue`),
         meta: { requireAuth: true },
       },
       {
         path: "/userHealthManage",
-        name: 'Health Records',
-        icon: 'el-icon-c-scale-to-original',
+        name: "Health Records",
+        icon: "el-icon-c-scale-to-original",
         component: () => import(`@/views/admin/UserHealthManage.vue`),
         meta: { requireAuth: true },
       },
       {
         path: "/messageManage",
-        name: 'Message Manage',
-        icon: 'el-icon-message',
+        name: "Message Manage",
+        icon: "el-icon-message",
         component: () => import(`@/views/admin/MessageManage.vue`),
         meta: { requireAuth: true },
       },
       {
         path: "/evaluationsManage",
-        name: 'Comment Manage',
-        icon: 'el-icon-chat-dot-round',
+        name: "Comment Manage",
+        icon: "el-icon-chat-dot-round",
         component: () => import(`@/views/admin/EvaluationsManage.vue`),
         meta: { requireAuth: true },
       },
-    ]
+    ],
   },
   {
     path: "/user",
@@ -102,7 +102,7 @@ const routes = [
     },
     children: [
       {
-        name: 'News home',
+        name: "News home",
         path: "/news-record",
         component: () => import(`@/views/user/Home.vue`),
         meta: {
@@ -110,7 +110,7 @@ const routes = [
         },
       },
       {
-        name: 'My Favorites',
+        name: "My Favorites",
         path: "/my-save",
         component: () => import(`@/views/user/NewsSave.vue`),
         meta: {
@@ -118,7 +118,7 @@ const routes = [
         },
       },
       {
-        name: 'Health Data',
+        name: "Health Data",
         path: "/user-health-model",
         component: () => import(`@/views/user/UserHealthModel.vue`),
         meta: {
@@ -126,7 +126,7 @@ const routes = [
         },
       },
       {
-        name: 'Health Information Details',
+        name: "Health Information Details",
         path: "/news-detail",
         component: () => import(`@/views/user/NewsDetail.vue`),
         meta: {
@@ -135,7 +135,7 @@ const routes = [
         isHidden: true,
       },
       {
-        name: 'Search Page',
+        name: "Search Page",
         path: "/search-detail",
         component: () => import(`@/views/user/Search.vue`),
         meta: {
@@ -143,12 +143,12 @@ const routes = [
         },
         isHidden: true,
       },
-    ]
-  }
+    ],
+  },
 ];
 const router = new VueRouter({
   routes,
-  mode: 'history'
+  mode: "history",
 });
 router.beforeEach((to, from, next) => {
   if (to.meta.requireAuth) {
@@ -158,10 +158,8 @@ router.beforeEach((to, from, next) => {
     } else {
       next("/login");
     }
-  }
-  else {
+  } else {
     next();
   }
 });
-import 'vue-vibe'
 export default router;

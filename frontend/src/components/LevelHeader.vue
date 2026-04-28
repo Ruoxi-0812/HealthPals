@@ -1,124 +1,141 @@
 <template>
-    <div class="main">
-        <span>
-            <span class="operation-span" @click="operation">
-                <i v-if="!showFlag" class="el-icon-s-fold i-folder"></i>
-                <i v-else class="el-icon-s-unfold i-folder"></i>
-            </span>
+  <div class="main">
+    <span>
+      <span class="operation-span" @click="operation">
+        <i v-if="!showFlag" class="el-icon-s-fold i-folder"></i>
+        <i v-else class="el-icon-s-unfold i-folder"></i>
+      </span>
+    </span>
+    <span>
+      <span class="operation-span-tag">
+        backstage&nbsp;&nbsp;/&nbsp;&nbsp;{{ tag == "" ? "metadata" : tag }}
+      </span>
+    </span>
+    <span class="user-block">
+      <el-dropdown class="user-dropdown">
+        <span
+          class="el-dropdown-link"
+          style="display: flex; align-items: center"
+        >
+          <el-avatar
+            :size="35"
+            :src="userInfo.url"
+            style="margin-top: 0"
+          ></el-avatar>
+          <span class="userName" style="margin-left: 5px; font-size: 16px">{{
+            userInfo.name
+          }}</span>
+          <i
+            class="el-icon-arrow-down el-icon--right"
+            style="margin-left: 5px"
+          ></i>
         </span>
-        <span>
-            <span class="operation-span-tag">
-                backstage&nbsp;&nbsp;/&nbsp;&nbsp;{{ tag == '' ? 'metadata' : tag }}
-            </span>
-        </span>
-        <span class="user-block">
-            <el-dropdown class="user-dropdown">
-                <span class="el-dropdown-link" style="display: flex; align-items: center;">
-                    <el-avatar :size="35" :src="userInfo.url" style="margin-top: 0;"></el-avatar>
-                    <span class="userName" style="margin-left: 5px;font-size: 16px;">{{ userInfo.name }}</span>
-                    <i class="el-icon-arrow-down el-icon--right" style="margin-left: 5px;"></i>
-                </span>
-                <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item icon="el-icon-user-solid" @click.native="userCenterPanel">Personal Information</el-dropdown-item>
-                    <el-dropdown-item icon="el-icon-s-fold" @click.native="loginOut">Log out</el-dropdown-item>
-                </el-dropdown-menu>
-            </el-dropdown>
-        </span>
-    </div>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item
+            icon="el-icon-user-solid"
+            @click.native="userCenterPanel"
+            >Personal Information</el-dropdown-item
+          >
+          <el-dropdown-item icon="el-icon-s-fold" @click.native="loginOut"
+            >Log out</el-dropdown-item
+          >
+        </el-dropdown-menu>
+      </el-dropdown>
+    </span>
+  </div>
 </template>
 <script>
 export default {
-    name: "LevelHeader",
-    data() {
-        return {
-            showFlag: sessionStorage.getItem('flag') === 'true',
-        };
+  name: "LevelHeader",
+  data() {
+    return {
+      showFlag: sessionStorage.getItem("flag") === "true",
+    };
+  },
+  props: {
+    tag: {
+      type: String,
+      required: true,
+      default: "",
     },
-    props: {
-        tag: {
-            type: String,
-            required: true,
-            default: ''
-        },
-        userInfo: {
-            type: Object,
-            required: true,
-            default: {}
-        },
-        bag: {
-            type: String,
-            default: ''
-        },
+    userInfo: {
+      type: Object,
+      required: true,
+      default: {},
     },
-    methods: {
- 
-        userCenterPanel() {
-            this.$emit('eventListener', 'center');
-        },
+    bag: {
+      type: String,
+      default: "",
+    },
+  },
+  methods: {
+    userCenterPanel() {
+      this.$emit("eventListener", "center");
+    },
 
-        loginOut() {
-            this.$emit('eventListener', 'loginOut');
-        },
-        operation() {
-            this.showFlag = !this.showFlag;
-            sessionStorage.setItem('flag', this.showFlag);
-            this.$emit('selectOperation', this.showFlag);
-        },
-    }
+    loginOut() {
+      this.$emit("eventListener", "loginOut");
+    },
+    operation() {
+      this.showFlag = !this.showFlag;
+      sessionStorage.setItem("flag", this.showFlag);
+      this.$emit("selectOperation", this.showFlag);
+    },
+  },
 };
 </script>
 <style scoped lang="scss">
 .main {
-    padding: 15px 26px 15px 0;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    width: 100%;
-    position: relative;
-    background-color: rgb(255, 255, 255);
-    color: #666;
+  padding: 15px 26px 15px 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  position: relative;
+  background-color: rgb(255, 255, 255);
+  color: #666;
 
-    .operation-span-tag {
-        padding: 9px 10px;
-        border-radius: 3px;
-        font-size: 16px;
-        user-select: none;
-        margin-top: 15px;
+  .operation-span-tag {
+    padding: 9px 10px;
+    border-radius: 3px;
+    font-size: 16px;
+    user-select: none;
+    margin-top: 15px;
+  }
+
+  .operation-span:hover {
+    background-color: rgb(246, 246, 246);
+  }
+
+  .operation-span {
+    margin-top: 20px;
+    padding: 6px;
+    margin-left: 10px;
+    border-radius: 3px;
+    user-select: none;
+
+    i {
+      margin: 5px;
+      font-size: 20px;
+      color: #333;
     }
+  }
 
-    .operation-span:hover {
-        background-color: rgb(246, 246, 246);
+  span {
+    color: #333;
+  }
+
+  .user-block {
+    position: absolute;
+    right: 35px;
+
+    .userName {
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
     }
-
-    .operation-span {
-        margin-top: 20px;
-        padding: 6px;
-        margin-left: 10px;
-        border-radius: 3px;
-        user-select: none;
-
-        i {
-            margin: 5px;
-            font-size: 20px;
-            color: #333;
-        }
-    }
-
-    span {
-        color: #333;
-    }
-
-    .user-block {
-        position: absolute;
-        right: 35px;
-
-        .userName {
-            display: inline-block;
-            vertical-align: middle;
-            font-size: 14px;
-            cursor: pointer;
-            user-select: none;
-        }
-    }
+  }
 }
 </style>

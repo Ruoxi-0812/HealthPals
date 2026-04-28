@@ -7,40 +7,38 @@
   </div>
 </template>
 <script>
-
-import * as echarts from 'echarts'
+import * as echarts from "echarts";
 export default {
-  name: 'BarChart',
+  name: "BarChart",
   props: {
     height: {
       type: String,
-      default: '300px'
+      default: "300px",
     },
     tag: {
       type: String,
-      default: 'BarChart'
+      default: "BarChart",
     },
     values: {
       type: Array,
-      required: true
+      required: true,
     },
     date: {
       type: Array,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
       chart: null,
-    }
+    };
   },
   mounted() {
     this.init();
   },
   methods: {
-
     init() {
-      this.chart = echarts.init(this.$refs.chart)
+      this.chart = echarts.init(this.$refs.chart);
       let option = {
         grid: {
           left: 30,
@@ -48,62 +46,64 @@ export default {
           top: 10,
           borderWidth: 5,
         },
-        title: { text: '' },
+        title: { text: "" },
         tooltip: {},
         xAxis: {
           data: this.date,
           axisLine: { show: false },
           axisTick: { show: false },
-          axisLabel: { 
-            color: 'rgb(102, 102, 102)',
-            interval: 1, 
-            rotate: 0, 
+          axisLabel: {
+            color: "rgb(102, 102, 102)",
+            interval: 1,
+            rotate: 0,
           },
         },
         yAxis: {
           axisLine: { show: false },
           axisTick: { show: false },
           axisLabel: {
-            color: 'rgb(102, 102, 102)',
-            fontSize: '12'
+            color: "rgb(102, 102, 102)",
+            fontSize: "12",
           },
         },
-        series: [{
-          name: '',
-          type: 'bar',
-          data: this.values,
-          axisLine: { show: false },
-          axisTick: { show: false },
-          axisLabel: { 
-            color: 'rgb(102, 102, 102)',
+        series: [
+          {
+            name: "",
+            type: "bar",
+            data: this.values,
+            axisLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: {
+              color: "rgb(102, 102, 102)",
+            },
+            itemStyle: {
+              normal: {
+                color: function (params) {
+                  const colorList = [
+                    "#e2e1e4",
+                    "#bc84a8",
+                    "#5e616d",
+                    "#57c3c2",
+                    "#87CEEB",
+                    "#ADD8E6",
+                  ];
+                  return colorList[params.dataIndex % colorList.length];
+                },
+              },
+            },
           },
-          itemStyle: {
-            normal: {
-              color: function (params) {
-                const colorList = [
-                  '#e2e1e4',
-                  '#bc84a8',
-                  '#5e616d',
-                  '#57c3c2',
-                  '#87CEEB',
-                  '#ADD8E6'
-                ];
-                return colorList[params.dataIndex % colorList.length];
-              }
-            }
-          },
-        }]
-      }
-      this.chart.setOption(option)
-    }
+        ],
+      };
+      this.chart.setOption(option);
+    },
   },
   beforeDestroy() {
     if (!this.chart) {
-      return
+      return;
     }
-    this.chart.dispose()
-  }
-}
+    this.chart.dispose();
+  },
+};
 </script>
 <style scoped lang="scss">
 .line-main {
@@ -117,6 +117,5 @@ export default {
     color: #333;
     font-weight: bold;
   }
-
 }
 </style>

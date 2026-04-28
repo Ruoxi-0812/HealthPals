@@ -9,21 +9,21 @@
   </div>
 </template>
 <script>
-import * as echarts from 'echarts'
+import * as echarts from "echarts";
 export default {
-  name: 'PieChart',
+  name: "PieChart",
   props: {
     types: {
       type: Array,
-      default: []
+      default: [],
     },
     values: {
       type: Array,
-      default: []
+      default: [],
     },
     width: {
       type: String,
-      default: '100%'
+      default: "100%",
     },
     // tag: {
     //   type: String,
@@ -31,71 +31,67 @@ export default {
     // },
     height: {
       type: String,
-      default: '243px'
+      default: "243px",
     },
     bag: {
       type: String,
-      default: '#fff'
+      default: "#fff",
     },
     fontColor: {
       type: String,
-      default: '#333'
+      default: "#333",
     },
   },
   data() {
     return {
       chart: null,
-    }
+    };
   },
   watch: {
     types(v1, v2) {
       this.initChart();
-    }
+    },
   },
   mounted() {
     this.initChart();
   },
   methods: {
     initChart() {
-      this.chart = echarts.init(this.$refs.chart)
+      this.chart = echarts.init(this.$refs.chart);
       let option = {
         title: {
-          text: '',
-          subtext: '',
-          left: 'center'
+          text: "",
+          subtext: "",
+          left: "center",
         },
         tooltip: {
-          trigger: 'item'
+          trigger: "item",
         },
         legend: {
-          orient: 'vertical',
-          left: 'left',
+          orient: "vertical",
+          left: "left",
           show: false,
         },
         series: [
           {
-            name: '',
-            type: 'pie',
-            radius: '70%',
+            name: "",
+            type: "pie",
+            radius: "70%",
             avoidLabelOverlap: false,
-            label: {
-              show: false,
-              position: 'center'
-            },
             emphasis: {
               label: {
                 show: false,
-                fontSize: '24',
-                fontWeight: '600'
-              }
+                fontSize: "24",
+                fontWeight: "600",
+              },
             },
             labelLine: {
-              show: true
+              show: true,
             },
             label: {
               show: true,
-              position: 'outer',
-              formatter: '{d}%'
+              position: "outer",
+              formatter: "{d}%",
             },
             data: this.values.map((value, index) => ({
               name: this.types[index],
@@ -104,29 +100,29 @@ export default {
             itemStyle: {
               color: function (params) {
                 const colorList = [
-                  '#FF6347', 
-                  '#FFD700', 
-                  '#0885f9', 
-                  '#FF69B4', 
-                  '#9370DB', 
-                  '#00FFFF', 
-                  '#b84031',
+                  "#FF6347",
+                  "#FFD700",
+                  "#0885f9",
+                  "#FF69B4",
+                  "#9370DB",
+                  "#00FFFF",
+                  "#b84031",
                 ];
                 return colorList[params.dataIndex % colorList.length];
-              }
-            }
-          }
-        ]
-      }
-      this.chart.setOption(option)
-    }
+              },
+            },
+          },
+        ],
+      };
+      this.chart.setOption(option);
+    },
   },
   beforeDestroy() {
     if (this.chart) {
-      this.chart.dispose()
+      this.chart.dispose();
     }
-  }
-}  
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -142,6 +138,5 @@ export default {
     padding: 15px 6px;
     display: block;
   }
-
 }
 </style>
