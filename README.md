@@ -2,7 +2,7 @@
 
 HealthPals is a personal health management web application with user/admin roles, health indicator tracking, health news, community interaction, and notifications.
 
-This repository currently contains:
+This contains:
 - `frontend`: Vue 2.7 + Vue CLI 5 + Element UI
 - `backend`: Spring Boot 2.2 + MyBatis + MySQL
 
