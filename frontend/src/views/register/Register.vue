@@ -1,6 +1,6 @@
 <template>
-  <div class="register-containel">
-    <div class="register-panel nb-surface">
+  <div class="login-container">
+    <div class="login-panel nb-surface">
       <div class="welcome-panel">
         <div class="welcome-pill">Create your wellness space</div>
         <h1>Join HealthPals</h1>
@@ -17,7 +17,7 @@
 
       <div class="form-panel">
         <div class="logo">
-          <Logo sysName="No account? Sign up now" />
+          <Logo :bag="colorLogo" sysName="HealthPals" />
         </div>
         <div class="text">
           <input v-model="name" class="act" placeholder="Username" />
@@ -39,7 +39,7 @@
           />
         </div>
         <div>
-          <span class="register-btn" @click="registerFunc">Sign Up Now</span>
+          <span class="login-btn" @click="registerFunc">Sign Up Now</span>
         </div>
         <div class="oauth-wrap">
           <span class="oauth-divider">or</span>
@@ -76,6 +76,7 @@ export default {
       pwd: "", // Password
       pwdConfirm: "", // Confirm Password
       name: "", // Username
+      colorLogo: "#2f4a40",
       googleScriptLoading: null,
     };
   },
@@ -216,8 +217,9 @@ export default {
 * {
   user-select: none;
 }
-
-.register-containel {
+.login-container {
+  // background-image: url('/bag.png');
+  // background-repeat:repeat;
   width: 100%;
   min-height: 100vh;
   background-color: transparent;
@@ -226,17 +228,18 @@ export default {
   align-items: center;
   flex-direction: column;
 
-  .register-panel {
-    margin: 0 auto;
-    width: min(920px, 92vw);
+  .login-panel {
+    width: min(1200px, 94vw);
+    min-height: min(760px, 92vh);
     height: auto;
-    padding: 18px;
+    padding: 20px;
+    background-color: transparent;
     display: grid;
     grid-template-columns: 1.2fr 1fr;
-    gap: 16px;
+    gap: 22px;
 
     .welcome-panel {
-      border-radius: 18px;
+      border-radius: 28px;
       padding: 30px;
       background: linear-gradient(150deg, #8ecabf 0%, #7ec5a0 100%);
       color: #fff;
@@ -283,7 +286,7 @@ export default {
     }
 
     .form-panel {
-      border-radius: 18px;
+      border-radius: 28px;
       padding: 26px;
       background: rgba(255, 255, 255, 0.72);
       border: 1px solid rgba(126, 197, 160, 0.2);
@@ -317,7 +320,7 @@ export default {
     }
   }
 
-  .register-btn {
+  .login-btn {
     display: inline-block;
     text-align: center;
     border-radius: 12px;
@@ -340,14 +343,39 @@ export default {
       filter 0.12s ease;
   }
 
-  .register-btn:hover {
+  .login-btn:hover {
     transform: translate(-1px, -1px);
     filter: brightness(1.02);
   }
 
-  .register-btn:active {
+  .login-btn:active {
     transform: translate(2px, 2px);
     box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+
+  .tip {
+    margin: 20px 0;
+
+    p {
+      padding: 3px 0;
+      margin: 0;
+      font-size: 14px;
+      color: #5f7d71;
+
+      i {
+        margin-right: 3px;
+      }
+
+      span {
+        color: #355247;
+        border-radius: 2px;
+        margin: 0 6px;
+      }
+      .no-act:hover {
+        color: #6fb892;
+        cursor: pointer;
+      }
+    }
   }
 
   .oauth-wrap {
@@ -378,40 +406,15 @@ export default {
     background: #f4faf6;
     transform: translateY(-1px);
   }
-
-  .tip {
-    margin: 20px 0;
-
-    p {
-      padding: 3px 0;
-      font-size: 14px;
-      margin: 0;
-      color: #5f7d71;
-
-      i {
-        margin-right: 3px;
-      }
-
-      span {
-        color: #355247;
-        border-radius: 2px;
-        margin: 0 6px;
-      }
-
-      .no-act:hover {
-        color: #6fb892;
-        cursor: pointer;
-      }
-    }
-  }
 }
 
 @media (max-width: 880px) {
-  .register-containel {
-    .register-panel {
-      width: min(420px, 92vw);
+  .login-container {
+    .login-panel {
+      width: 100%;
       grid-template-columns: 1fr;
-      padding: 14px;
+      min-height: auto;
+      padding: 16px;
     }
 
     .welcome-panel {

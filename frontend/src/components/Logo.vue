@@ -1,9 +1,10 @@
 <template>
   <span class="logo">
     <el-image
-      style="width: 25px; height: 25px"
+      class="logo-image"
+      :style="{ width: `${size}px`, height: `${size}px` }"
       src="/logo.png"
-      fit="fill"
+      fit="contain"
     ></el-image>
     <div v-if="!flag">
       <span :style="{ color: bag, display: 'block' }">{{ sysName }}</span>
@@ -29,6 +30,10 @@ export default {
       type: String,
       default: "#1c1c1c",
     },
+    size: {
+      type: Number,
+      default: 36,
+    },
   },
   created() {},
   methods: {},
@@ -43,10 +48,19 @@ export default {
   align-items: center;
   flex-wrap: wrap;
   user-select: none;
+  line-height: 1;
 
   span {
     margin-left: 8px;
     color: #666;
   }
+}
+
+.logo-image {
+  flex-shrink: 0;
+}
+
+.logo-image :deep(.el-image__inner) {
+  object-fit: contain !important;
 }
 </style>

@@ -201,16 +201,17 @@ export default {
   flex-direction: column;
 
   .login-panel {
-    width: min(920px, 92vw);
+    width: min(1200px, 94vw);
+    min-height: min(760px, 92vh);
     height: auto;
-    padding: 18px;
+    padding: 20px;
     background-color: transparent;
     display: grid;
     grid-template-columns: 1.2fr 1fr;
-    gap: 16px;
+    gap: 22px;
 
     .welcome-panel {
-      border-radius: 18px;
+      border-radius: 28px;
       padding: 30px;
       background: linear-gradient(150deg, #8ecabf 0%, #7ec5a0 100%);
       color: #fff;
@@ -257,7 +258,7 @@ export default {
     }
 
     .form-panel {
-      border-radius: 18px;
+      border-radius: 28px;
       padding: 26px;
       background: rgba(255, 255, 255, 0.72);
       border: 1px solid rgba(126, 197, 160, 0.2);
@@ -382,9 +383,10 @@ export default {
 @media (max-width: 880px) {
   .login-container {
     .login-panel {
-      width: min(420px, 92vw);
+      width: 100%;
       grid-template-columns: 1fr;
-      padding: 14px;
+      min-height: auto;
+      padding: 16px;
     }
 
     .welcome-panel {
