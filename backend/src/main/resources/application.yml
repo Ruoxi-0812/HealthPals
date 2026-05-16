@@ -6,7 +6,9 @@ server:
 # API address prefix, which is used for interface interception and permit
 my-server:
   api-context-path: /api/personal-heath/v1.0
-#MySQL and file upload limit configuration
+# MySQL and file upload limit configuration
+# Database password is not committed: set SPRING_DATASOURCE_PASSWORD (required), or override in gitignored application-local.yml with profile "local".
+# Optional: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME (defaults below if unset).
 spring:
   servlet:
     multipart:
@@ -14,9 +16,9 @@ spring:
       max-request-size: 10MB
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/personal_health?characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
-    username: root
-    password: Wrx050812@
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/personal_health?characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 # Have Mybatis find the XML mapping file in the Mapper directory
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -25,5 +27,12 @@ google:
   oauth:
     client-id: ""
 
+# Health Q&A assistant (OpenAI-compatible Chat Completions). Set API key via environment—do not commit secrets.
+# Example: export APP_AI_API_KEY=sk-...
+app:
+  ai:
+    api-key: ${APP_AI_API_KEY:}
+    model: ${APP_AI_MODEL:gpt-4o-mini}
+    base-url: ${APP_AI_BASE_URL:https://api.openai.com/v1}
 
 

@@ -1,0 +1,66 @@
+-- Rename legacy pic filenames (Chinese suffix → English) in stored URLs.
+-- Run if your DB still references old names: mysql -u root -p personal_health < sql/update_pic_filenames.sql
+
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, '04d7bcf转氨酶.png', '04d7bcf-alt.png') WHERE `cover` LIKE '%04d7bcf转氨酶.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, '1cd680d步数.png', '1cd680d-steps.png') WHERE `cover` LIKE '%1cd680d步数.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, '851253d步数.png', '851253d-steps.png') WHERE `cover` LIKE '%851253d步数.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, '536807e血压.png', '536807e-blood-pressure.png') WHERE `cover` LIKE '%536807e血压.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, 'ec252b8血压.png', 'ec252b8-blood-pressure.png') WHERE `cover` LIKE '%ec252b8血压.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, '71743b6心率.png', '71743b6-heart-rate.png') WHERE `cover` LIKE '%71743b6心率.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, '8db294f心率.png', '8db294f-heart-rate.png') WHERE `cover` LIKE '%8db294f心率.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, 'ae7a515心率.png', 'ae7a515-heart-rate.png') WHERE `cover` LIKE '%ae7a515心率.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, 'b2888c7体重.png', 'b2888c7-weight.png') WHERE `cover` LIKE '%b2888c7体重.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, 'e7e18c5体重.png', 'e7e18c5-weight.png') WHERE `cover` LIKE '%e7e18c5体重.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, 'c501abd转氨酶.png', 'c501abd-alt.png') WHERE `cover` LIKE '%c501abd转氨酶.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, 'd661fd1转氨酶.png', 'd661fd1-alt.png') WHERE `cover` LIKE '%d661fd1转氨酶.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, 'c8379f0身高.png', 'c8379f0-height.png') WHERE `cover` LIKE '%c8379f0身高.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, '339da6f猫头鹰.png', '339da6f-owl.png') WHERE `cover` LIKE '%339da6f猫头鹰.png%';
+UPDATE `health_model_config` SET `cover` = REPLACE(`cover`, 'b716166静谧.png', 'b716166-serene.png') WHERE `cover` LIKE '%b716166静谧.png%';
+
+UPDATE `news` SET `cover` = REPLACE(`cover`, '04d7bcf转氨酶.png', '04d7bcf-alt.png') WHERE `cover` LIKE '%04d7bcf转氨酶.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, '1cd680d步数.png', '1cd680d-steps.png') WHERE `cover` LIKE '%1cd680d步数.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, '851253d步数.png', '851253d-steps.png') WHERE `cover` LIKE '%851253d步数.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, '536807e血压.png', '536807e-blood-pressure.png') WHERE `cover` LIKE '%536807e血压.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, 'ec252b8血压.png', 'ec252b8-blood-pressure.png') WHERE `cover` LIKE '%ec252b8血压.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, '71743b6心率.png', '71743b6-heart-rate.png') WHERE `cover` LIKE '%71743b6心率.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, '8db294f心率.png', '8db294f-heart-rate.png') WHERE `cover` LIKE '%8db294f心率.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, 'ae7a515心率.png', 'ae7a515-heart-rate.png') WHERE `cover` LIKE '%ae7a515心率.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, 'b2888c7体重.png', 'b2888c7-weight.png') WHERE `cover` LIKE '%b2888c7体重.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, 'e7e18c5体重.png', 'e7e18c5-weight.png') WHERE `cover` LIKE '%e7e18c5体重.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, 'c501abd转氨酶.png', 'c501abd-alt.png') WHERE `cover` LIKE '%c501abd转氨酶.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, 'd661fd1转氨酶.png', 'd661fd1-alt.png') WHERE `cover` LIKE '%d661fd1转氨酶.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, 'c8379f0身高.png', 'c8379f0-height.png') WHERE `cover` LIKE '%c8379f0身高.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, '339da6f猫头鹰.png', '339da6f-owl.png') WHERE `cover` LIKE '%339da6f猫头鹰.png%';
+UPDATE `news` SET `cover` = REPLACE(`cover`, 'b716166静谧.png', 'b716166-serene.png') WHERE `cover` LIKE '%b716166静谧.png%';
+
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, '04d7bcf转氨酶.png', '04d7bcf-alt.png') WHERE `user_avatar` LIKE '%04d7bcf转氨酶.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, '1cd680d步数.png', '1cd680d-steps.png') WHERE `user_avatar` LIKE '%1cd680d步数.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, '851253d步数.png', '851253d-steps.png') WHERE `user_avatar` LIKE '%851253d步数.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, '536807e血压.png', '536807e-blood-pressure.png') WHERE `user_avatar` LIKE '%536807e血压.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, 'ec252b8血压.png', 'ec252b8-blood-pressure.png') WHERE `user_avatar` LIKE '%ec252b8血压.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, '71743b6心率.png', '71743b6-heart-rate.png') WHERE `user_avatar` LIKE '%71743b6心率.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, '8db294f心率.png', '8db294f-heart-rate.png') WHERE `user_avatar` LIKE '%8db294f心率.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, 'ae7a515心率.png', 'ae7a515-heart-rate.png') WHERE `user_avatar` LIKE '%ae7a515心率.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, 'b2888c7体重.png', 'b2888c7-weight.png') WHERE `user_avatar` LIKE '%b2888c7体重.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, 'e7e18c5体重.png', 'e7e18c5-weight.png') WHERE `user_avatar` LIKE '%e7e18c5体重.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, 'c501abd转氨酶.png', 'c501abd-alt.png') WHERE `user_avatar` LIKE '%c501abd转氨酶.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, 'd661fd1转氨酶.png', 'd661fd1-alt.png') WHERE `user_avatar` LIKE '%d661fd1转氨酶.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, 'c8379f0身高.png', 'c8379f0-height.png') WHERE `user_avatar` LIKE '%c8379f0身高.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, '339da6f猫头鹰.png', '339da6f-owl.png') WHERE `user_avatar` LIKE '%339da6f猫头鹰.png%';
+UPDATE `user` SET `user_avatar` = REPLACE(`user_avatar`, 'b716166静谧.png', 'b716166-serene.png') WHERE `user_avatar` LIKE '%b716166静谧.png%';
+
+UPDATE `news` SET `content` = REPLACE(`content`, '04d7bcf转氨酶.png', '04d7bcf-alt.png') WHERE `content` LIKE '%04d7bcf转氨酶.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, '1cd680d步数.png', '1cd680d-steps.png') WHERE `content` LIKE '%1cd680d步数.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, '851253d步数.png', '851253d-steps.png') WHERE `content` LIKE '%851253d步数.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, '536807e血压.png', '536807e-blood-pressure.png') WHERE `content` LIKE '%536807e血压.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, 'ec252b8血压.png', 'ec252b8-blood-pressure.png') WHERE `content` LIKE '%ec252b8血压.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, '71743b6心率.png', '71743b6-heart-rate.png') WHERE `content` LIKE '%71743b6心率.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, '8db294f心率.png', '8db294f-heart-rate.png') WHERE `content` LIKE '%8db294f心率.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, 'ae7a515心率.png', 'ae7a515-heart-rate.png') WHERE `content` LIKE '%ae7a515心率.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, 'b2888c7体重.png', 'b2888c7-weight.png') WHERE `content` LIKE '%b2888c7体重.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, 'e7e18c5体重.png', 'e7e18c5-weight.png') WHERE `content` LIKE '%e7e18c5体重.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, 'c501abd转氨酶.png', 'c501abd-alt.png') WHERE `content` LIKE '%c501abd转氨酶.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, 'd661fd1转氨酶.png', 'd661fd1-alt.png') WHERE `content` LIKE '%d661fd1转氨酶.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, 'c8379f0身高.png', 'c8379f0-height.png') WHERE `content` LIKE '%c8379f0身高.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, '339da6f猫头鹰.png', '339da6f-owl.png') WHERE `content` LIKE '%339da6f猫头鹰.png%';
+UPDATE `news` SET `content` = REPLACE(`content`, 'b716166静谧.png', 'b716166-serene.png') WHERE `content` LIKE '%b716166静谧.png%';

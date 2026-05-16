@@ -26,8 +26,20 @@ export default {
       required: true,
     },
   },
-  mounted() {
-    this.onClick({ name: "全部", id: null });
+  watch: {
+    dataList: {
+      deep: true,
+      immediate: true,
+      handler(list) {
+        if (!list || !list.length) return;
+        const empty =
+          this.tagSelected &&
+          Object.keys(this.tagSelected).length === 0;
+        if (empty) {
+          this.onClick(list[0]);
+        }
+      },
+    },
   },
   methods: {
     onClick(tag) {
@@ -35,7 +47,7 @@ export default {
       this.$emit("on-click", tag);
     },
     all() {
-      this.$emit("on-click", { id: null, name: "全部" });
+      this.$emit("on-click", { id: null, name: "All" });
     },
   },
 };
@@ -45,7 +57,7 @@ export default {
 .tag-item {
   font-size: 13px;
   display: inline-block;
-  margin: 18px 10px 18px 0;
+  margin: 10px 10px 6px 0;
   padding: 7px 18px;
   cursor: pointer;
   user-select: none;

@@ -1,0 +1,63 @@
+# Local full stack: MySQL + Spring Boot + Vue (nginx)
+#
+# Usage:
+#   cp .env.example .env   # then edit passwords / optional APP_AI_API_KEY
+#   docker compose up --build
+#
+# App: http://localhost:8080  (nginx → API proxied to backend)
+# MySQL: localhost:3307
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ph-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: personal_health
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/personal_health.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'mysqladmin ping -h 127.0.0.1 -uroot -p"$$MYSQL_ROOT_PASSWORD" || exit 1',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ph-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "21090:21090"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/personal_health?characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      APP_AI_API_KEY: ${APP_AI_API_KEY:-}
+      APP_AI_MODEL: ${APP_AI_MODEL:-gpt-4o-mini}
+      APP_AI_BASE_URL: ${APP_AI_BASE_URL:-https://api.openai.com/v1}
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ph-frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  mysql_data:

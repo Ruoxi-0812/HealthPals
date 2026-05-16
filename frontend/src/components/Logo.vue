@@ -3,7 +3,7 @@
     <el-image
       class="logo-image"
       :style="{ width: `${size}px`, height: `${size}px` }"
-      src="/logo.png"
+      :src="logoSrc"
       fit="contain"
     ></el-image>
     <div v-if="!flag">
@@ -35,6 +35,12 @@ export default {
       default: 36,
     },
   },
+  computed: {
+    logoSrc() {
+      const base = process.env.BASE_URL || "/";
+      return `${base}logo.png`.replace(/([^:]\/)\/+/g, "$1");
+    },
+  },
   created() {},
   methods: {},
 };
@@ -42,7 +48,8 @@ export default {
 <style scoped lang="scss">
 .logo {
   color: rgb(8, 24, 16) !important;
-  font-weight: bold;
+  font-family: var(--nb-font-display);
+  font-weight: 700;
   font-size: 20px;
   display: flex;
   align-items: center;

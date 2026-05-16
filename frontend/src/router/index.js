@@ -1,11 +1,12 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import ElementUI from "element-ui";
+import locale from "element-ui/lib/locale/lang/en";
 import "element-ui/lib/theme-chalk/index.css";
 import { getToken } from "@/utils/storage.js";
 import echarts from "echarts";
 Vue.prototype.$echarts = echarts;
-Vue.use(ElementUI);
+Vue.use(ElementUI, { locale });
 Vue.use(VueRouter);
 
 const routes = [
@@ -100,6 +101,8 @@ const routes = [
     meta: {
       requireAuth: true,
     },
+    /* 直接打开 /user 时没有子路由匹配，主区域会为空白；默认进首页 */
+    redirect: "/news-record",
     children: [
       {
         name: "News home",
@@ -121,6 +124,14 @@ const routes = [
         name: "Health Data",
         path: "/user-health-model",
         component: () => import(`@/views/user/UserHealthModel.vue`),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
+        name: "Ask AI",
+        path: "/health-assistant",
+        component: () => import(`@/views/user/HealthAssistant.vue`),
         meta: {
           requireAuth: true,
         },

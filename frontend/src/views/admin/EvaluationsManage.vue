@@ -9,7 +9,7 @@
           style="width: 220px"
           v-model="searchTime"
           type="daterange"
-          range-separator="至"
+          range-separator="to"
           start-placeholder="Comments begin"
           end-placeholder="Comments end"
         >

@@ -42,7 +42,9 @@
           <span class="login-btn" @click="registerFunc">Sign Up Now</span>
         </div>
         <div class="oauth-wrap">
-          <span class="oauth-divider">or</span>
+          <div class="oauth-divider" role="separator">
+            <span class="oauth-divider__text">or</span>
+          </div>
           <button class="google-btn" @click="signUpWithGoogle">
             Continue with Google
           </button>
@@ -227,6 +229,7 @@ export default {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  font-family: var(--nb-font);
 
   .login-panel {
     width: min(1200px, 94vw);
@@ -261,6 +264,9 @@ export default {
         margin: 0;
         font-size: 34px;
         line-height: 1.2;
+        font-family: var(--nb-font-display);
+        letter-spacing: -0.02em;
+        font-weight: 600;
       }
 
       p {
@@ -287,13 +293,17 @@ export default {
 
     .form-panel {
       border-radius: 28px;
-      padding: 26px;
+      padding: 26px 26px 28px;
       background: rgba(255, 255, 255, 0.72);
       border: 1px solid rgba(126, 197, 160, 0.2);
       backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 0;
 
       .logo {
-        margin: 8px 0 26px 0;
+        margin: 0 0 22px 0;
       }
 
       .act,
@@ -305,17 +315,36 @@ export default {
         padding: 0 15px;
         background-color: var(--nb-paper);
         box-sizing: border-box;
-        border: 1px solid rgba(126, 197, 160, 0.45);
+        border: 2px solid rgba(126, 197, 160, 0.28);
         border-radius: 12px;
+        font-family: var(--nb-font);
         font-weight: 800;
         font-size: 18px;
         margin-top: 13px;
+        color: var(--nb-ink);
+        transition:
+          border-color 0.18s ease,
+          background-color 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+
+      .act::placeholder,
+      .pwd::placeholder {
+        color: #9eb6aa;
+        font-weight: 400;
+        font-size: 15px;
+        letter-spacing: 0.01em;
+        opacity: 1;
       }
 
       .act:focus,
       .pwd:focus {
         outline: none;
-        box-shadow: 0 0 0 4px rgba(126, 197, 160, 0.18);
+        border-color: #59a67c;
+        background-color: rgba(126, 197, 160, 0.2);
+        box-shadow:
+          0 0 0 4px rgba(126, 197, 160, 0.28),
+          0 1px 2px rgba(53, 92, 75, 0.06);
       }
     }
   }
@@ -329,9 +358,12 @@ export default {
     line-height: 43px;
     width: 100%;
     background-color: var(--nb-accent);
+    font-family: var(--nb-font);
     font-size: 14px !important;
     border: 1px solid rgba(126, 197, 160, 0.45);
-    box-shadow: var(--nb-shadow-sm);
+    box-shadow:
+      var(--nb-shadow-sm),
+      0 3px 0 rgba(53, 92, 75, 0.12);
     color: rgb(250, 250, 250);
     padding: 0 !important;
     cursor: pointer;
@@ -366,14 +398,19 @@ export default {
         margin-right: 3px;
       }
 
-      span {
-        color: #355247;
-        border-radius: 2px;
-        margin: 0 6px;
-      }
-      .no-act:hover {
-        color: #6fb892;
+      .no-act {
+        margin: 0 2px 0 6px;
+        color: #348060;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-thickness: 1px;
         cursor: pointer;
+        transition: color 0.15s ease;
+      }
+
+      .no-act:hover {
+        color: #25634a;
       }
     }
   }
@@ -383,11 +420,39 @@ export default {
   }
 
   .oauth-divider {
-    display: block;
-    text-align: center;
-    font-size: 12px;
-    color: #7a958a;
-    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 18px 0 12px;
+
+    &::before,
+    &::after {
+      content: "";
+      flex: 1;
+      min-width: 0;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        rgba(126, 197, 160, 0.08),
+        rgba(90, 120, 105, 0.42) 45%,
+        rgba(90, 120, 105, 0.42) 55%,
+        rgba(126, 197, 160, 0.08)
+      );
+    }
+  }
+
+  .oauth-divider__text {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    color: #5a7a6d;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(126, 197, 160, 0.4);
+    box-shadow: 0 1px 2px rgba(53, 92, 75, 0.06);
   }
 
   .google-btn {
@@ -397,6 +462,7 @@ export default {
     border: 1px solid rgba(126, 197, 160, 0.45);
     background: #ffffff;
     color: #355247;
+    font-family: var(--nb-font);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -415,6 +481,12 @@ export default {
       grid-template-columns: 1fr;
       min-height: auto;
       padding: 16px;
+    }
+
+    .form-panel {
+      justify-content: flex-start;
+      padding-top: 20px;
+      padding-bottom: 24px;
     }
 
     .welcome-panel {

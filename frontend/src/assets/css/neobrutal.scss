@@ -15,20 +15,54 @@
   --nb-shadow: 0 14px 36px rgba(53, 92, 75, 0.14);
   --nb-shadow-sm: 0 8px 20px rgba(53, 92, 75, 0.12);
   --nb-focus: 0 0 0 4px rgba(126, 197, 160, 0.25);
-  --nb-font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
-    "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  --nb-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji";
+  /* 标题 / 品牌：柔和衬线 + 可变 opsz，偏杂志感 */
+  --nb-font-display: "Fraunces", Georgia, "Times New Roman", serif;
 }
 
 html,
 body {
   height: 100%;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--nb-bg-soft);
 }
 
 body {
-  margin: 0;
   font-family: var(--nb-font);
   color: var(--nb-ink);
-  background: linear-gradient(180deg, var(--nb-bg-soft) 0%, var(--nb-bg) 100%);
+  background: var(--nb-bg-soft);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+/* 浏览器默认不给表单控件继承页面字体，全局改为继承（Login/Register 等） */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--nb-font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 /* Generic utilities (use in templates) */
@@ -60,10 +94,12 @@ body {
 
 .nb-title {
   letter-spacing: -0.02em;
+  font-family: var(--nb-font-display);
 }
 
 /* Element UI global restyle */
 .el-button {
+  font-family: var(--nb-font) !important;
   border: 1px solid rgba(126, 197, 160, 0.45) !important;
   border-radius: 14px !important;
   box-shadow: var(--nb-shadow-sm) !important;
@@ -96,6 +132,7 @@ body {
 
 .el-input__inner,
 .el-textarea__inner {
+  font-family: var(--nb-font) !important;
   border: 1px solid rgba(126, 197, 160, 0.35) !important;
   border-radius: 14px !important;
   background: #f3f6f4 !important;
@@ -120,6 +157,12 @@ body {
   padding: 18px 18px 0 18px !important;
 }
 
+.el-dialog__title {
+  font-family: var(--nb-font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
 .el-dialog__body {
   padding: 14px 18px 18px 18px !important;
 }
@@ -129,6 +172,7 @@ body {
 }
 
 .el-menu-item {
+  font-family: var(--nb-font) !important;
   border-radius: 14px !important;
   margin: 6px 0 !important;
   border: 1px solid transparent;
@@ -150,6 +194,7 @@ body {
 }
 
 .el-table th.el-table__cell {
+  font-family: var(--nb-font) !important;
   background: #eef8f2 !important;
   color: var(--nb-ink) !important;
   font-weight: 700 !important;

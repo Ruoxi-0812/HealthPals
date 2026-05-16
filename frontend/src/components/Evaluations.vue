@@ -1,332 +1,234 @@
 <template>
-  <div style="width: 100%">
-    <el-row style="margin: 5px 0">
-      <h2 class="commentHeader">comment&nbsp;{{ evaluationsCount }}</h2>
-      <el-row style="margin: 15px 0">
-        <el-col :span="2">
-          <el-avatar :src="userData.userAvatar"></el-avatar>
-        </el-col>
-        <el-col :span="22">
-          <div
-            class="parent-comment"
-            :style="{
-              backgroundColor: bgColor,
-              height: isFocused ? '120px' : '70px',
-              borderColor: isFocused ? '#007bff' : 'transparent',
-            }"
+  <div class="ev-comments">
+    <header class="ev-comments__head">
+      <h2 class="ev-comments__title">
+        Comments
+        <span class="ev-comments__count">{{ evaluationsCount }}</span>
+      </h2>
+      <p class="ev-comments__hint">Jump in—the water’s fine.</p>
+    </header>
+
+    <div class="ev-comments__composer">
+      <el-avatar class="ev-comments__avatar" :src="userData.userAvatar" />
+      <div class="ev-panel" :class="{ 'is-focused': isFocused }">
+        <textarea
+          v-model="content"
+          class="ev-panel__input"
+          placeholder="Share a quick thought… (keep it kind)"
+          rows="3"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
+        <div class="ev-panel__foot">
+          <span class="ev-panel__counter">{{ content.length }} / 300</span>
+          <el-button
+            type="primary"
+            size="small"
+            class="ev-panel__submit"
+            @click="commentClick"
           >
-            <textarea
-              class="comment-parent-input"
-              v-model="content"
-              placeholder="Please friendly communication"
-              @focus="onFocus"
-              @blur="onBlur"
-            ></textarea>
-            <div>
-              <span class="comment-input-number"
-                >{{ content.length }} / 300</span
-              >
-              <el-button
-                :style="{
-                  backgroundColor: isFocused ? '#007bff' : '#666',
-                  borderColor: isFocused ? '#007bff' : '#666',
-                }"
-                @click="commentClick"
-                class="comment-clike"
-                size="mini"
-                type="primary"
-                >Comment</el-button
-              >
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-    </el-row>
-    <el-row style="margin: 5px 0px">
-      <el-row
+            Post
+          </el-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ev-thread">
+      <div
         v-for="(comment, index) in commentList"
-        :key="index"
-        style="padding: 10px 0"
+        :key="'c-' + (comment.id || index)"
+        class="ev-comment"
       >
-        <el-row>
-          <el-col :span="2">
-            <el-avatar size="large" :src="comment.userAvatar"></el-avatar>
-          </el-col>
-          <el-col :span="22">
-            <span
-              style="
-                height: 40px;
-                line-height: 40px;
-                font-size: 16px;
-                color: #515767;
-              "
-              >{{ comment.userName }}</span
-            >
-            <span v-if="comment.userId == userId" class="my-body-tag"
-              >Myself</span
-            >
-          </el-col>
-        </el-row>
-        <el-row style="padding: 8px 0">
-          <el-col :span="22" :offset="2">
-            <span style="font-size: 16px; color: #252933">{{
-              comment.content
-            }}</span>
-          </el-col>
-        </el-row>
-        <el-row style="padding: 8px 0">
-          <el-col :span="22" :offset="2">
-            <span style="font-size: 14px; color: #8a919f">{{
-              comment.time
-            }}</span>
-            <el-popconfirm
-              confirm-button-text="OK"
-              cancel-button-text="Don not delete"
-              icon="el-icon-info"
-              icon-color="red"
-              title="Delete this comment?"
-              v-if="comment.userId == userId"
-              @confirm="deleteComment(comment)"
-            >
-              <span
-                slot="reference"
-                style="
-                  cursor: pointer;
-                  margin-left: 15px;
-                  font-size: 14px;
-                  color: #8a919f;
-                  user-select: none;
-                "
+        <div class="ev-comment__row">
+          <el-avatar class="ev-comment__avatar" size="large" :src="comment.userAvatar" />
+          <div class="ev-comment__main">
+            <div class="ev-comment__headline">
+              <span class="ev-comment__name">{{ comment.userName }}</span>
+              <span v-if="comment.userId == userId" class="ev-badge">You</span>
+            </div>
+            <p class="ev-comment__body">{{ comment.content }}</p>
+            <div class="ev-comment__actions">
+              <span class="ev-muted">{{ comment.time }}</span>
+              <el-popconfirm
+                v-if="comment.userId == userId"
+                confirm-button-text="OK"
+                cancel-button-text="Keep it"
+                icon="el-icon-info"
+                icon-color="red"
+                title="Delete this comment?"
+                @confirm="deleteComment(comment)"
               >
-                <i class="el-icon-delete"></i>
-                Delete
-              </span>
-            </el-popconfirm>
-            <span
-              @click="toggleReplyInput(comment)"
-              style="
-                cursor: pointer;
-                margin-left: 15px;
-                font-size: 14px;
-                color: #8a919f;
-                user-select: none;
-              "
-            >
-              <i class="el-icon-chat-dot-round"></i>
-              Reply<span v-if="comment.childTotal != 0"
-                >({{ comment.childTotal }})</span
+                <button slot="reference" type="button" class="ev-link">
+                  <i class="el-icon-delete" />
+                  Remove
+                </button>
+              </el-popconfirm>
+              <button
+                type="button"
+                class="ev-link"
+                @click="toggleReplyInput(comment)"
               >
-            </span>
-            <span
-              @click="upvote(comment)"
-              style="
-                cursor: pointer;
-                margin-left: 15px;
-                font-size: 14px;
-                color: #8a919f;
-                user-select: none;
-              "
-            >
-              <i class="el-icon-discount" v-if="!comment.upvoteFlag">Like</i>
-              <i class="el-icon-discount" v-else style="color: #1e80ff"
-                >&nbsp;{{ comment.upvoteCount }}</i
+                <i class="el-icon-chat-dot-round" />
+                Reply<span v-if="comment.childTotal"> · {{ comment.childTotal }}</span>
+              </button>
+              <button
+                type="button"
+                class="ev-link"
+                :class="{ 'is-on': comment.upvoteFlag }"
+                @click="upvote(comment)"
               >
-            </span>
-          </el-col>
-        </el-row>
-        <el-row v-if="comment.showReplyInput" style="padding: 10px 0">
-          <el-col :span="22" :offset="2">
-            <div
-              class="parent-comment"
-              :style="{
-                backgroundColor: bgColor,
-                height: '110px',
-                borderColor: '#007bff',
-              }"
-            >
-              <textarea
-                class="comment-parent-input"
-                v-model="replyContent"
-                :placeholder="replyText"
-              ></textarea>
-              <div>
-                <span class="comment-input-number"
-                  >{{ replyContent.length }} / 300</span
-                >
-                <el-button
-                  style="background-color: #007bff; user-select: none"
-                  @click="submitReply(comment)"
-                  class="comment-clike"
-                  size="mini"
-                  type="primary"
-                  >Comment</el-button
-                >
+                <i
+                  :class="
+                    comment.upvoteFlag ? 'el-icon-star-on' : 'el-icon-star-off'
+                  "
+                />
+                {{ comment.upvoteFlag && comment.upvoteCount ? comment.upvoteCount + " likes" : "Like" }}
+              </button>
+            </div>
+
+            <div v-if="comment.showReplyInput" class="ev-reply-box">
+              <div class="ev-panel is-nested is-open">
+                <textarea
+                  v-model="replyContent"
+                  class="ev-panel__input"
+                  rows="3"
+                  :placeholder="replyText"
+                />
+                <div class="ev-panel__foot">
+                  <span class="ev-panel__counter"
+                    >{{ replyContent.length }} / 300</span
+                  >
+                  <el-button
+                    type="primary"
+                    size="small"
+                    class="ev-panel__submit"
+                    @click="submitReply(comment)"
+                  >
+                    Reply
+                  </el-button>
+                </div>
               </div>
             </div>
-          </el-col>
-        </el-row>
-        <el-row
-          v-for="(commentChild, index) in comment.commentChildVOS"
-          :key="index"
-          style="padding: 10px 15px; font-size: 16px"
-        >
-          <el-row>
-            <el-col :span="22" :offset="2">
-              <el-row
-                style="display: flex; align-items: center; flex-wrap: wrap"
-              >
-                <el-avatar
-                  size="small"
-                  :src="commentChild.userAvatar"
-                  style="margin-right: 5px"
-                ></el-avatar>
-                <span style="color: #515767; padding: 0 5px">{{
-                  commentChild.userName
-                }}</span>
-                <span v-if="commentChild.userId == userId" class="my-body-tag"
-                  >Myself</span
-                >
-                <span
-                  v-if="commentChild.replierName != null"
-                  style="
-                    margin: 0 15px;
-                    color: #1c1c1c;
-                    user-select: none;
-                    font-size: 12px;
-                  "
-                >
-                  Reply
-                </span>
-                <el-avatar
-                  v-if="commentChild.replierName != null"
-                  size="small"
-                  :src="commentChild.replierAvatar"
-                  style="margin-right: 5px"
-                ></el-avatar>
-                <span
-                  v-if="commentChild.replierName != null"
-                  style="color: #515767; padding: 0 5px"
-                  >{{ commentChild.replierName }}</span
-                >
-                <span
-                  v-if="commentChild.replierId == userId"
-                  class="my-body-tag"
-                  >Myself</span
-                >
-                <span
-                  style="
-                    letter-spacing: 1px;
-                    font-size: 16px;
-                    color: #252933;
-                    white-space: normal;
-                    margin-left: 5px;
-                    padding: 6px 0;
-                  "
-                >
-                  : {{ commentChild.content }}
-                </span>
-              </el-row>
-              <el-row style="padding: 10px 0">
-                <span style="font-size: 14px; color: #8a919f">{{
-                  commentChild.time
-                }}</span>
-                <el-popconfirm
-                  confirm-button-text="OK"
-                  cancel-button-text="Do not Delete"
-                  icon="el-icon-info"
-                  icon-color="red"
-                  title="Delete this comment?"
-                  v-if="commentChild.userId == userId"
-                  @confirm="deleteComment(commentChild)"
-                >
-                  <span
-                    slot="reference"
-                    style="
-                      cursor: pointer;
-                      margin-left: 15px;
-                      font-size: 14px;
-                      color: #8a919f;
-                      user-select: none;
-                    "
+
+            <div
+              v-for="(commentChild, cidx) in comment.commentChildVOS || []"
+              :key="'r-' + (commentChild.id || cidx)"
+              class="ev-nested"
+            >
+              <div class="ev-nested__bar" aria-hidden="true" />
+              <div class="ev-nested__inner">
+                <div class="ev-comment__headline ev-comment__headline--compact">
+                  <el-avatar
+                    class="ev-comment__avatar-sm"
+                    size="small"
+                    :src="commentChild.userAvatar"
+                  />
+                  <span class="ev-comment__name">{{ commentChild.userName }}</span>
+                  <span v-if="commentChild.userId == userId" class="ev-badge"
+                    >You</span
                   >
-                    <i class="el-icon-delete"></i>
-                    Delete
-                  </span>
-                </el-popconfirm>
-                <span
-                  @click="toggleReplyInput1(commentChild)"
-                  style="
-                    cursor: pointer;
-                    margin-left: 15px;
-                    font-size: 14px;
-                    color: #8a919f;
-                    user-select: none;
-                  "
+                  <template v-if="commentChild.replierName != null">
+                    <span class="ev-reply-pill">
+                      <span class="ev-reply-pill__to">to</span>
+                      <el-avatar
+                        class="ev-comment__avatar-xs"
+                        size="small"
+                        :src="commentChild.replierAvatar"
+                      />
+                      <span class="ev-comment__name ev-comment__name--dim">{{
+                        commentChild.replierName
+                      }}</span>
+                      <span
+                        v-if="commentChild.replierId == userId"
+                        class="ev-badge ev-badge--ghost"
+                        >You</span
+                      >
+                    </span>
+                  </template>
+                </div>
+                <p class="ev-comment__body ev-comment__body--nested">
+                  {{ commentChild.content }}
+                </p>
+                <div class="ev-comment__actions">
+                  <span class="ev-muted">{{ commentChild.time }}</span>
+                  <el-popconfirm
+                    v-if="commentChild.userId == userId"
+                    confirm-button-text="OK"
+                    cancel-button-text="Keep it"
+                    icon="el-icon-info"
+                    icon-color="red"
+                    title="Delete this comment?"
+                    @confirm="deleteComment(commentChild)"
+                  >
+                    <button slot="reference" type="button" class="ev-link">
+                      <i class="el-icon-delete" />
+                      Remove
+                    </button>
+                  </el-popconfirm>
+                  <button
+                    type="button"
+                    class="ev-link"
+                    @click="toggleReplyInput1(commentChild)"
+                  >
+                    <i class="el-icon-chat-dot-round" />
+                    Reply
+                  </button>
+                  <button
+                    type="button"
+                    class="ev-link"
+                    :class="{ 'is-on': commentChild.upvoteFlag }"
+                    @click="upvote(commentChild)"
+                  >
+                    <i
+                      :class="
+                        commentChild.upvoteFlag
+                          ? 'el-icon-star-on'
+                          : 'el-icon-star-off'
+                      "
+                    />
+                    {{
+                      commentChild.upvoteFlag && commentChild.upvoteCount
+                        ? commentChild.upvoteCount + " likes"
+                        : "Like"
+                    }}
+                  </button>
+                </div>
+                <div
+                  v-if="commentChild.replyInputStatus"
+                  class="ev-reply-box ev-reply-box--tight"
                 >
-                  <i class="el-icon-chat-dot-round"></i>
-                  Reply
-                </span>
-                <span
-                  @click="upvote(commentChild)"
-                  style="
-                    cursor: pointer;
-                    margin-left: 15px;
-                    font-size: 14px;
-                    color: #8a919f;
-                    user-select: none;
-                  "
-                >
-                  <i class="el-icon-discount" v-if="!commentChild.upvoteFlag"
-                    >Like</i
-                  >
-                  <i class="el-icon-discount" v-else style="color: #1e80ff"
-                    >&nbsp;{{ commentChild.upvoteCount }}</i
-                  >
-                </span>
-              </el-row>
-              <el-row
-                v-if="commentChild.replyInputStatus"
-                style="padding: 10px 0"
-              >
-                <el-col :span="24">
-                  <div
-                    class="parent-comment"
-                    :style="{
-                      backgroundColor: bgColor,
-                      height: '110px',
-                      borderColor: '#007bff',
-                    }"
-                  >
+                  <div class="ev-panel is-nested is-open">
                     <textarea
-                      class="comment-parent-input"
                       v-model="replyChildContent"
+                      class="ev-panel__input"
+                      rows="3"
                       :placeholder="replyText"
-                    ></textarea>
-                    <div>
-                      <span class="comment-input-number"
+                    />
+                    <div class="ev-panel__foot">
+                      <span class="ev-panel__counter"
                         >{{ replyChildContent.length }} / 300</span
                       >
                       <el-button
-                        style="background-color: #007bff"
-                        @click="submitReply1(commentChild)"
-                        class="comment-clike"
-                        size="mini"
                         type="primary"
-                        >评论</el-button
+                        size="small"
+                        class="ev-panel__submit"
+                        @click="submitReply1(commentChild)"
                       >
+                        Reply
+                      </el-button>
                     </div>
                   </div>
-                </el-col>
-              </el-row>
-            </el-col>
-          </el-row>
-        </el-row>
-      </el-row>
-    </el-row>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <el-dialog
-      style="user-select: none; border-radius: 5px"
-      title="I want to report it."
+      class="ev-report-dialog"
+      title="Report this comment"
       :visible.sync="dialogVisibleReport"
       width="30%"
     >
@@ -392,7 +294,6 @@ export default {
       replyContent: "",
       id: null,
       isFocused: false,
-      bgColor: "rgb(245 245 245)",
       strLength: "0/300",
       replyText: "",
       userId: "",
@@ -424,8 +325,26 @@ export default {
   methods: {
     getUserInfo() {
       const userInfo = sessionStorage.getItem("userInfo");
-      this.userData = JSON.parse(userInfo);
-      this.userId = this.userData.id;
+      if (!userInfo) {
+        this.userData = {};
+        return;
+      }
+      try {
+        this.userData = JSON.parse(userInfo);
+        this.userId = this.userData.id;
+      } catch {
+        this.userData = {};
+      }
+    },
+
+    sanitizeCommentText(raw) {
+      if (raw == null) {
+        return "";
+      }
+      let s = String(raw);
+      s = s.replace(/\\'/g, "'");
+      s = s.replace(/\\"/g, '"');
+      return s;
     },
 
     upvote(comment) {
@@ -596,7 +515,7 @@ export default {
     },
 
     toggleReplyInput(comment) {
-      this.replyText = `Reply${comment.userName}...`;
+      this.replyText = `Say something to ${comment.userName}…`;
       if (comment.showReplyInput == null) {
         comment.showReplyInput = false;
       }
@@ -604,6 +523,7 @@ export default {
     },
 
     toggleReplyInput1(comment) {
+      this.replyText = `Quick reply to ${comment.userName}…`;
       if (comment.replyInputStatus == null) {
         comment.replyInputStatus = false;
       }
@@ -668,7 +588,7 @@ export default {
         .post(`evaluations/insert`, evaluationsDTO)
         .then((res) => {
           if (res.data.code == 200) {
-            this.content = "";
+            this.replyChildContent = "";
             comment.replyInputStatus = false;
             this.$swal.fire({
               title: "Reply operation",
@@ -707,11 +627,14 @@ export default {
             this.evaluationsCount = res.data.data.evaluationsCount;
 
             this.commentList.forEach((entity) => {
+              entity.content = this.sanitizeCommentText(entity.content);
               entity.time = timeAgo(entity.createTime);
-
-              entity.commentChildVOS.forEach(
-                (entity) => (entity.time = timeAgo(entity.createTime)),
-              );
+              const children = entity.commentChildVOS || [];
+              children.forEach((child) => {
+                child.content = this.sanitizeCommentText(child.content);
+                child.time = timeAgo(child.createTime);
+              });
+              entity.commentChildVOS = children;
             });
           }
         })
@@ -723,13 +646,336 @@ export default {
 };
 </script>
 <style lang="scss">
+$ev-accent: #2a9d6f;
+$ev-accent-dark: #248760;
+$ev-ink: #24332b;
+$ev-muted: rgba(36, 51, 43, 0.55);
+
+.ev-comments {
+  width: 100%;
+  font-family: var(--nb-font, system-ui, sans-serif);
+  color: $ev-ink;
+  user-select: none;
+}
+
+.ev-comments__head {
+  margin-bottom: 18px;
+}
+
+.ev-comments__title {
+  margin: 0;
+  font-family: var(--nb-font-display, Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: $ev-ink;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ev-comments__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  padding: 2px 10px;
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a5c4a;
+  background: rgba(42, 157, 111, 0.14);
+  border: 1px solid rgba(42, 157, 111, 0.28);
+  border-radius: 999px;
+}
+
+.ev-comments__hint {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: $ev-muted;
+  line-height: 1.45;
+}
+
+.ev-comments__composer {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.ev-comments__avatar {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.ev-panel {
+  flex: 1;
+  min-width: 0;
+  background: var(--nb-paper-2, #f3faf6);
+  border: 2px solid rgba(126, 197, 160, 0.28);
+  border-radius: 16px;
+  padding: 12px 14px 44px;
+  position: relative;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+
+  &.is-focused,
+  &.is-open {
+    border-color: rgba(42, 157, 111, 0.5);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(42, 157, 111, 0.14);
+  }
+
+  &.is-nested {
+    padding-bottom: 40px;
+  }
+}
+
+.ev-panel__input {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  margin: 0;
+  padding: 4px 2px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.55;
+  color: $ev-ink;
+  background: transparent;
+  user-select: text;
+
+  &::placeholder {
+    color: rgba(36, 51, 43, 0.38);
+  }
+}
+
+.ev-panel__foot {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ev-panel__counter {
+  font-size: 12px;
+  color: $ev-muted;
+}
+
+.ev-panel__submit.el-button {
+  border-radius: 999px;
+  font-weight: 600;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.ev-panel__submit.el-button--primary {
+  background: $ev-accent;
+  border-color: $ev-accent;
+
+  &:hover,
+  &:focus {
+    background: $ev-accent-dark;
+    border-color: $ev-accent-dark;
+  }
+}
+
+.ev-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.ev-comment__row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.ev-comment__avatar {
+  flex-shrink: 0;
+}
+
+.ev-comment__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ev-comment__headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-bottom: 6px;
+
+  &--compact {
+    margin-bottom: 4px;
+    align-items: center;
+  }
+}
+
+.ev-comment__avatar-sm {
+  flex-shrink: 0;
+}
+
+.ev-comment__avatar-xs :deep(img) {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.ev-comment__name {
+  font-weight: 650;
+  font-size: 15px;
+  color: #355247;
+
+  &--dim {
+    font-weight: 600;
+    color: rgba(53, 82, 71, 0.78);
+  }
+}
+
+.ev-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #1a5c4a;
+  background: rgba(42, 157, 111, 0.12);
+  border: 1px solid rgba(42, 157, 111, 0.25);
+
+  &--ghost {
+    background: rgba(42, 157, 111, 0.06);
+  }
+}
+
+.ev-reply-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 10px 4px 6px;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: rgba(126, 197, 160, 0.12);
+  border: 1px solid rgba(126, 197, 160, 0.28);
+
+  &__to {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $ev-muted;
+  }
+}
+
+.ev-comment__body {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(36, 51, 43, 0.94);
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+
+  &--nested {
+    margin-bottom: 10px;
+  }
+}
+
+.ev-comment__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.ev-muted {
+  font-size: 13px;
+  color: $ev-muted;
+}
+
+.ev-link {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5a7a6d;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.15s ease;
+
+  i {
+    font-size: 14px;
+  }
+
+  &:hover {
+    color: $ev-accent-dark;
+  }
+
+  &.is-on {
+    color: #1a5c4a;
+  }
+}
+
+.ev-reply-box {
+  margin: 14px 0 6px;
+
+  &--tight {
+    margin-top: 12px;
+  }
+}
+
+.ev-nested {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ev-nested__bar {
+  width: 3px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(42, 157, 111, 0.45),
+    rgba(126, 197, 160, 0.2)
+  );
+  align-self: stretch;
+  min-height: 48px;
+}
+
+.ev-nested__inner {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 4px;
+}
+
+.ev-report-dialog {
+  border-radius: 12px;
+}
+
 .cannel-btn,
 .yes-btn {
-  padding: 0px 15px 5px 15px;
+  padding: 0 15px 5px;
   font-size: 14px !important;
   margin: 0 10px;
-  border-radius: 3px;
+  border-radius: 8px;
   border: none;
+  cursor: pointer;
 }
 
 .cannel-btn {
@@ -749,69 +995,13 @@ export default {
   background-color: #66a8e1;
 }
 
-.commentHeader {
-  color: #252933;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 30px;
-}
-
-.comment-parent-input {
-  outline: none;
-  border: none;
-  background-color: rgb(245 245 245);
-  font-size: 16px;
-  padding: 6px;
-  width: 100%;
-  min-height: 60px;
-  overflow: auto;
-  resize: vertical;
-  user-select: none;
-  margin: 0 0 20px 0;
-  display: block;
-}
-
-.parent-comment {
-  padding: 6px 12px;
-  border-radius: 3px;
-  transition:
-    height 0.3s ease,
-    border-color 0.3s ease;
-  border: 1px solid transparent;
-  user-select: none;
-  position: relative;
-}
-
-.comment-input-number {
-  position: absolute;
-  left: 10px;
-  bottom: 5px;
-  padding: 0 6px;
-  font-size: 12px;
-  color: #666;
-}
-
-.comment-clike {
-  position: absolute;
-  right: 10px;
-  bottom: 5px;
-}
-
-.my-body-tag {
-  font-size: 12px;
-  padding: 3px 4px;
-  color: #1e80ff;
-  background-color: #eaf2ff;
-  margin-left: 5px;
-}
-
 .reportItem {
   display: inline-block;
   padding: 8px 22px;
   background-color: #f4f4f4;
   border: 1px solid #f4f4f4;
   margin: 5px 3px 5px 0;
-  border-radius: 3px;
+  border-radius: 8px;
   cursor: pointer;
   user-select: none;
 }

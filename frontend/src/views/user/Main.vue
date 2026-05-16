@@ -325,6 +325,7 @@ export default {
         // Store user information
         sessionStorage.setItem("userInfo", JSON.stringify(res.data.data));
         this.userInfo = {
+          id: userId,
           url: userAvatar,
           name: userName,
           role: userRole,
@@ -379,19 +380,38 @@ label {
 }
 
 .content-container {
-  padding: 10px 120px;
+  padding: 20px clamp(16px, 4vw, 96px) 40px;
   box-sizing: border-box;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 96px);
   overflow-x: hidden;
+}
+
+/* 整段顶栏与视口同宽；白底条放在容器上，避免子级略窄时露出 body 绿底 */
+.user-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 100%;
 }
 
 .menus-container {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(231, 246, 238, 0.88);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(126, 197, 160, 0.2);
+  flex-shrink: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(42, 157, 111, 0.12);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
 }
 
 .modelInput {

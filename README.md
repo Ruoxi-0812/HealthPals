@@ -1,122 +1,65 @@
 # HealthPals
 
-HealthPals is a personal health management web application with user/admin roles, health indicator tracking, health news, community interaction, and notifications.
+Full-stack personal health web app: user/admin roles, health records & charts, health news & community, notifications,and AI health Chat.
 
-This contains:
-- `frontend`: Vue 2.7 + Vue CLI 5 + Element UI
-- `backend`: Spring Boot 2.2 + MyBatis + MySQL
+**Stack:** Vue + Spring Boot + MyBatis + MySQL (`personal_health`)
 
-## Tech Stack
+## Features
 
-### Frontend
-- Vue 2.7
-- Vue Router 3
-- Vue CLI Service 5
-- Element UI
-- Axios
-- Sass
+- Register / login, profile, password
+- User & admin dashboards
+- Health indicators & ECharts
+- News, tags, comments, favorites
+- Messages / notifications
+- health assistant
 
-### Backend
-- Spring Boot 2.2.4
-- Spring MVC
-- MyBatis
-- MySQL
-- JWT
-
-### Database
-- MySQL (`personal_health`)
-
-## Key Features
-
-- User registration/login, profile update, password reset
-- Role-based pages (User/Admin)
-- Health indicator records and visualization
-- Health news browsing, tagging, comments, favorites
-- Message/notification center
-- Admin operations (users, news, health model configs)
-- Google one-click sign-in/sign-up (requires OAuth configuration)
-
-## Project Structure
-
-```text
-Personal-Health-Management-Web/
-├── frontend/   # Vue app
-├── backend/    # Spring Boot API
-└── README.md
-```
-
-## Environment Configuration
-
-### Frontend
-
-Create `frontend/.env.development`:
-
-```env
-VUE_APP_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
-```
-
-Reference template: `frontend/.env.example`
-
-### Backend
-
-Configure `backend/src/main/resources/application.yml`:
-
-- Database connection (`spring.datasource.*`)
-- Google OAuth client ID:
-
-```yml
-google:
-  oauth:
-    client-id: "your-google-oauth-client-id.apps.googleusercontent.com"
-```
-
-> Frontend and backend Google Client ID should be the same.
-
-## Run Locally
-
-### 1) Start MySQL
-
-Ensure database `personal_health` exists and credentials in `application.yml` are correct.
-
-### 2) Start Backend
+## Docker
 
 ```bash
-cd backend
-mvn spring-boot:run
+cp .env.example .env   # set MYSQL_ROOT_PASSWORD; optional APP_AI_API_KEY
+docker compose up --build
 ```
 
-Default API base URL:
+- App: http://localhost:8080  
+- API: http://localhost:21090/api/personal-heath/v1.0  
+- MySQL on host: `localhost:3307` (schema from `sql/personal_health.sql` on first run)
 
-`http://localhost:21090/api/personal-heath/v1.0`
+## Local dev
 
-Quick check:
+**Prerequisites:** Node, JDK, Maven, MySQL with DB imported:
 
 ```bash
-curl -i "http://localhost:21090/api/personal-heath/v1.0/user/auth"
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS personal_health CHARACTER SET utf8mb4;"
+mysql -u root -p personal_health < sql/personal_health.sql
 ```
 
-### 3) Start Frontend
+**Backend**
 
 ```bash
-cd frontend
-npm install
-npm run dev
+export SPRING_DATASOURCE_PASSWORD='your-mysql-password'
+cd backend && mvn spring-boot:run
 ```
 
-Open the local URL printed by Vue CLI (commonly `http://localhost:21092`).
-
-## Build Commands
-
-### Frontend
+**Frontend**
 
 ```bash
-cd frontend
-npm run build
+cd frontend && npm install && npm run dev
 ```
 
-### Backend
+Open http://localhost:21091 (proxies `/api` → backend).
+
+**Optional env**
+
+| Variable | Where |
+|----------|--------|
+| `SPRING_DATASOURCE_PASSWORD` | Backend (required locally) |
+| `APP_AI_API_KEY` | Backend — health assistant |
+| `VUE_APP_GOOGLE_CLIENT_ID` | `frontend/.env.development` — see `.env.example` |
+| `google.oauth.client-id` | `backend/.../application.yml` |
+
+## Build
 
 ```bash
-cd backend
-mvn package -DskipTests
+cd frontend && npm run build
+cd backend && mvn package -DskipTests
 ```

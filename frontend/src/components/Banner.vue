@@ -6,21 +6,21 @@
       style="min-height: 218px; max-height: 308px"
       :style="{ width: width, borderRadius: borderRadius }"
     />
-    <h3 class="tip-name">
-      <div @click="onClick" style="font-size: 12px">{{ activeData.name }}</div>
+    <div class="tip-name" role="button" tabindex="0" @click="onClick" @keydown.enter.prevent="onClick">
+      <p class="banner-title">{{ activeData.name }}</p>
       <div class="point-container">
         <span
-          :style="{
-            backgroundColor: index === indexPoint ? 'rgb(254, 244, 203)' : '',
-            height: index === indexPoint ? '15px' : '10px',
-            width: index === indexPoint ? '30px' : '20px',
-          }"
           v-for="(point, indexPoint) in data"
-          :key="index"
+          :key="indexPoint"
+          :style="{
+            backgroundColor: indexPoint === index ? 'rgb(254, 244, 203)' : '',
+            height: indexPoint === index ? '15px' : '10px',
+            width: indexPoint === index ? '30px' : '20px',
+          }"
         >
         </span>
       </div>
-    </h3>
+    </div>
   </div>
 </template>
 
@@ -47,8 +47,17 @@ export default {
   },
   watch: {
     data: {
-      handler(v1, v2) {
+      handler() {
+        if (!this.data || !this.data.length) {
+          this.activeData = {};
+          if (this.timerId != null) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+          }
+          return;
+        }
         this.activeData = { ...this.data[0] };
+        this.index = 0;
         this.config();
       },
       deep: true,
@@ -59,16 +68,28 @@ export default {
     return {
       activeData: {},
       index: 0,
+      timerId: null,
     };
   },
+  beforeDestroy() {
+    if (this.timerId != null) {
+      clearInterval(this.timerId);
+    }
+  },
   methods: {
-    onClick(data) {
+    onClick() {
       this.$emit("on-click", this.activeData);
     },
     config() {
-      setInterval(() => {
-        this.index = this.index >= this.data.length ? 0 : this.index;
-        this.activeData = this.data[this.index++];
+      if (this.timerId != null) {
+        clearInterval(this.timerId);
+      }
+      if (!this.data || this.data.length === 0) {
+        return;
+      }
+      this.timerId = setInterval(() => {
+        this.index = (this.index + 1) % this.data.length;
+        this.activeData = { ...this.data[this.index] };
       }, this.time);
     },
   },
@@ -79,7 +100,7 @@ export default {
 .tip-name {
   text-align: center;
   width: calc(100% - 18px);
-  padding: 10px 0 12px 0;
+  padding: 12px 18px 14px;
   color: #2d453c;
   margin: 0;
   border-radius: 14px;
@@ -89,6 +110,30 @@ export default {
   bottom: 9px;
   left: 9px;
   backdrop-filter: blur(4px);
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(42, 157, 111, 0.55);
+    outline-offset: 2px;
+  }
+}
+
+.banner-title {
+  margin: 0;
+  font-family: var(--nb-font-display, Georgia, "Times New Roman", serif);
+  font-size: clamp(1.05rem, 2.35vw + 0.65rem, 1.85rem);
+  font-weight: 600;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 
 .point-container {
@@ -96,7 +141,7 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 
   span {
     width: 20px;
@@ -112,6 +157,7 @@ export default {
 
 .banner-wrap {
   position: relative;
+  width: 100%;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 14px 36px rgba(53, 92, 75, 0.14);
@@ -119,6 +165,7 @@ export default {
 
 .banner-image {
   display: block;
+  width: 100%;
   object-fit: cover;
 }
 </style>

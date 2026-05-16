@@ -81,7 +81,7 @@
 .el-table thead tr th {
   color: rgb(162, 147, 147) !important;
   font-weight: 400;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-family: var(--nb-font) !important;
   background-color: rgb(255,255,255) !important;
   text-align: left !important;
 }
@@ -110,7 +110,7 @@
 
 .el-table th>.cell {
   padding-left: 15px !important;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-family: var(--nb-font) !important;
 }
 
 .el-table__row .cell {

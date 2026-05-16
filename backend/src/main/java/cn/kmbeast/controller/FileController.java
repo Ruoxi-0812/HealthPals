@@ -32,8 +32,7 @@ public class FileController {
      */
     @PostMapping("/upload")
     public Map<String, Object> uploadFile(@RequestParam("file") MultipartFile multipartFile) {
-        String uuid = IdFactoryUtil.getFileId();
-        String fileName = uuid + multipartFile.getOriginalFilename();
+        String fileName = buildStoredFileName(multipartFile);
         Map<String, Object> rep = new HashMap<>();
         try {
             if (uploadFile(multipartFile, fileName)) {
@@ -59,8 +58,7 @@ public class FileController {
      */
     @PostMapping("/video/upload")
     public Map<String, Object> videoUpload(@RequestParam("file") MultipartFile multipartFile) {
-        String uuid = IdFactoryUtil.getFileId();
-        String fileName = uuid + multipartFile.getOriginalFilename();
+        String fileName = buildStoredFileName(multipartFile);
         Map<String, Object> rep = new HashMap<>();
 
         try {
@@ -89,6 +87,60 @@ public class FileController {
      */
     public boolean uploadFile(MultipartFile multipartFile, String fileName) throws IOException {
         return fileName(multipartFile, fileName);
+    }
+
+    /**
+     * Stored name: {@code <id>-<ascii-slug>.<ext>} (no non-ASCII in filename).
+     */
+    static String buildStoredFileName(MultipartFile multipartFile) {
+        String original = multipartFile.getOriginalFilename();
+        String ext = safeExtension(original);
+        String slug = asciiSlug(baseName(original));
+        if (slug.isEmpty()) {
+            slug = "file";
+        }
+        return IdFactoryUtil.getFileId() + "-" + slug + ext;
+    }
+
+    private static String baseName(String original) {
+        if (original == null || original.isEmpty()) {
+            return "";
+        }
+        String name = original.replace("\\", "/");
+        int slash = name.lastIndexOf('/');
+        if (slash >= 0) {
+            name = name.substring(slash + 1);
+        }
+        int dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
+    }
+
+    private static String safeExtension(String original) {
+        if (original == null) {
+            return ".bin";
+        }
+        int dot = original.lastIndexOf('.');
+        if (dot < 0 || dot == original.length() - 1) {
+            return ".bin";
+        }
+        String ext = original.substring(dot).toLowerCase();
+        if (ext.matches("\\.(png|jpe?g|gif|webp|bmp|svg|mp4|webm|pdf)")) {
+            return ext;
+        }
+        return ".bin";
+    }
+
+    private static String asciiSlug(String name) {
+        if (name == null || name.isEmpty()) {
+            return "";
+        }
+        String slug = name.toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-+|-+$", "");
+        if (slug.length() > 48) {
+            slug = slug.substring(0, 48);
+        }
+        return slug;
     }
 
     public static boolean fileName(MultipartFile multipartFile, String fileName) throws IOException {
