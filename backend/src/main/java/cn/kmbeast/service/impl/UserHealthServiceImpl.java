@@ -100,8 +100,49 @@ public class UserHealthServiceImpl implements UserHealthService {
         message.setCreateTime(LocalDateTime.now());
         message.setIsRead(IsReadEnum.READ_NO.getStatus());
         message.setReceiverId(LocalThreadHolder.getUserId());
-        message.setContent("What you recorded【" + healthModelConfig.getName() + "】out of limit，range of normal value:[" + healthModelConfig.getValueRange() + "]，Please pay attention to rest. Seek medical attention if necessary!");
+        message.setContent(buildOutOfRangeMessage(healthModelConfig, userHealth));
         return message;
+    }
+
+    private String buildOutOfRangeMessage(HealthModelConfig config, UserHealth record) {
+        String name = config.getName() != null ? config.getName() : "metric";
+        String range = formatValueRange(config.getValueRange(), config.getUnit());
+        String recorded = record.getValue() != null ? record.getValue().trim() : "—";
+        String unitSuffix = unitSuffix(config.getUnit());
+        return String.format(
+                "Your %s reading (%s%s) is outside the expected range (%s). "
+                        + "Please rest and keep tracking how you feel. "
+                        + "Contact a healthcare professional if you have concerns.",
+                name,
+                recorded,
+                unitSuffix,
+                range);
+    }
+
+    private String formatValueRange(String valueRange, String unit) {
+        if (valueRange == null || valueRange.trim().isEmpty()) {
+            return "not set";
+        }
+        String[] parts = valueRange.split(",");
+        if (parts.length >= 2) {
+            String min = parts[0].trim();
+            String max = parts[1].trim();
+            String unitLabel = unitLabel(unit);
+            return min + "–" + max + unitLabel;
+        }
+        return valueRange.trim() + unitLabel(unit);
+    }
+
+    private String unitLabel(String unit) {
+        if (unit == null || unit.trim().isEmpty() || "none".equalsIgnoreCase(unit.trim())) {
+            return "";
+        }
+        return " " + unit.trim();
+    }
+
+    private String unitSuffix(String unit) {
+        String label = unitLabel(unit);
+        return label.isEmpty() ? "" : label;
     }
 
     /**

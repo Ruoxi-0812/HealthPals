@@ -10,130 +10,138 @@
     </div>
     <div class="content-container">
       <!-- Router Outlet -->
-      <router-view class="route-container"></router-view>
+      <keep-alive include="HomePage">
+        <router-view class="route-container" />
+      </keep-alive>
     </div>
     <!-- Personal Center Dialog -->
-    <el-dialog :show-close="false" :visible.sync="dialogOperaion" width="30%">
-      <div slot="title" style="padding: 25px 0 0 20px">
-        <span style="font-size: 18px; font-weight: 800">Personal Center</span>
+    <el-dialog
+      custom-class="hp-dialog"
+      :show-close="true"
+      :visible.sync="dialogOperaion"
+      width="440px"
+      append-to-body
+    >
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Profile</span>
+        <h2 class="hp-dialog__title">Personal center</h2>
       </div>
-      <el-row style="padding: 10px 20px 20px 20px">
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0; margin-bottom: 10px">
-            <span class="modelName">*Avatar</span>
-          </p>
+      <div class="hp-dialog__body">
+        <label class="hp-field">
+          <span class="hp-field__label">Avatar</span>
           <el-upload
-            class="avatar-uploader"
+            class="hp-dialog__avatar-uploader avatar-uploader"
             action="/api/personal-heath/v1.0/file/upload"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
           >
-            <img v-if="data.url" :src="data.url" class="avatar" />
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <img v-if="data.url" :src="data.url" class="hp-dialog__avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
-        </el-row>
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Username</span>
-          </p>
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">Username</span>
           <input
-            class="modelInput"
-            type="text"
             v-model="data.name"
-            placeholder="Username"
-          />
-        </el-row>
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Email</span>
-          </p>
-          <input
-            class="modelInput"
+            class="hp-field__input"
             type="text"
-            v-model="data.email"
-            placeholder="Email"
+            placeholder="Your display name"
+            autocomplete="username"
           />
-        </el-row>
-      </el-row>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">Email</span>
+          <input
+            v-model="data.email"
+            class="hp-field__input"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
+        </label>
+      </div>
+      <div slot="footer" class="hp-dialog__footer">
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--ghost"
           @click="dialogOperaion = false"
-          >Cancel</el-button
         >
-        <el-button
-          size="small"
-          style="background-color: #15559a; border: none"
-          class="customer"
-          type="info"
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
           @click="updateUserInfo"
-          >Update</el-button
         >
-      </span>
+          Save changes
+        </button>
+      </div>
     </el-dialog>
     <!-- Reset Password -->
     <el-dialog
-      :show-close="false"
+      custom-class="hp-dialog"
+      :show-close="true"
       :visible.sync="dialogRetPwdOperaion"
-      width="26%"
+      width="440px"
+      append-to-body
+      :close-on-click-modal="false"
+      @open="onResetPwdOpen"
     >
-      <div slot="title" style="padding: 25px 0 0 20px">
-        <span style="font-size: 18px; font-weight: 800">Reset Password</span>
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Security</span>
+        <h2 class="hp-dialog__title">Reset password</h2>
+        <p class="hp-dialog__hint">
+          You’ll sign in again after your password is updated.
+        </p>
       </div>
-      <el-row style="padding: 10px 20px 20px 20px">
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0; margin-bottom: 10px">
-            <span class="modelName">*Old Password</span>
-          </p>
+      <div class="hp-dialog__body">
+        <label class="hp-field">
+          <span class="hp-field__label">Current password</span>
           <input
-            class="modelInput"
-            type="password"
             v-model="pwdEntity.oldPwd"
-            placeholder="Old Password"
-          />
-        </el-row>
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0; margin-bottom: 10px">
-            <span class="modelName">*New Password</span>
-          </p>
-          <input
-            class="modelInput"
+            class="hp-field__input"
             type="password"
+            placeholder="Enter current password"
+            autocomplete="current-password"
+          />
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">New password</span>
+          <input
             v-model="pwdEntity.newPwd"
-            placeholder="New Password"
-          />
-        </el-row>
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0; margin-bottom: 10px">
-            <span class="modelName">*Confirm Password</span>
-          </p>
-          <input
-            class="modelInput"
+            class="hp-field__input"
             type="password"
-            v-model="pwdEntity.againPwd"
-            placeholder="Confirm Password"
+            placeholder="At least 6 characters"
+            autocomplete="new-password"
           />
-        </el-row>
-      </el-row>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">Confirm new password</span>
+          <input
+            v-model="pwdEntity.againPwd"
+            class="hp-field__input"
+            type="password"
+            placeholder="Re-enter new password"
+            autocomplete="new-password"
+          />
+        </label>
+      </div>
+      <div slot="footer" class="hp-dialog__footer">
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--ghost"
           @click="dialogRetPwdOperaion = false"
-          >Cancel</el-button
         >
-        <el-button
-          size="small"
-          style="background-color: #15559a; border: none"
-          class="customer"
-          type="info"
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
           @click="updateUserPwd"
-          >Update</el-button
         >
-      </span>
+          Update password
+        </button>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -182,6 +190,9 @@ export default {
         console.log("Indicator already added");
       }
     },
+    onResetPwdOpen() {
+      this.pwdEntity = { oldPwd: "", newPwd: "", againPwd: "" };
+    },
     updateUserPwd() {
       this.resetPwd();
     },
@@ -197,21 +208,19 @@ export default {
         if (data.code === 200) {
           this.dialogOperaion = false;
           this.tokenCheckLoad();
-          this.$swal.fire({
-            title: "Update Personal Info",
+          this.$swalToast({
+            title: "Profile updated",
             text: data.msg,
             icon: "success",
-            showConfirmButton: false,
             timer: 1000,
           });
         }
       } catch (e) {
         this.dialogOperaion = false;
-        this.$swal.fire({
-          title: "Error updating personal information",
-          text: e,
+        this.$swalToast({
+          title: "Update failed",
+          text: String(e),
           icon: "error",
-          showConfirmButton: false,
           timer: 2000,
         });
         console.error(`Error updating personal information: ${e}`);
@@ -236,11 +245,10 @@ export default {
         const { data } = response;
         if (data.code === 200) {
           this.dialogRetPwdOperaion = false;
-          this.$swal.fire({
-            title: "Password Updated",
+          this.$swalToast({
+            title: "Password updated",
             text: data.msg,
             icon: "success",
-            showConfirmButton: false,
             timer: 1000,
           });
           setTimeout(() => {
@@ -293,13 +301,8 @@ export default {
       }
     },
     async loginOutOperation() {
-      const confirmed = await this.$swalConfirm({
-        title: "Log Out",
-        text: `After logging out, you will need to log in again to use the system features!`,
-        icon: "warning",
-      });
+      const confirmed = await this.$swalLogout();
       if (confirmed) {
-        // Clear Token and redirect to login page
         clearToken();
         this.$router.push("/login");
       }
@@ -414,16 +417,4 @@ label {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
 }
 
-.modelInput {
-  outline: none;
-  border: none;
-  font-size: 22px;
-  width: 60%;
-  font-weight: 800;
-}
-
-.avatar {
-  width: 88px;
-  height: 88px;
-}
 </style>

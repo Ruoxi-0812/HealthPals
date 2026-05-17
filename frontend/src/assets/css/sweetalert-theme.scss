@@ -1,0 +1,180 @@
+/* HealthPals — SweetAlert2 theme (matches neobrutal wellness UI) */
+
+.hp-swal.swal2-container {
+  z-index: 10050;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.hp-swal.swal2-container.swal2-backdrop-show {
+  background: rgba(36, 51, 43, 0.32);
+}
+
+.hp-swal__popup.swal2-popup {
+  width: min(420px, calc(100vw - 32px));
+  padding: 28px 26px 22px;
+  border-radius: var(--nb-radius, 22px);
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  background: var(--nb-paper, #fff);
+  box-shadow: var(--nb-shadow, 0 14px 36px rgba(53, 92, 75, 0.14));
+  font-family: var(--nb-font, system-ui, sans-serif);
+  color: var(--nb-ink, #24332b);
+}
+
+.hp-swal__title.swal2-title {
+  margin: 0 0 8px;
+  padding: 0;
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--nb-ink, #24332b);
+}
+
+.hp-swal__text.swal2-html-container {
+  margin: 0;
+  padding: 0 4px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--nb-muted, rgba(36, 51, 43, 0.62));
+  font-weight: 500;
+}
+
+.hp-swal__icon.swal2-icon {
+  margin: 4px auto 18px;
+  transform: scale(0.92);
+}
+
+.hp-swal__icon.swal2-warning {
+  border-color: #e8c47a;
+  color: #c98a2e;
+}
+
+.hp-swal__icon.swal2-error {
+  border-color: #f0a8a8;
+  color: var(--nb-danger, #ef7b7b);
+}
+
+.hp-swal__icon.swal2-success {
+  border-color: #9fd4b8;
+  color: #3d8f66;
+}
+
+.hp-swal__icon.swal2-info,
+.hp-swal__icon.swal2-question {
+  border-color: #9fd4b8;
+  color: #4a9d72;
+}
+
+.hp-swal__actions.swal2-actions {
+  margin: 22px 0 0;
+  gap: 10px;
+  width: 100%;
+  flex-wrap: nowrap;
+  justify-content: stretch;
+  padding: 0 2px;
+}
+
+.hp-swal__actions .hp-swal__btn {
+  flex: 1 1 0;
+  max-width: none;
+}
+
+.hp-swal__btn {
+  margin: 0 !important;
+  min-width: 108px;
+  padding: 10px 20px !important;
+  border-radius: 12px !important;
+  font-family: var(--nb-font, system-ui, sans-serif) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  box-shadow: none !important;
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.hp-swal__btn:focus {
+  outline: none;
+  box-shadow: var(--nb-focus, 0 0 0 4px rgba(126, 197, 160, 0.25)) !important;
+}
+
+.hp-swal__btn--primary {
+  background: var(--nb-accent, #7ec5a0) !important;
+  color: #fff !important;
+  border: 1px solid rgba(126, 197, 160, 0.45) !important;
+  box-shadow: var(--nb-shadow-sm, 0 8px 20px rgba(53, 92, 75, 0.12)) !important;
+}
+
+.hp-swal__btn--primary:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+}
+
+.hp-swal__btn--ghost {
+  background: var(--nb-paper-2, #f3faf6) !important;
+  color: var(--nb-ink, #24332b) !important;
+  border: 1px solid rgba(126, 197, 160, 0.35) !important;
+}
+
+.hp-swal__btn--ghost:hover {
+  background: #e8f5ee !important;
+}
+
+.hp-swal__btn--danger {
+  background: var(--nb-danger, #ef7b7b) !important;
+  color: #fff !important;
+  border: 1px solid rgba(239, 123, 123, 0.5) !important;
+}
+
+.hp-swal__input.swal2-input,
+.hp-swal__textarea.swal2-textarea {
+  margin: 14px auto 0;
+  width: calc(100% - 8px);
+  max-width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(126, 197, 160, 0.45);
+  background: var(--nb-paper, #fff);
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nb-ink, #24332b);
+  box-shadow: none;
+}
+
+.hp-swal__input:focus,
+.hp-swal__textarea:focus {
+  border-color: var(--nb-accent, #7ec5a0);
+  box-shadow: var(--nb-focus, 0 0 0 4px rgba(126, 197, 160, 0.25));
+}
+
+.hp-swal__validation.swal2-validation-message {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fff5f5;
+  color: #b44;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Auto-close alerts (register success, login error, etc.) */
+.hp-swal__popup.swal2-popup:not(.swal2-toast) {
+  .swal2-actions {
+    display: none;
+  }
+}
+
+.hp-swal .swal2-timer-progress-bar {
+  background: var(--nb-accent, #7ec5a0);
+}
+
+.hp-swal__popup.swal2-popup.swal2-toast {
+  padding: 14px 18px;
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  box-shadow: var(--nb-shadow-sm, 0 8px 20px rgba(53, 92, 75, 0.12));
+}

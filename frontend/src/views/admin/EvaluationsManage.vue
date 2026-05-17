@@ -1,9 +1,7 @@
 <template>
-  <el-row
-    style="background-color: #ffffff; padding: 10px 0; border-radius: 5px"
-  >
-    <el-row style="padding: 10px; margin: 0 10px">
-      <el-row>
+  <div class="admin-page">
+    <div class="admin-page__toolbar">
+      <div class="admin-toolbar-row">
         <el-date-picker
           size="small"
           style="width: 220px"
@@ -16,7 +14,7 @@
         </el-date-picker>
         <el-input
           size="small"
-          style="width: 188px; margin-left: 5px; margin-right: 6px"
+          class="admin-filter-input"
           v-model="evalustionsQueryDto.content"
           placeholder="Comments content"
           clearable
@@ -28,9 +26,10 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
-      </el-row>
-    </el-row>
-    <el-row style="margin: 0 20px; border-top: 1px solid rgb(245, 245, 245)">
+      </div>
+    </div>
+
+    <div class="admin-page__body">
       <el-table
         row-key="id"
         @selection-change="handleSelectionChange"
@@ -83,13 +82,11 @@
           <template slot-scope="scope">
             <i
               v-if="scope.row.parentId === null"
-              style="margin-right: 5px"
-              class="el-icon-warning"
+              class="el-icon-warning admin-status-ic"
             ></i>
             <i
               v-else
-              style="margin-right: 5px; color: rgb(253, 199, 50)"
-              class="el-icon-success"
+              class="el-icon-success admin-status-ic admin-status-ic--ok"
             ></i>
             <span
               v-if="scope.row.parentId === null"
@@ -107,8 +104,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        style="margin: 10px 0"
+      <el-pagination class="admin-pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="currentPage"
@@ -117,52 +113,35 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </el-row>
+    </div>
     <el-dialog
-      title=""
-      :show-close="false"
+      custom-class="hp-dialog admin-dialog-wide"
+      :show-close="true"
+      append-to-body
       :visible.sync="reportDialog"
-      width="35%"
+      width="640px"
     >
-      <div slot="title" style="padding: 25px 0 0 20px">
-        <span style="font-size: 18px; font-weight: 800">Reporting details</span>
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Comments</span>
+        <h2 class="hp-dialog__title">Report details</h2>
       </div>
-      <el-row style="padding: 10px 20px 20px 20px">
-        <el-col :span="12">
-          <PieChart :types="types" :values="values" />
-        </el-col>
-        <el-col :span="12">
-          <el-row class="main">
-            <div v-if="!reportsDate.length">
-              <span class="count">No data available</span>
+      <div class="hp-dialog__body admin-report-grid">
+        <PieChart :types="types" :values="values" />
+        <div>
+          <p v-if="!reportsDate.length" class="admin-dashboard__empty">No data available</p>
+          <div v-else class="admin-form-stack" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+            <div v-for="(entity, index) in reportsDate" :key="index" class="admin-report-stat">
+              <div class="admin-report-stat__count">{{ entity.count }}</div>
+              <div class="admin-report-stat__name">{{ entity.name }}</div>
             </div>
-            <el-col
-              :span="6"
-              class="item"
-              v-for="(entity, index) in reportsDate"
-              :key="index"
-            >
-              <div class="count" style="margin-top: 20px">
-                <span>
-                  {{ entity.count }}
-                </span>
-              </div>
-              <div>{{ entity.name }}</div>
-            </el-col>
-          </el-row>
-        </el-col>
-      </el-row>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
-          @click="reportDialog = false"
-          >Cancel</el-button
-        >
-      </span>
+          </div>
+        </div>
+      </div>
+      <div slot="footer" class="hp-dialog__footer">
+        <button type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="reportDialog = false">Close</button>
+      </div>
     </el-dialog>
-  </el-row>
+  </div>
 </template>
 
 <script>
@@ -313,6 +292,8 @@ export default {
         title: "Delete comment data",
         text: `Deleted unrecoverable, do you continue?`,
         icon: "warning",
+        danger: true,
+        confirmButtonText: "Delete",
       });
       if (confirmed) {
         try {

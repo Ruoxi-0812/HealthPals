@@ -1,49 +1,43 @@
 <template>
-  <div class="main">
-    <span>
-      <span class="operation-span" @click="operation">
-        <i v-if="!showFlag" class="el-icon-s-fold i-folder"></i>
-        <i v-else class="el-icon-s-unfold i-folder"></i>
-      </span>
-    </span>
-    <span>
-      <span class="operation-span-tag">
-        backstage&nbsp;&nbsp;/&nbsp;&nbsp;{{ tag == "" ? "metadata" : tag }}
-      </span>
-    </span>
-    <span class="user-block">
-      <el-dropdown class="user-dropdown">
-        <span
-          class="el-dropdown-link"
-          style="display: flex; align-items: center"
+  <div class="admin-header">
+    <button
+      type="button"
+      class="admin-header__toggle"
+      :aria-label="showFlag ? 'Expand sidebar' : 'Collapse sidebar'"
+      @click="operation"
+    >
+      <i :class="showFlag ? 'el-icon-s-unfold' : 'el-icon-s-fold'" />
+    </button>
+
+    <nav class="admin-header__breadcrumb" aria-label="Breadcrumb">
+      <span class="admin-header__crumb">Admin</span>
+      <span class="admin-header__sep">/</span>
+      <span class="admin-header__crumb admin-header__crumb--current">{{
+        tag || "Dashboard"
+      }}</span>
+    </nav>
+
+    <el-dropdown class="admin-header__user" trigger="click" placement="bottom-end">
+      <button type="button" class="admin-header__user-trigger">
+        <el-avatar :size="32" :src="userInfo.url" />
+        <span class="admin-header__user-name">{{ userInfo.name }}</span>
+        <i class="el-icon-arrow-down el-icon--right" />
+      </button>
+      <el-dropdown-menu slot="dropdown">
+        <el-dropdown-item
+          icon="el-icon-user"
+          @click.native="userCenterPanel"
         >
-          <el-avatar
-            :size="35"
-            :src="userInfo.url"
-            style="margin-top: 0"
-          ></el-avatar>
-          <span class="userName" style="margin-left: 5px; font-size: 16px">{{
-            userInfo.name
-          }}</span>
-          <i
-            class="el-icon-arrow-down el-icon--right"
-            style="margin-left: 5px"
-          ></i>
-        </span>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item
-            icon="el-icon-user-solid"
-            @click.native="userCenterPanel"
-            >Personal Information</el-dropdown-item
-          >
-          <el-dropdown-item icon="el-icon-s-fold" @click.native="loginOut"
-            >Log out</el-dropdown-item
-          >
-        </el-dropdown-menu>
-      </el-dropdown>
-    </span>
+          Personal center
+        </el-dropdown-item>
+        <el-dropdown-item icon="el-icon-switch-button" divided @click.native="loginOut">
+          Log out
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </el-dropdown>
   </div>
 </template>
+
 <script>
 export default {
   name: "LevelHeader",
@@ -61,7 +55,7 @@ export default {
     userInfo: {
       type: Object,
       required: true,
-      default: {},
+      default: () => ({}),
     },
     bag: {
       type: String,
@@ -72,7 +66,6 @@ export default {
     userCenterPanel() {
       this.$emit("eventListener", "center");
     },
-
     loginOut() {
       this.$emit("eventListener", "loginOut");
     },
@@ -84,58 +77,95 @@ export default {
   },
 };
 </script>
+
 <style scoped lang="scss">
-.main {
-  padding: 15px 26px 15px 0;
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  min-height: 64px;
+  box-sizing: border-box;
+}
+
+.admin-header__toggle {
+  appearance: none;
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  background: #f3faf6;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #355247;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(42, 157, 111, 0.12);
+    border-color: rgba(42, 157, 111, 0.45);
+  }
+}
+
+.admin-header__breadcrumb {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  width: 100%;
-  position: relative;
-  background-color: rgb(255, 255, 255);
-  color: #666;
+  gap: 6px;
+  font-size: 14px;
+}
 
-  .operation-span-tag {
-    padding: 9px 10px;
-    border-radius: 3px;
-    font-size: 16px;
-    user-select: none;
-    margin-top: 15px;
+.admin-header__crumb {
+  color: rgba(53, 82, 71, 0.65);
+  font-weight: 600;
+
+  &--current {
+    color: var(--nb-ink, #24332b);
+    font-family: var(--nb-font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
   }
+}
 
-  .operation-span:hover {
-    background-color: rgb(246, 246, 246);
+.admin-header__sep {
+  color: rgba(126, 197, 160, 0.8);
+}
+
+.admin-header__user {
+  margin-left: auto;
+}
+
+.admin-header__user-trigger {
+  appearance: none;
+  border: 1px solid rgba(126, 197, 160, 0.28);
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 12px 4px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font: inherit;
+  transition: box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 2px 12px rgba(53, 92, 75, 0.1);
   }
+}
 
-  .operation-span {
-    margin-top: 20px;
-    padding: 6px;
-    margin-left: 10px;
-    border-radius: 3px;
-    user-select: none;
-
-    i {
-      margin: 5px;
-      font-size: 20px;
-      color: #333;
-    }
-  }
-
-  span {
-    color: #333;
-  }
-
-  .user-block {
-    position: absolute;
-    right: 35px;
-
-    .userName {
-      display: inline-block;
-      vertical-align: middle;
-      font-size: 14px;
-      cursor: pointer;
-      user-select: none;
-    }
-  }
+.admin-header__user-name {
+  font-size: 14px;
+  font-weight: 650;
+  color: #355247;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

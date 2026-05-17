@@ -19,7 +19,15 @@
       </p>
     </header>
 
-    <div v-if="newsData.length === 0" class="search-page__empty nb-surface--sm">
+    <div v-if="loading" class="search-page__loading">
+      <div
+        v-for="n in 6"
+        :key="'sk-' + n"
+        class="search-page__skeleton skeleton-pulse"
+      />
+    </div>
+
+    <div v-else-if="newsData.length === 0" class="search-page__empty nb-surface--sm">
       <el-empty description="">
         <template slot="image">
           <div class="search-page__empty-icon" aria-hidden="true">
@@ -39,7 +47,7 @@
       </el-empty>
     </div>
 
-    <div v-else class="search-page__grid">
+    <div v-else-if="!loading" class="search-page__grid">
       <article
         v-for="(news, index) in newsData"
         :key="news.id || index"
@@ -88,6 +96,7 @@ export default {
       keyWord: "",
       newsData: [],
       total: 0,
+      loading: true,
     };
   },
   computed: {
@@ -116,8 +125,12 @@ export default {
       this.$root.$emit("app:search-sync-input", kw);
     },
     newsItemClick(news) {
-      sessionStorage.setItem("newsInfo", JSON.stringify(news));
-      this.$router.push("/news-detail");
+      if (news && news.id != null) {
+        this.$router.push({
+          path: "/news-detail",
+          query: { id: String(news.id) },
+        });
+      }
     },
     parseTime(time) {
       return timeAgo(time);
@@ -127,6 +140,7 @@ export default {
       this.fetchData();
     },
     async fetchData() {
+      this.loading = true;
       try {
         const newsQueryDto = { name: this.keyWord || "" };
         const response = await this.$axios.post(`/news/query`, newsQueryDto);
@@ -138,6 +152,8 @@ export default {
         console.error(`Error loading news list: ${e}`);
         this.newsData = [];
         this.total = 0;
+      } finally {
+        this.loading = false;
       }
     },
   },
@@ -304,6 +320,29 @@ export default {
 .search-card__time {
   font-weight: 500;
   font-family: var(--nb-font, system-ui, sans-serif);
+}
+
+.search-page__loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.search-page__skeleton {
+  min-height: 280px;
+  border-radius: 16px;
+  background: rgba(126, 197, 160, 0.18);
+  animation: search-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes search-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .search-page__empty {

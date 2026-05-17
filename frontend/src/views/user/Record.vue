@@ -266,7 +266,8 @@ export default {
       const confirmed = await this.$swalConfirm({
         title: "Clear this form?",
         text: "You’ll need to pick models again from the list.",
-        icon: "warning",
+        icon: "question",
+        confirmButtonText: "Clear",
       });
       if (confirmed) {
         this.selectedModel = [];
@@ -306,6 +307,8 @@ export default {
         title: `Delete “${model.name}”?`,
         text: "This cannot be undone.",
         icon: "warning",
+        danger: true,
+        confirmButtonText: "Delete",
       });
       if (confirmed) {
         const ids = [model.id];

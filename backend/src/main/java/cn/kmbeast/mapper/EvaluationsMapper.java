@@ -54,4 +54,11 @@ public interface EvaluationsMapper {
      */
     void update(Evaluations evaluations);
 
+    /**
+     * Distinct commenter user IDs on a piece of content (for inbox notifications).
+     */
+    List<Integer> listCommenterIdsByContent(@Param("contentId") Integer contentId,
+                                            @Param("contentType") String contentType,
+                                            @Param("excludeUserId") Integer excludeUserId);
+
 }

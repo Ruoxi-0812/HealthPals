@@ -37,11 +37,19 @@
     color: #304a99;
 }
 
-// text button
+// text button (admin tables)
 .text-button {
-    margin-right: 10px;
-    color: rgb(108, 143, 166);
+    margin-right: 12px;
+    color: #2a9d6f;
+    font-weight: 650;
+    font-size: 13px;
     cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+        color: #1f6b4f;
+    }
 }
 
 // delete button

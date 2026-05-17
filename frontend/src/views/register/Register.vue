@@ -90,21 +90,19 @@ export default {
 
     async registerFunc() {
       if (!this.pwd || !this.pwdConfirm || !this.name) {
-        this.$swal.fire({
+        this.$swalToast({
           title: "Validation Check",
           text: "Username or password cannot be empty",
           icon: "error",
-          showConfirmButton: false,
           timer: DELAY_TIME,
         });
         return;
       }
       if (this.pwd !== this.pwdConfirm) {
-        this.$swal.fire({
+        this.$swalToast({
           title: "Validation Check",
           text: "Passwords do not match",
           icon: "error",
-          showConfirmButton: false,
           timer: DELAY_TIME,
         });
         return;
@@ -121,21 +119,19 @@ export default {
       try {
         const { data } = await request.post(`user/register`, paramDTO);
         if (data.code !== 200) {
-          this.$swal.fire({
+          this.$swalToast({
             title: "Registration Failed",
             text: data.msg,
             icon: "error",
-            showConfirmButton: false,
             timer: DELAY_TIME,
           });
           return;
         }
         // Notify success with Swal and redirect to login page
-        this.$swal.fire({
-          title: "Registration Successful",
-          text: "Redirecting to login page...",
+        this.$swalToast({
+          title: "Registration successful",
+          text: "Redirecting to login…",
           icon: "success",
-          showConfirmButton: false,
           timer: DELAY_TIME,
         });
 

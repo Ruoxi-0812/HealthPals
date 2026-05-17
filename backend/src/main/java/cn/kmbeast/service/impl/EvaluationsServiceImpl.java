@@ -78,25 +78,11 @@ public class EvaluationsServiceImpl implements EvaluationsService {
             return ApiResult.error("The account has been muted.");
         }
         saveEvaluations(evaluations);
+        Integer currentUserId = LocalThreadHolder.getUserId();
         if (evaluations.getParentId() != null) {
-            List<CommentChildVO> commentChildVOS = getCommentChild(evaluations.getParentId());
-            if (commentChildVOS.isEmpty()) {
-                return ApiResult.success();
-            }
-            CommentChildVO commentChildVO = commentChildVOS.get(0);
-            if (Objects.equals(evaluations.getReplierId(), LocalThreadHolder.getUserId())) {
-                return ApiResult.success();
-            }
-            List<Message> messageList = new ArrayList<>();
-            Message message = createMessage(evaluations.getContentId());
-            if (evaluations.getReplierId() == null) {
-                message.setReceiverId(commentChildVO.getUserId());
-            } else {
-                message.setReceiverId(evaluations.getReplierId());
-            }
-            message.setContent(evaluations.getParentId() + ";" + evaluations.getContentId() + ";" + evaluations.getContent());
-            messageList.add(message);
-            messageMapper.batchSave(messageList);
+            deliverReplyMessage(evaluations, currentUserId);
+        } else {
+            deliverTopLevelCommentMessages(evaluations, currentUserId);
         }
         return ApiResult.success("Comment posted successfully");
     }
@@ -115,6 +101,57 @@ public class EvaluationsServiceImpl implements EvaluationsService {
         message.setCreateTime(LocalDateTime.now());
         message.setContentId(contentId);
         return message;
+    }
+
+    /**
+     * Notify the parent-comment author (or @user) when someone replies.
+     */
+    private void deliverReplyMessage(Evaluations evaluations, Integer currentUserId) {
+        List<CommentChildVO> commentChildVOS = getCommentChild(evaluations.getParentId());
+        if (commentChildVOS.isEmpty()) {
+            return;
+        }
+        CommentChildVO commentChildVO = commentChildVOS.get(0);
+        Integer receiverId = evaluations.getReplierId() == null
+                ? commentChildVO.getUserId()
+                : evaluations.getReplierId();
+        if (receiverId == null || Objects.equals(receiverId, currentUserId)) {
+            return;
+        }
+        Message message = createMessage(evaluations.getContentId());
+        message.setReceiverId(receiverId);
+        message.setContent(evaluations.getParentId() + ";" + evaluations.getContentId() + ";" + evaluations.getContent());
+        messageMapper.batchSave(Collections.singletonList(message));
+    }
+
+    /**
+     * Notify everyone else who commented on the same article when a new top-level comment is posted.
+     */
+    private void deliverTopLevelCommentMessages(Evaluations evaluations, Integer currentUserId) {
+        if (evaluations.getContentId() == null || evaluations.getContentType() == null) {
+            return;
+        }
+        List<Integer> receiverIds = evaluationsMapper.listCommenterIdsByContent(
+                evaluations.getContentId(),
+                evaluations.getContentType(),
+                currentUserId);
+        if (receiverIds == null || receiverIds.isEmpty()) {
+            return;
+        }
+        String payload = evaluations.getId() + ";" + evaluations.getContentId() + ";" + evaluations.getContent();
+        List<Message> messageList = new ArrayList<>();
+        for (Integer receiverId : receiverIds) {
+            if (receiverId == null || Objects.equals(receiverId, currentUserId)) {
+                continue;
+            }
+            Message message = createMessage(evaluations.getContentId());
+            message.setReceiverId(receiverId);
+            message.setContent(payload);
+            messageList.add(message);
+        }
+        if (!messageList.isEmpty()) {
+            messageMapper.batchSave(messageList);
+        }
     }
 
     /**

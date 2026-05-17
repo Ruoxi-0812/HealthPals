@@ -13,15 +13,32 @@
     <main class="messages-page__main">
       <section class="messages-page__card nb-surface">
         <div class="messages-page__head">
-          <div>
-            <h1 class="messages-page__title">Inbox</h1>
+          <div class="messages-page__head-copy">
+            <span class="messages-page__eyebrow">Notifications</span>
+            <div class="messages-page__title-row">
+              <h1 class="messages-page__title">Inbox</h1>
+              <span
+                v-if="unreadCount > 0"
+                class="messages-page__unread-pill"
+                :aria-label="`${unreadCount} unread`"
+              >
+                {{ unreadCount }} new
+              </span>
+            </div>
             <p class="messages-page__subtitle">
               Comments, likes, and gentle reminders—nothing urgent, just for you.
+            </p>
+            <p v-if="messageList.length" class="messages-page__stats">
+              {{ messageList.length }}
+              {{ messageList.length === 1 ? "message" : "messages" }}
+              <span v-if="unreadCount" class="messages-page__stats-dot">·</span>
+              <span v-if="unreadCount">{{ unreadCount }} unread</span>
             </p>
           </div>
           <button
             type="button"
             class="messages-page__mark-read"
+            :disabled="!unreadCount"
             @click="clearMessage"
           >
             <i class="el-icon-circle-check" aria-hidden="true" />
@@ -41,34 +58,43 @@
             @click="messageTypeSelected(messageType.type)"
           >
             {{ typeLabel(messageType) }}
+            <span
+              v-if="tabCount(messageType.type)"
+              class="messages-page__tab-count"
+            >
+              {{ tabCount(messageType.type) }}
+            </span>
           </button>
         </div>
 
         <div class="messages-page__body">
-          <div v-if="messageList.length === 0" class="messages-page__empty">
-            <el-empty description="">
-              <template slot="image">
-                <div class="messages-page__empty-art" aria-hidden="true">
-                  <i class="el-icon-message" />
-                </div>
-              </template>
-              <template slot="description">
-                <p class="messages-page__empty-title">All quiet here</p>
-                <p class="messages-page__empty-text">
-                  When someone comments, likes your post, or the app has a health
-                  tip, it’ll land in this inbox.
-                </p>
-              </template>
-            </el-empty>
+          <div
+            v-if="filteredMessageList.length === 0"
+            class="messages-page__empty"
+          >
+            <div class="messages-page__empty-art" aria-hidden="true">
+              <i class="el-icon-message" />
+            </div>
+            <p class="messages-page__empty-title">All quiet here</p>
+            <p class="messages-page__empty-text">
+              When someone comments, likes your post, or the app has a health tip,
+              it’ll land in this inbox.
+            </p>
           </div>
 
           <ul v-else class="messages-page__list">
             <li
-              v-for="(message, index) in messageList"
+              v-for="(message, index) in filteredMessageList"
               :key="message.id || index"
               class="messages-page__item"
-              :class="{ 'is-unread': !message.isRead }"
+              :class="itemClass(message)"
             >
+              <span
+                v-if="!message.isRead"
+                class="messages-page__item-dot"
+                aria-hidden="true"
+              />
+
               <div class="messages-page__item-avatar-wrap">
                 <img
                   v-if="message.messageType === 1 || message.messageType === 2"
@@ -81,7 +107,7 @@
                   class="messages-page__item-badge messages-page__item-badge--metric"
                   aria-hidden="true"
                 >
-                  <i class="el-icon-data-analysis" />
+                  <i class="el-icon-warning-outline" />
                 </span>
                 <span
                   v-else
@@ -91,21 +117,55 @@
                   <i class="el-icon-bell" />
                 </span>
               </div>
+
               <div class="messages-page__item-body">
+                <div class="messages-page__item-top">
+                  <span
+                    class="messages-page__type-chip"
+                    :class="'messages-page__type-chip--' + message.messageType"
+                  >
+                    {{ typeChipLabel(message.messageType) }}
+                  </span>
+                  <time
+                    class="messages-page__time"
+                    :datetime="message.createTime"
+                    :title="message.createTime"
+                  >
+                    {{ parseTime(message.createTime) }}
+                  </time>
+                </div>
+
                 <div
                   v-if="message.messageType === 1 || message.messageType === 2"
                   class="messages-page__item-sender"
                 >
                   {{ message.senderName }}
                 </div>
-                <p class="messages-page__item-text">
+
+                <p
+                  v-if="message.messageType === 3 && healthAlertParts(message)"
+                  class="messages-page__item-text messages-page__item-text--alert"
+                >
+                  <span class="messages-page__alert-lead">
+                    {{ healthAlertParts(message).lead }}
+                  </span>
+                  <strong class="messages-page__metric-name">
+                    {{ healthAlertParts(message).metric }}
+                  </strong>
+                  <span>{{ healthAlertParts(message).tail }}</span>
+                </p>
+                <p v-else class="messages-page__item-text">
                   <template v-if="message.messageType === 1">
                     {{ commentDeal(message.content)[2] }}
                   </template>
+                  <template v-else-if="message.messageType === 2">
+                    <i class="el-icon-star-on messages-page__like-icon" />
+                    {{ message.content }}
+                  </template>
                   <template v-else>{{ message.content }}</template>
                 </p>
+
                 <div class="messages-page__item-meta">
-                  <time class="messages-page__time">{{ message.createTime }}</time>
                   <button
                     v-if="message.messageType === 1"
                     type="button"
@@ -132,7 +192,7 @@
 
 <script>
 import Logo from "@/components/Logo";
-import Swal from "sweetalert2";
+import { timeAgo } from "@/utils/data";
 
 export default {
   name: "MessageCenter",
@@ -143,17 +203,35 @@ export default {
       messageQueryDto: {},
       messageList: [],
       messageTypes: [],
-      dialogEvaluationsOperation: false,
       message: {},
       activeFilter: null,
     };
+  },
+  computed: {
+    filteredMessageList() {
+      if (this.activeFilter == null) {
+        return this.messageList;
+      }
+      return this.messageList.filter(
+        (m) => m.messageType === this.activeFilter,
+      );
+    },
+    unreadCount() {
+      return this.messageList.filter((m) => !m.isRead).length;
+    },
   },
   created() {
     this.getUserInfo();
     this.loadAllUsersMessage();
     this.loadAllMessageType();
   },
+  activated() {
+    this.loadAllUsersMessage();
+  },
   methods: {
+    parseTime(time) {
+      return timeAgo(time);
+    },
     typeLabel(messageType) {
       const raw = (messageType.detail || "").trim();
       const lower = raw.toLowerCase();
@@ -167,28 +245,82 @@ export default {
       if (!raw) return "All";
       return raw.charAt(0).toUpperCase() + raw.slice(1);
     },
+    typeChipLabel(messageType) {
+      const map = {
+        1: "Comment",
+        2: "Like",
+        3: "Health alert",
+        4: "System",
+      };
+      return map[messageType] || "Message";
+    },
+    tabCount(type) {
+      if (type == null) {
+        return this.messageList.length;
+      }
+      return this.messageList.filter((m) => m.messageType === type).length;
+    },
+    itemClass(message) {
+      return {
+        "is-unread": !message.isRead,
+        [`is-type-${message.messageType}`]: true,
+      };
+    },
+    healthAlertParts(message) {
+      const text = (message.content || "").trim();
+      if (!text) return null;
+
+      const bracket = text.match(/【([^】]+)】/);
+      if (bracket) {
+        const idx = text.indexOf(bracket[0]);
+        return {
+          lead: text.slice(0, idx).trim() || "Recorded",
+          metric: bracket[1],
+          tail: text.slice(idx + bracket[0].length).trim(),
+        };
+      }
+
+      const reading = text.match(
+        /^Your\s+(.+?)\s+reading\s+\(([^)]+)\)/i,
+      );
+      if (reading) {
+        return {
+          lead: "Your",
+          metric: `${reading[1]} · ${reading[2]}`,
+          tail: text.slice(reading[0].length).trim(),
+        };
+      }
+
+      return null;
+    },
     commentDeal(content) {
       return content.split(";");
     },
     replyUser(message) {
-      Swal.fire({
-        title: `Reply to ${message.senderName}`,
-        input: "text",
-        inputPlaceholder: "Say something friendly…",
-        showCancelButton: true,
-        confirmButtonText: "Send",
-        cancelButtonText: "Cancel",
-        inputValidator: (value) => {
-          if (!value) {
-            return "Type a short reply first";
+      this.$swal
+        .fire({
+          title: `Reply to ${message.senderName}`,
+          input: "text",
+          inputPlaceholder: "Say something friendly…",
+          showCancelButton: true,
+          confirmButtonText: "Send",
+          cancelButtonText: "Cancel",
+          inputValidator: (value) => {
+            if (!value) {
+              return "Type a short reply first";
+            }
+            return undefined;
+          },
+        })
+        .then((result) => {
+          if (result.isConfirmed && result.value) {
+            this.saveCommentData(
+              message.senderId,
+              result.value,
+              this.commentDeal(message.content),
+            );
           }
-          this.saveCommentData(
-            message.senderId,
-            value,
-            this.commentDeal(message.content),
-          );
-        },
-      }).then(() => {});
+        });
     },
     saveCommentData(senderId, content, ary) {
       const comment = {
@@ -215,10 +347,12 @@ export default {
         });
     },
     async clearMessage() {
+      if (!this.unreadCount) return;
       const confirmed = await this.$swalConfirm({
         title: "Mark everything read?",
         text: "Unread badges will clear. You can still scroll history.",
-        icon: "warning",
+        icon: "question",
+        confirmButtonText: "Mark all read",
       });
       if (confirmed) {
         this.$axios.put("/message/clearMessage").then((response) => {
@@ -229,22 +363,8 @@ export default {
         });
       }
     },
-    evaluationsPut() {
-      this.$axios.put("/message/clearMessage").then((response) => {
-        const { data } = response;
-        if (data.code === 200) {
-          this.loadAllUsersMessage();
-        }
-      });
-    },
-    replyEvalustions(message) {
-      this.message = message;
-      this.dialogEvaluationsOperation = true;
-    },
     messageTypeSelected(messageType) {
       this.activeFilter = messageType;
-      this.messageQueryDto.messageType = messageType;
-      this.loadAllUsersMessage();
     },
     getUserInfo() {
       const userInfo = sessionStorage.getItem("userInfo");
@@ -264,11 +384,11 @@ export default {
     loadAllUsersMessage() {
       const userInfo = sessionStorage.getItem("userInfo");
       const entity = JSON.parse(userInfo);
-      this.messageQueryDto.userId = entity.id;
-      this.$axios.post("/message/query", this.messageQueryDto).then((response) => {
+      const query = { userId: entity.id };
+      this.$axios.post("/message/query", query).then((response) => {
         const { data } = response;
         if (data.code === 200) {
-          this.messageList = data.data;
+          this.messageList = data.data || [];
         }
       });
     },
@@ -277,20 +397,30 @@ export default {
 </script>
 
 <style scoped lang="scss">
+$ink: var(--nb-ink, #24332b);
+$mint: rgba(126, 197, 160, 0.22);
+$accent: #2a9d6f;
+$warn: #d97706;
+$warn-bg: #fff8ed;
+$warn-border: rgba(217, 119, 6, 0.35);
+
 .messages-page {
   min-height: 100vh;
   box-sizing: border-box;
-  background: var(--nb-bg-soft, #e7f6ee);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(126, 197, 160, 0.28), transparent),
+    var(--nb-bg-soft, #e7f6ee);
 }
 
 .messages-page__top {
-  background: #fff;
-  border-bottom: 1px solid rgba(126, 197, 160, 0.22);
-  box-shadow: 0 4px 14px rgba(53, 92, 75, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid $mint;
+  box-shadow: 0 4px 18px rgba(53, 92, 75, 0.07);
+  backdrop-filter: blur(8px);
 }
 
 .messages-page__top-inner {
-  max-width: 880px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 12px 20px;
   display: flex;
@@ -308,19 +438,21 @@ export default {
 .messages-page__user-name {
   font-size: 14px;
   font-weight: 650;
-  color: var(--nb-ink, #24332b);
+  color: $ink;
 }
 
 .messages-page__main {
-  max-width: 880px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: clamp(16px, 3vw, 28px) 18px 48px;
+  padding: clamp(20px, 4vw, 32px) 18px 52px;
 }
 
 .messages-page__card {
-  padding: clamp(18px, 2.5vw, 26px);
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(126, 197, 160, 0.22);
+  padding: clamp(22px, 3vw, 30px);
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid $mint;
+  border-radius: var(--nb-radius, 22px);
+  box-shadow: var(--nb-shadow, 0 14px 36px rgba(53, 92, 75, 0.14));
 }
 
 .messages-page__head {
@@ -328,27 +460,69 @@ export default {
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid rgba(126, 197, 160, 0.18);
+  gap: 18px;
+  margin-bottom: 22px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(126, 197, 160, 0.2);
+}
+
+.messages-page__eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $accent;
+}
+
+.messages-page__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .messages-page__title {
-  margin: 0 0 6px;
+  margin: 0;
   font-family: var(--nb-font-display, Georgia, serif);
-  font-size: 1.55rem;
+  font-size: clamp(1.45rem, 3vw, 1.75rem);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--nb-ink, #24332b);
+  letter-spacing: -0.03em;
+  color: $ink;
+}
+
+.messages-page__unread-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #3cb07e, $accent);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(42, 157, 111, 0.35);
 }
 
 .messages-page__subtitle {
   margin: 0;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--nb-muted, rgba(36, 51, 43, 0.58));
-  max-width: 46ch;
+  max-width: 42ch;
+}
+
+.messages-page__stats {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(53, 82, 71, 0.72);
+
+  &-dot {
+    margin: 0 4px;
+    opacity: 0.5;
+  }
 }
 
 .messages-page__mark-read {
@@ -357,21 +531,33 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 11px 18px;
   font: inherit;
   font-size: 13px;
   font-weight: 650;
   color: #355247;
-  background: rgba(42, 157, 111, 0.1);
-  border: 1px solid rgba(42, 157, 111, 0.32);
+  background: #fff;
+  border: 1px solid rgba(42, 157, 111, 0.35);
   border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(53, 92, 75, 0.08);
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
 
-  &:hover {
-    background: rgba(42, 157, 111, 0.18);
+  &:hover:not(:disabled) {
+    background: rgba(42, 157, 111, 0.1);
     color: #1f3d32;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(42, 157, 111, 0.18);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 }
 
@@ -379,74 +565,95 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
+  padding: 4px;
+  background: rgba(231, 246, 238, 0.65);
+  border-radius: 999px;
+  border: 1px solid rgba(126, 197, 160, 0.25);
 }
 
 .messages-page__tab {
   appearance: none;
   cursor: pointer;
-  border: 1px solid rgba(126, 197, 160, 0.35);
-  background: rgba(255, 255, 255, 0.7);
-  padding: 8px 16px;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 8px 14px;
   border-radius: 999px;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
   color: #5a7268;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
 
-  &:hover {
-    border-color: rgba(42, 157, 111, 0.45);
+  &:hover:not(.is-active) {
+    background: rgba(255, 255, 255, 0.75);
     color: #2a6b52;
   }
 
   &.is-active {
-    background: #2a9d6f;
-    border-color: #2a9d6f;
-    color: #fff;
-    box-shadow: 0 2px 10px rgba(42, 157, 111, 0.28);
+    background: #fff;
+    border-color: rgba(42, 157, 111, 0.28);
+    color: #1f4d3a;
+    box-shadow: 0 2px 12px rgba(53, 92, 75, 0.1);
+
+    .messages-page__tab-count {
+      background: rgba(42, 157, 111, 0.14);
+      color: $accent;
+    }
   }
+}
+
+.messages-page__tab-count {
+  min-width: 20px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(53, 92, 75, 0.1);
+  color: #5a7268;
 }
 
 .messages-page__empty {
-  padding: 36px 16px 28px;
-
-  :deep(.el-empty__description) {
-    padding-top: 4px;
-  }
+  padding: 48px 20px 40px;
+  text-align: center;
+  border-radius: 18px;
+  border: 1px dashed rgba(126, 197, 160, 0.45);
+  background: rgba(247, 251, 248, 0.8);
 }
 
 .messages-page__empty-art {
-  width: 76px;
-  height: 76px;
-  margin: 0 auto 8px;
-  border-radius: 20px;
-  background: rgba(126, 197, 160, 0.2);
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 14px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(126, 197, 160, 0.35), rgba(42, 157, 111, 0.2));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
-  color: #4d8b73;
+  font-size: 36px;
+  color: #3d8b6f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .messages-page__empty-title {
   margin: 0 0 8px;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 650;
-  color: var(--nb-ink, #24332b);
+  color: $ink;
 }
 
 .messages-page__empty-text {
-  margin: 0;
+  margin: 0 auto;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--nb-muted, rgba(36, 51, 43, 0.58));
-  max-width: 38ch;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 36ch;
 }
 
 .messages-page__list {
@@ -455,25 +662,71 @@ export default {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .messages-page__item {
+  position: relative;
   display: flex;
   gap: 14px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(126, 197, 160, 0.22);
-  background: rgba(247, 251, 248, 0.65);
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(126, 197, 160, 0.24);
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(53, 92, 75, 0.05);
   transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(53, 92, 75, 0.1);
+    border-color: rgba(42, 157, 111, 0.32);
+  }
 
   &.is-unread {
-    border-color: rgba(42, 157, 111, 0.4);
-    background: rgba(42, 157, 111, 0.06);
-    box-shadow: inset 3px 0 0 #2a9d6f;
+    border-color: rgba(42, 157, 111, 0.38);
+    background: linear-gradient(
+      105deg,
+      rgba(42, 157, 111, 0.07) 0%,
+      #fff 42%
+    );
+    box-shadow:
+      inset 4px 0 0 $accent,
+      0 4px 16px rgba(42, 157, 111, 0.1);
   }
+
+  &.is-type-3 {
+    border-color: $warn-border;
+    background: $warn-bg;
+
+    &.is-unread {
+      box-shadow:
+        inset 4px 0 0 $warn,
+        0 4px 16px rgba(217, 119, 6, 0.12);
+    }
+
+    &:hover {
+      border-color: rgba(217, 119, 6, 0.5);
+    }
+  }
+}
+
+.messages-page__item-dot {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $accent;
+  box-shadow: 0 0 0 3px rgba(42, 157, 111, 0.2);
+}
+
+.is-type-3 .messages-page__item-dot {
+  background: $warn;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
 }
 
 .messages-page__item-avatar-wrap {
@@ -481,30 +734,31 @@ export default {
 }
 
 .messages-page__item-avatar {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(53, 92, 75, 0.12);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 10px rgba(53, 92, 75, 0.14);
 }
 
 .messages-page__item-badge {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   color: #fff;
+  box-shadow: 0 3px 12px rgba(53, 92, 75, 0.15);
 
   &--metric {
-    background: linear-gradient(145deg, #6eb8f2, #4a90c9);
+    background: linear-gradient(145deg, #f59e0b, #d97706);
   }
 
   &--system {
-    background: linear-gradient(145deg, #8b9dc3, #5c6d8a);
+    background: linear-gradient(145deg, #94a3b8, #64748b);
   }
 }
 
@@ -513,19 +767,84 @@ export default {
   flex: 1;
 }
 
+.messages-page__item-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.messages-page__type-chip {
+  display: inline-flex;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+
+  &--1 {
+    background: rgba(42, 157, 111, 0.12);
+    color: #1f6b4f;
+  }
+
+  &--2 {
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+  }
+
+  &--3 {
+    background: rgba(217, 119, 6, 0.14);
+    color: #b45309;
+  }
+
+  &--4 {
+    background: rgba(100, 116, 139, 0.14);
+    color: #475569;
+  }
+}
+
 .messages-page__item-sender {
   font-size: 14px;
   font-weight: 700;
   color: #355247;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .messages-page__item-text {
   margin: 0;
   font-size: 14px;
-  line-height: 1.55;
-  color: rgba(36, 51, 43, 0.88);
+  line-height: 1.6;
+  color: rgba(36, 51, 43, 0.9);
   word-break: break-word;
+
+  &--alert {
+    line-height: 1.65;
+  }
+}
+
+.messages-page__metric-name {
+  display: inline;
+  margin: 0 4px;
+  padding: 1px 8px;
+  font-weight: 700;
+  color: #92400e;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 6px;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.messages-page__alert-lead {
+  margin-right: 2px;
+}
+
+.messages-page__like-icon {
+  margin-right: 4px;
+  color: #f59e0b;
+  font-size: 15px;
+  vertical-align: -1px;
 }
 
 .messages-page__item-meta {
@@ -533,47 +852,79 @@ export default {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .messages-page__time {
   font-size: 12px;
-  color: rgba(53, 82, 71, 0.58);
+  color: rgba(53, 82, 71, 0.55);
   font-weight: 500;
 }
 
 .messages-page__reply {
   appearance: none;
-  border: none;
-  background: none;
-  padding: 0;
+  cursor: pointer;
+  padding: 6px 14px;
   font: inherit;
   font-size: 12px;
   font-weight: 650;
-  color: #2a9d6f;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  color: $accent;
+  background: rgba(42, 157, 111, 0.08);
+  border: 1px solid rgba(42, 157, 111, 0.28);
+  border-radius: 999px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 
   &:hover {
-    color: #248760;
+    background: rgba(42, 157, 111, 0.16);
+    color: #1f6b4f;
   }
 }
 
 .messages-page__home {
-  margin: 20px 0 0;
+  margin: 24px 0 0;
   text-align: center;
 }
 
 .messages-page__home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 14px;
   font-weight: 600;
   color: #355247;
   text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 
   &:hover {
-    color: #2a9d6f;
-    text-decoration: underline;
+    color: $accent;
+    background: rgba(42, 157, 111, 0.08);
+  }
+}
+
+@media (max-width: 520px) {
+  .messages-page__head {
+    flex-direction: column;
+  }
+
+  .messages-page__mark-read {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .messages-page__tabs {
+    border-radius: 16px;
+  }
+
+  .messages-page__tab {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: calc(50% - 8px);
   }
 }
 </style>

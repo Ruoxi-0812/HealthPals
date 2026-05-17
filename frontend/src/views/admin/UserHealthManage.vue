@@ -1,7 +1,7 @@
 <template>
-  <el-row style="background-color: #ffffff; padding: 5px 0; border-radius: 5px">
-    <el-row style="padding: 10px; margin-left: 10px">
-      <el-row>
+  <div class="admin-page">
+    <div class="admin-page__toolbar">
+      <div class="admin-toolbar-row">
         <el-date-picker
           size="small"
           style="width: 220px"
@@ -14,7 +14,7 @@
         </el-date-picker>
         <el-input
           size="small"
-          style="width: 188px; margin-left: 5px; margin-right: 6px"
+          class="admin-filter-input"
           v-model="userHealthQueryDto.userId"
           placeholder="User ID"
           clearable
@@ -26,9 +26,10 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
-      </el-row>
-    </el-row>
-    <el-row style="margin: 0 20px; border-top: 1px solid rgb(245, 245, 245)">
+      </div>
+    </div>
+
+    <div class="admin-page__body">
       <el-table
         row-key="id"
         @selection-change="handleSelectionChange"
@@ -38,13 +39,11 @@
           <template slot-scope="scope">
             <i
               v-if="!statusCheck(scope.row)"
-              style="margin-right: 5px"
-              class="el-icon-warning"
+              class="el-icon-warning admin-status-ic"
             ></i>
             <i
               v-else
-              style="margin-right: 5px; color: rgb(253, 199, 50)"
-              class="el-icon-success"
+              class="el-icon-success admin-status-ic admin-status-ic--ok"
             ></i>
             <el-tooltip
               v-if="!statusCheck(scope.row)"
@@ -53,13 +52,7 @@
               content="Abnormal indicators, remind user to handle them promptly"
               placement="bottom-end"
             >
-              <span
-                style="
-                  text-decoration: underline;
-                  text-decoration-style: dashed;
-                "
-                >Abnormal</span
-              >
+              <span class="admin-status-link">Abnormal</span>
             </el-tooltip>
             <span v-else>Normal</span>
           </template>
@@ -109,8 +102,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        style="margin: 20px 0"
+      <el-pagination class="admin-pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="currentPage"
@@ -119,121 +111,30 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </el-row>
+    </div>
     <el-dialog
-      :show-close="false"
+      custom-class="hp-dialog admin-dialog-wide"
+      :show-close="true"
+      append-to-body
       :visible.sync="dialogUserOperaion"
-      width="26%"
+      width="480px"
     >
-      <div slot="title">
-        <p class="dialog-title">
-          {{
-            !isOperation ? "Add User Health Record" : "Edit User Health Record"
-          }}
-        </p>
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Health records</span>
+        <h2 class="hp-dialog__title">{{ !isOperation ? "Add record" : "Edit record" }}</h2>
       </div>
-      <div style="padding: 0 20px">
-        <!-- Icon -->
-        <el-row style="margin-top: 20px">
-          <el-upload
-            class="avatar-uploader"
-            action="/api/personal-heath/v1.0/file/upload"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-          >
-            <img
-              v-if="data.cover"
-              :src="data.cover"
-              style="height: 44px; width: 44px"
-            />
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-          </el-upload>
-        </el-row>
-        <!-- Configuration Name -->
-        <el-row style="padding: 0 20px 0 0">
-          <p>
-            <span class="modelName">*Configuration Name</span>
-          </p>
-          <input
-            class="input-title"
-            v-model="data.name"
-            style="border-radius: 5px; background-color: #f1f1f1"
-          />
-        </el-row>
-        <!-- Unit -->
-        <el-row style="padding: 0 20px 0 0">
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Unit</span>
-          </p>
-          <input
-            class="input-title"
-            v-model="data.unit"
-            style="border-radius: 5px; background-color: #f1f1f1"
-          />
-        </el-row>
-        <!-- Symbol -->
-        <el-row style="padding: 0 20px 0 0">
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Symbol</span>
-          </p>
-          <input
-            class="input-title"
-            v-model="data.symbol"
-            style="border-radius: 5px; background-color: #f1f1f1"
-          />
-        </el-row>
-        <!-- Description -->
-        <el-row style="padding: 0 20px 0 0">
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Description</span>
-          </p>
-          <el-input
-            style="border-radius: 5px; background-color: #f1f1f1"
-            type="textarea"
-            :autosize="{ minRows: 2, maxRows: 3 }"
-            placeholder="Description"
-            v-model="data.detail"
-          >
-          </el-input>
-        </el-row>
-        <!-- Normal Value Range -->
-        <el-row style="padding: 0 20px 0 0">
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Normal Value Range</span>
-          </p>
-          <el-slider v-model="valuesRange" range show-stops :max="1000">
-          </el-slider>
-        </el-row>
+      <div class="hp-dialog__body admin-form-stack">
+        <label class="hp-field"><span class="hp-field__label">User ID</span><input v-model.number="data.userId" class="hp-field__input" type="number" placeholder="User id" /></label>
+        <label class="hp-field"><span class="hp-field__label">Health model ID</span><input v-model.number="data.healthModelConfigId" class="hp-field__input" type="number" placeholder="Model config id" /></label>
+        <label class="hp-field"><span class="hp-field__label">Recorded value</span><input v-model="data.value" class="hp-field__input" type="text" placeholder="Measurement value" /></label>
       </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          size="small"
-          v-if="!isOperation"
-          style="background-color: rgb(43, 121, 203); border: none"
-          class="customer"
-          type="info"
-          @click="addOperation"
-          >Add</el-button
-        >
-        <el-button
-          size="small"
-          v-else
-          style="background-color: rgb(43, 121, 203); border: none"
-          class="customer"
-          type="info"
-          @click="updateOperation"
-          >Update</el-button
-        >
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
-          @click="dialogUserOperaion = false"
-          >Cancel</el-button
-        >
-      </span>
+      <div slot="footer" class="hp-dialog__footer">
+        <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="closeDialog">Cancel</button>
+        <button v-if="!isOperation" type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="addOperation">Add</button>
+        <button v-else type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="updateOperation">Save</button>
+      </div>
     </el-dialog>
-  </el-row>
+  </div>
 </template>
 
 <script>
@@ -309,6 +210,8 @@ export default {
         title: "Delete user health records",
         text: `This action cannot be undone, do you want to continue?`,
         icon: "warning",
+        danger: true,
+        confirmButtonText: "Delete",
       });
       if (confirmed) {
         try {
@@ -348,8 +251,7 @@ export default {
     // Update record
     async updateOperation() {
       try {
-        this.data.valueRange = this.valuesRange.join(",");
-        const response = await this.$axios.put(
+const response = await this.$axios.put(
           "/user-health/update",
           this.data,
         );
@@ -374,8 +276,7 @@ export default {
     async addOperation() {
       try {
         // Convert range array to a comma-separated string
-        this.data.valueRange = this.valuesRange.join(",");
-        const response = await this.$axios.post("/user-health/save", this.data);
+const response = await this.$axios.post("/user-health/save", this.data);
         this.$message[response.data.code === 200 ? "success" : "error"](
           response.data.msg,
         );
@@ -445,10 +346,7 @@ export default {
     handleEdit(row) {
       this.dialogUserOperaion = true;
       this.isOperation = true;
-      if (row.valueRange !== null) {
-        this.valuesRange = row.valueRange.split(",");
-      }
-      this.data = { ...row };
+this.data = { ...row };
     },
     handleDelete(row) {
       this.selectedRows.push(row);
@@ -457,53 +355,3 @@ export default {
   },
 };
 </script>
-
-<style scoped lang="scss">
-.status-success {
-  display: inline-block;
-  padding: 1px 5px;
-  border-radius: 2px;
-  background-color: rgb(201, 237, 249);
-  color: rgb(111, 106, 196);
-  font-size: 12px;
-}
-
-.status-error {
-  display: inline-block;
-  padding: 1px 5px;
-  border-radius: 2px;
-  background-color: rgb(233, 226, 134);
-  color: rgb(131, 138, 142);
-  color: rgb(111, 106, 196);
-  font-size: 12px;
-}
-
-.tag-tip {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 5px;
-  background-color: rgb(245, 245, 245);
-  color: rgb(104, 118, 130);
-}
-
-.input-def {
-  height: 40px;
-  line-height: 40px;
-  outline: none;
-  border: none;
-  font-size: 20px;
-  color: rgb(102, 102, 102);
-  font-weight: 900;
-  width: 100%;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.customer {
-  margin: 0 8px;
-}
-</style>

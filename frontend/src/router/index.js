@@ -129,7 +129,7 @@ const routes = [
         },
       },
       {
-        name: "Ask AI",
+        name: "Ask Pal",
         path: "/health-assistant",
         component: () => import(`@/views/user/HealthAssistant.vue`),
         meta: {

@@ -2,7 +2,10 @@
   <div class="news-detail">
     <el-row :gutter="28" class="news-detail__row">
       <el-col :xs="24" :md="16" class="news-detail__main-wrap">
-        <article class="news-detail__article nb-surface">
+        <article
+          :key="'article-' + (newsInfo.id || 'loading')"
+          class="news-detail__article nb-surface"
+        >
           <h1 class="news-detail__title">{{ newsInfo.name }}</h1>
 
           <div class="news-detail__meta">
@@ -21,12 +24,18 @@
           </div>
 
           <div
+            v-if="articleHasContent"
             class="news-detail__body"
             v-html="newsInfo.content"
-          />
+          ></div>
+          <p v-else class="news-detail__empty">This article has no body text yet.</p>
 
           <div class="news-detail__comments">
-            <Evaluations :contentId="newsInfo.id" content-type="NEWS" />
+            <Evaluations
+              :key="'comments-' + (newsInfo.id || 0)"
+              :content-id="Number(newsInfo.id)"
+              content-type="NEWS"
+            />
           </div>
         </article>
       </el-col>
@@ -47,8 +56,11 @@
               <div class="news-detail__rec-card">
                 <img
                   class="news-detail__rec-img"
-                  :src="news.cover"
+                  :src="newsCoverSrc(news.cover, news.id)"
                   :alt="news.name"
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                  @error="onCoverImgError"
                 />
                 <div class="news-detail__rec-body">
                   <h3 class="news-detail__rec-title">{{ news.name }}</h3>
@@ -71,6 +83,11 @@
 <script>
 import { timeAgo } from "@/utils/data";
 import Evaluations from "@/components/Evaluations.vue";
+import {
+  newsCoverSrc,
+  onCoverImgError,
+  pickUniqueCoverNews,
+} from "@/utils/coverImage";
 
 export default {
   components: { Evaluations },
@@ -83,11 +100,27 @@ export default {
       newsSaveList: [],
     };
   },
+  computed: {
+    articleHasContent() {
+      const html = (this.newsInfo && this.newsInfo.content) || "";
+      const text = html.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim();
+      return text.length > 0;
+    },
+  },
+  watch: {
+    "$route.query.id"(id) {
+      if (id != null && id !== "") {
+        this.fetchArticleById(Number(id));
+      }
+    },
+  },
   created() {
-    this.getStorageInfo();
+    this.bootstrapArticle();
     this.loadAllTopNews();
   },
   methods: {
+    newsCoverSrc,
+    onCoverImgError,
     loadSaveStatus() {
       if (this.newsInfo == null || this.newsInfo.id == null) {
         return;
@@ -118,10 +151,57 @@ export default {
         });
     },
     newsItemClick(news) {
-      this.newsInfo = news;
-      sessionStorage.setItem("newsInfo", JSON.stringify(news));
-      this.loadSaveStatus();
-      this.loadAllTopNews();
+      if (news == null || news.id == null) return;
+      const nextId = String(news.id);
+      if (this.$route.query.id === nextId) {
+        this.fetchArticleById(Number(news.id));
+        return;
+      }
+      this.$router
+        .replace({ path: "/news-detail", query: { id: nextId } })
+        .catch(() => {});
+    },
+    bootstrapArticle() {
+      const routeId = this.$route.query.id;
+      if (routeId != null && routeId !== "") {
+        this.fetchArticleById(Number(routeId));
+        return;
+      }
+      this.getStorageInfo();
+      if (this.newsInfo && this.newsInfo.id != null) {
+        this.fetchArticleById(Number(this.newsInfo.id));
+        if (!this.$route.query.id) {
+          this.$router
+            .replace({
+              path: "/news-detail",
+              query: { id: String(this.newsInfo.id) },
+            })
+            .catch(() => {});
+        }
+      }
+    },
+    fetchArticleById(id) {
+      if (!id || Number.isNaN(id)) return;
+      this.$axios
+        .post("/news/query", { id })
+        .then((response) => {
+          const { data } = response;
+          if (data.code === 200 && data.data && data.data.length) {
+            const article =
+              data.data.find((n) => Number(n.id) === Number(id)) || data.data[0];
+            this.newsInfo = { ...article };
+            sessionStorage.setItem("newsInfo", JSON.stringify(this.newsInfo));
+            this.loadSaveStatus();
+            this.loadAllTopNews();
+            this.scrollToTop();
+          }
+        })
+        .catch(() => {});
+    },
+    scrollToTop() {
+      const el = document.querySelector(".content-container");
+      if (el) el.scrollTo({ top: 0, behavior: "smooth" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
     },
     parseTime(time) {
       return timeAgo(time);
@@ -135,9 +215,6 @@ export default {
           this.newsInfo = {};
         }
       }
-      if (this.newsInfo && this.newsInfo.id != null) {
-        this.loadSaveStatus();
-      }
     },
     loadAllTopNews() {
       const newQueryDto = { isTop: true };
@@ -146,7 +223,7 @@ export default {
         if (data.code === 200) {
           const currentId = this.newsInfo && this.newsInfo.id;
           const list = (data.data || []).filter((n) => n.id !== currentId);
-          this.newsTopList = list.slice(0, 6);
+          this.newsTopList = pickUniqueCoverNews(list, 3);
         }
       });
     },
@@ -248,6 +325,15 @@ export default {
 }
 
 /* Prose for server-rendered article HTML */
+.news-detail__empty {
+  margin: 0 0 1.5em;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(232, 244, 238, 0.65);
+  color: #4a6358;
+  font-size: 15px;
+}
+
 .news-detail__body {
   font-family: var(--nb-font);
   font-size: 16px;

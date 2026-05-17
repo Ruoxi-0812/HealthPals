@@ -45,6 +45,9 @@
         FROM news n
         LEFT JOIN tags t ON t.id = n.tag_id
         <where>
+            <if test="id != null">
+                AND n.id = #{id}
+            </if>
             <if test="name != null and name != ''">
                 AND n.name LIKE concat('%',#{name},'%')
             </if>
@@ -69,6 +72,9 @@
         SELECT COUNT(*)
         FROM news n
         <where>
+            <if test="id != null">
+                AND n.id = #{id}
+            </if>
             <if test="name != null and name != ''">
                 AND n.name LIKE concat('%',#{name},'%')
             </if>

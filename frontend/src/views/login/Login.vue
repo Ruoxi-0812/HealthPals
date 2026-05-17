@@ -83,11 +83,10 @@ export default {
     },
     async login() {
       if (!this.act || !this.pwd) {
-        this.$swal.fire({
+        this.$swalToast({
           title: "Input Validation",
           text: "Account or password cannot be empty",
           icon: "error",
-          showConfirmButton: false,
           timer: DELAY_TIME,
         });
         return;
@@ -99,11 +98,10 @@ export default {
       try {
         const { data } = await request.post(`user/login`, paramDTO);
         if (data.code !== 200) {
-          this.$swal.fire({
+          this.$swalToast({
             title: "Login Failed",
             text: data.msg,
             icon: "error",
-            showConfirmButton: false,
             timer: DELAY_TIME,
           });
           return;

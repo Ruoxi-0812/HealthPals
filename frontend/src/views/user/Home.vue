@@ -2,10 +2,21 @@
   <div class="home-page">
     <div class="home-inner">
       <!-- Hero：全宽轮播 + 下方精选（无左右分栏，避免一侧留白） -->
-      <section class="home-hero" v-if="newsTopList.length">
+      <section class="home-hero home-hero--loading" v-if="topLoading">
+        <div class="hero-skeleton-banner skeleton-pulse" />
+        <div class="hero-skeleton-featured">
+          <div
+            v-for="n in 3"
+            :key="'sk-top-' + n"
+            class="hero-skeleton-card skeleton-pulse"
+          />
+        </div>
+      </section>
+
+      <section class="home-hero" v-else-if="newsTopList.length">
         <div class="hero-banner-wide">
           <Banner
-            :data="newsTopList"
+            :data="displayTopNews"
             @on-click="onBannerClick"
             border-radius="16px"
           />
@@ -30,9 +41,12 @@
             >
               <div class="featured-card__media">
                 <img
-                  :src="news.cover"
+                  :src="newsCoverSrc(news.cover, news.id)"
                   :alt="news.name"
                   class="featured-card__img"
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                  @error="onCoverImgError"
                 />
               </div>
               <div class="featured-card__body">
@@ -76,22 +90,33 @@
           </div>
         </header>
 
-        <el-row v-if="newsList.length === 0" class="feed-empty">
+        <div v-if="feedLoading" class="feed-masonry feed-masonry--loading">
+          <div
+            v-for="n in 6"
+            :key="'sk-feed-' + n"
+            class="feed-skeleton-card skeleton-pulse"
+          />
+        </div>
+
+        <el-row v-else-if="displayNewsList.length === 0" class="feed-empty">
           <el-empty description="No news available" />
         </el-row>
 
         <div v-else class="feed-masonry">
           <article
-            v-for="(news, index) in newsList"
-            :key="'news-' + index"
+            v-for="(news, index) in displayNewsList"
+            :key="news.id || 'news-' + index"
             class="feed-card"
             @click="newsItemClick(news)"
           >
             <div class="feed-card__media">
               <img
-                :src="news.cover"
+                :src="newsCoverSrc(news.cover, news.id)"
                 :alt="news.name"
                 class="feed-card__img"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                @error="onCoverImgError"
               />
             </div>
             <div class="feed-card__body">
@@ -112,8 +137,14 @@
 import TagLine from "@/components/TagLine";
 import Banner from "@/components/Banner";
 import { timeAgo } from "@/utils/data";
+import {
+  newsCoverSrc,
+  onCoverImgError,
+  pickUniqueCoverNews,
+} from "@/utils/coverImage";
 
 export default {
+  name: "HomePage",
   components: { TagLine, Banner },
   data() {
     return {
@@ -121,33 +152,61 @@ export default {
       newsList: [],
       newsTopList: [],
       newQueryDto: { tagId: null },
+      topLoading: true,
+      feedLoading: true,
     };
   },
   computed: {
     displayTopNews() {
-      return (this.newsTopList || []).slice(0, 6);
+      return pickUniqueCoverNews(this.newsTopList, 3);
     },
     featuredColsModifier() {
       const n = this.displayTopNews.length;
-      return Math.min(Math.max(n, 1), 6);
+      return Math.min(Math.max(n, 1), 3);
+    },
+    displayNewsList() {
+      return pickUniqueCoverNews(this.newsList, 0);
     },
   },
   created() {
-    this.loadAllTags();
-    this.loadAllNews();
-    this.loadAllTopNews();
+    this.bootstrap();
+  },
+  activated() {
+    if (this.newsList.length || this.newsTopList.length) {
+      this.loadAllTags();
+      this.loadAllNews({ silent: true });
+      this.loadAllTopNews({ silent: true });
+      return;
+    }
+    this.bootstrap();
   },
   methods: {
+    newsCoverSrc,
+    onCoverImgError,
     onBannerClick(banner) {
-      sessionStorage.setItem("newsInfo", JSON.stringify(banner));
-      this.$router.push("/news-detail");
+      if (banner && banner.id != null) {
+        this.$router.push({
+          path: "/news-detail",
+          query: { id: String(banner.id) },
+        });
+      }
     },
     newsItemClick(news) {
-      sessionStorage.setItem("newsInfo", JSON.stringify(news));
-      this.$router.push("/news-detail");
+      if (news && news.id != null) {
+        this.$router.push({
+          path: "/news-detail",
+          query: { id: String(news.id) },
+        });
+      }
     },
     parseTime(time) {
       return timeAgo(time);
+    },
+    bootstrap() {
+      this.topLoading = true;
+      this.feedLoading = true;
+      this.loadAllTags();
+      Promise.all([this.loadAllNews(), this.loadAllTopNews()]);
     },
     tagOnClick(tags) {
       this.newQueryDto.tagId = tags.id;
@@ -162,22 +221,38 @@ export default {
         }
       });
     },
-    loadAllTopNews() {
+    loadAllTopNews(opts = {}) {
+      if (!opts.silent) {
+        this.topLoading = true;
+      }
       const newQueryDto = { isTop: true };
-      this.$axios.post("/news/query", newQueryDto).then((response) => {
-        const { data } = response;
-        if (data.code === 200) {
-          this.newsTopList = data.data;
-        }
-      });
+      return this.$axios
+        .post("/news/query", newQueryDto)
+        .then((response) => {
+          const { data } = response;
+          if (data.code === 200) {
+            this.newsTopList = data.data || [];
+          }
+        })
+        .finally(() => {
+          this.topLoading = false;
+        });
     },
-    loadAllNews() {
-      this.$axios.post("/news/query", this.newQueryDto).then((response) => {
-        const { data } = response;
-        if (data.code === 200) {
-          this.newsList = data.data;
-        }
-      });
+    loadAllNews(opts = {}) {
+      if (!opts.silent) {
+        this.feedLoading = true;
+      }
+      return this.$axios
+        .post("/news/query", this.newQueryDto)
+        .then((response) => {
+          const { data } = response;
+          if (data.code === 200) {
+            this.newsList = data.data || [];
+          }
+        })
+        .finally(() => {
+          this.feedLoading = false;
+        });
     },
   },
 };
@@ -377,6 +452,57 @@ $shadow-hover: 0 20px 40px rgba(30, 47, 40, 0.12);
 
 .hero--empty {
   margin-bottom: 20px;
+}
+
+.home-hero--loading {
+  margin-bottom: 28px;
+}
+
+.hero-skeleton-banner {
+  width: 100%;
+  aspect-ratio: 21 / 8;
+  max-height: 320px;
+  border-radius: 16px;
+  background: rgba(126, 197, 160, 0.22);
+  margin-bottom: 22px;
+}
+
+.hero-skeleton-featured {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.hero-skeleton-card {
+  aspect-ratio: 3 / 2;
+  border-radius: 14px;
+  background: rgba(126, 197, 160, 0.18);
+}
+
+.feed-skeleton-card {
+  border-radius: 14px;
+  min-height: 260px;
+  background: rgba(126, 197, 160, 0.16);
+}
+
+.skeleton-pulse {
+  animation: home-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes home-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-skeleton-featured {
+    grid-template-columns: 1fr;
+  }
 }
 
 .empty-hero {

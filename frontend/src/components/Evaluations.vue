@@ -51,10 +51,12 @@
               <span class="ev-muted">{{ comment.time }}</span>
               <el-popconfirm
                 v-if="comment.userId == userId"
-                confirm-button-text="OK"
-                cancel-button-text="Keep it"
-                icon="el-icon-info"
-                icon-color="red"
+                popper-class="hp-popconfirm"
+                confirm-button-text="Delete"
+                cancel-button-text="Cancel"
+                confirm-button-type="danger"
+                icon="el-icon-warning"
+                icon-color="#c98a2e"
                 title="Delete this comment?"
                 @confirm="deleteComment(comment)"
               >
@@ -153,10 +155,12 @@
                   <span class="ev-muted">{{ commentChild.time }}</span>
                   <el-popconfirm
                     v-if="commentChild.userId == userId"
-                    confirm-button-text="OK"
-                    cancel-button-text="Keep it"
-                    icon="el-icon-info"
-                    icon-color="red"
+                    popper-class="hp-popconfirm"
+                    confirm-button-text="Delete"
+                    cancel-button-text="Cancel"
+                    confirm-button-type="danger"
+                    icon="el-icon-warning"
+                    icon-color="#c98a2e"
                     title="Delete this comment?"
                     @confirm="deleteComment(commentChild)"
                   >

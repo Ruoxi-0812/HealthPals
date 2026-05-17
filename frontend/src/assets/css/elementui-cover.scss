@@ -185,8 +185,320 @@
   background-color: #268611 !important;
 }
 
-.el-popconfirm__main {
-  padding-bottom: 21px !important;
+/* Comment delete — el-popconfirm */
+.hp-popconfirm.el-popper[x-placement^="top"],
+.hp-popconfirm.el-popper[x-placement^="bottom"] {
+  padding: 14px 16px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  box-shadow: var(--nb-shadow-sm, 0 8px 20px rgba(53, 92, 75, 0.12));
+  min-width: 240px;
+}
+
+.hp-popconfirm .el-popconfirm__main {
+  margin: 0 0 12px;
+  padding: 0 !important;
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--nb-ink, #24332b);
+}
+
+.hp-popconfirm .el-popconfirm__icon {
+  margin-right: 8px;
+  font-size: 18px !important;
+}
+
+.hp-popconfirm .el-popconfirm__action {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  text-align: inherit;
+}
+
+.hp-popconfirm .el-popconfirm__action .el-button {
+  flex: 1 1 0;
+  margin: 0 !important;
+  min-width: 0;
+  padding: 8px 10px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.hp-popconfirm .el-popconfirm__action .el-button--default {
+  background: var(--nb-paper-2, #f3faf6) !important;
+  border: 1px solid rgba(126, 197, 160, 0.35) !important;
+  color: var(--nb-ink, #24332b) !important;
+}
+
+.hp-popconfirm .el-popconfirm__action .el-button--danger {
+  background: var(--nb-danger, #ef7b7b) !important;
+  border-color: rgba(239, 123, 123, 0.5) !important;
+  color: #fff !important;
+}
+
+/* Account dialogs — Personal center, Reset password */
+.hp-dialog.el-dialog {
+  border-radius: var(--nb-radius, 22px);
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  box-shadow: var(--nb-shadow, 0 14px 36px rgba(53, 92, 75, 0.14));
+  overflow: hidden;
+}
+
+.hp-dialog .el-dialog__header {
+  padding: 20px 24px 0;
+}
+
+.hp-dialog .el-dialog__headerbtn {
+  top: 18px;
+  right: 18px;
+}
+
+.hp-dialog .el-dialog__headerbtn .el-dialog__close {
+  color: var(--nb-muted, rgba(36, 51, 43, 0.62));
+  font-weight: 700;
+}
+
+.hp-dialog .el-dialog__body {
+  padding: 12px 24px 8px;
+}
+
+.hp-dialog .el-dialog__footer {
+  padding: 0 24px 22px;
+}
+
+.hp-dialog__head {
+  padding-right: 28px;
+}
+
+.hp-dialog__eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nb-accent, #7ec5a0);
+  margin-bottom: 4px;
+}
+
+.hp-dialog__title {
+  margin: 0;
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--nb-ink, #24332b);
+  line-height: 1.25;
+}
+
+.hp-dialog__hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--nb-muted, rgba(36, 51, 43, 0.62));
+  font-weight: 500;
+}
+
+.hp-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hp-field__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--nb-muted, rgba(36, 51, 43, 0.62));
+  letter-spacing: 0.02em;
+}
+
+.hp-field__input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(126, 197, 160, 0.45);
+  background: var(--nb-paper, #fff);
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nb-ink, #24332b);
+  outline: none;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.hp-field__input::placeholder {
+  color: rgba(36, 51, 43, 0.38);
+  font-weight: 500;
+}
+
+.hp-field__input:focus {
+  border-color: var(--nb-accent, #7ec5a0);
+  box-shadow: var(--nb-focus, 0 0 0 4px rgba(126, 197, 160, 0.25));
+}
+
+.hp-dialog__avatar-uploader .el-upload {
+  border: 2px dashed rgba(126, 197, 160, 0.45) !important;
+  border-radius: 14px !important;
+  background: var(--nb-paper-2, #f3faf6) !important;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.hp-dialog__avatar-uploader .el-upload:hover {
+  border-color: var(--nb-accent, #7ec5a0) !important;
+  background: #e8f5ee !important;
+}
+
+.hp-dialog__avatar {
+  width: 88px;
+  height: 88px;
+  display: block;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.hp-dialog__footer {
+  display: flex;
+  gap: 10px;
+  justify-content: stretch;
+  padding-top: 8px;
+}
+
+.hp-dialog__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 44px;
+  border-radius: 12px;
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.hp-dialog__btn--primary {
+  border: 1px solid rgba(126, 197, 160, 0.45);
+  background: var(--nb-accent, #7ec5a0);
+  color: #fff;
+  box-shadow: var(--nb-shadow-sm, 0 8px 20px rgba(53, 92, 75, 0.12));
+}
+
+.hp-dialog__btn--primary:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+}
+
+.hp-dialog__btn--ghost {
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  background: var(--nb-paper-2, #f3faf6);
+  color: var(--nb-ink, #24332b);
+}
+
+.hp-dialog__btn--ghost:hover {
+  background: #e8f5ee;
+}
+
+/* Element UI — $message / $notify toasts */
+.el-message {
+  min-width: min(360px, calc(100vw - 32px));
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  box-shadow: var(--nb-shadow-sm, 0 8px 20px rgba(53, 92, 75, 0.12));
+  background: var(--nb-paper, #fff);
+}
+
+.el-message .el-message__content {
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nb-ink, #24332b);
+}
+
+.el-message .el-message__icon {
+  font-size: 18px;
+  margin-right: 10px;
+}
+
+.el-message--success {
+  background: #f3faf6;
+  border-color: rgba(126, 197, 160, 0.45);
+}
+
+.el-message--success .el-message__icon {
+  color: #3d8f66;
+}
+
+.el-message--error {
+  background: #fff8f8;
+  border-color: rgba(239, 123, 123, 0.4);
+}
+
+.el-message--error .el-message__icon {
+  color: var(--nb-danger, #ef7b7b);
+}
+
+.el-message--warning {
+  background: #fffbf3;
+  border-color: rgba(232, 196, 122, 0.55);
+}
+
+.el-message--warning .el-message__icon {
+  color: #c98a2e;
+}
+
+.el-message--info .el-message__icon {
+  color: var(--nb-accent, #7ec5a0);
+}
+
+.el-notification {
+  border-radius: 14px;
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  box-shadow: var(--nb-shadow-sm, 0 8px 20px rgba(53, 92, 75, 0.12));
+  padding: 16px 18px;
+}
+
+.el-notification__title {
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--nb-ink, #24332b);
+}
+
+.el-notification__content {
+  font-family: var(--nb-font, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nb-muted, rgba(36, 51, 43, 0.62));
+  line-height: 1.45;
+}
+
+.el-notification .el-icon-success {
+  color: #3d8f66;
+}
+
+.el-notification .el-icon-error {
+  color: var(--nb-danger, #ef7b7b);
+}
+
+.el-notification .el-icon-warning {
+  color: #c98a2e;
+}
+
+.el-notification .el-icon-info {
+  color: var(--nb-accent, #7ec5a0);
 }
 
 

@@ -1,38 +1,48 @@
 <template>
-  <div
-    style="
-      box-sizing: border-box;
-      overflow-y: hidden;
-      overflow-x: hidden;
-      padding: 10px;
-    "
-  >
-    <el-row>
-      <el-col :span="8">
-        <div style="padding: 15px 5px; box-sizing: border-box">
+  <div class="admin-dashboard">
+    <header class="admin-dashboard__intro">
+      <span class="admin-dashboard__eyebrow">Overview</span>
+      <h1 class="admin-dashboard__title">Indicator panel</h1>
+      <p class="admin-dashboard__lede">
+        User growth, health metrics, and recent system messages at a glance.
+      </p>
+    </header>
+
+    <div class="admin-dashboard__grid">
+      <div class="admin-dashboard__side">
+        <section class="admin-dashboard__card">
+          <h2 class="admin-dashboard__card-title">Distribution</h2>
           <PieChart
-            fontColor="rgb(51,51,51)"
-            bag="rgb(248,248,248)"
+            fontColor="#24332b"
+            bag="#f3faf6"
             :values="pieValues"
             :types="pieTypes"
           />
-        </div>
-        <div style="padding: 10px 5px; box-sizing: border-box">
-          <div v-for="(message, idx) in messageList" :key="idx">
-            <div style="font-size: 16px; font-weight: 800">
-              {{ message.receiverName }}
-            </div>
-            <div style="padding: 8px 0; font-size: 14px; color: #6f6d6d">
-              {{ message.content }}
-            </div>
-            <div style="padding: 5px 0; font-size: 14px; color: #6f6d6d">
-              {{ message.createTime }}
-            </div>
+        </section>
+
+        <section class="admin-dashboard__card">
+          <h2 class="admin-dashboard__card-title">Recent messages</h2>
+          <div v-if="messageList.length" class="admin-message-list">
+            <article
+              v-for="(message, idx) in messageList"
+              :key="message.id || idx"
+              class="admin-message-item"
+            >
+              <div class="admin-message-item__name">
+                {{ message.receiverName }}
+              </div>
+              <p class="admin-message-item__text">{{ message.content }}</p>
+              <time class="admin-message-item__time">{{
+                time(message.createTime)
+              }}</time>
+            </article>
           </div>
-        </div>
-      </el-col>
-      <el-col :span="16">
-        <div style="padding: 15px; box-sizing: border-box">
+          <p v-else class="admin-dashboard__empty">No messages yet.</p>
+        </section>
+      </div>
+
+      <div class="admin-dashboard__charts">
+        <section class="admin-dashboard__card">
           <LineChart
             height="290px"
             tag="Total Users"
@@ -40,8 +50,8 @@
             :values="userValues"
             :date="userDates"
           />
-        </div>
-        <div style="padding: 15px; box-sizing: border-box">
+        </section>
+        <section class="admin-dashboard__card">
           <LineChart
             height="290px"
             tag="Health Metrics"
@@ -49,15 +59,17 @@
             :values="modelValues"
             :date="modelDates"
           />
-        </div>
-      </el-col>
-    </el-row>
+        </section>
+      </div>
+    </div>
   </div>
 </template>
+
 <script>
 import LineChart from "@/components/LineChart";
 import PieChart from "@/components/PieChart";
 import { timeAgo } from "@/utils/data";
+
 export default {
   components: { LineChart, PieChart },
   data() {
@@ -72,9 +84,7 @@ export default {
     };
   },
   created() {
-    // Since there is little data, query for 365 days by default
     this.userDatesSelected(365);
-    // Since there is little data, query for 365 days by default
     this.modelDatesSelected(365);
     this.loadPieCharts();
     this.loadMessages();
@@ -83,7 +93,6 @@ export default {
     time(createTime) {
       return timeAgo(createTime);
     },
-    // Load news/messages
     loadMessages() {
       const messageQueryDto = {
         current: 1,
@@ -92,7 +101,7 @@ export default {
       this.$axios.post(`/message/query`, messageQueryDto).then((response) => {
         const { data } = response;
         if (data.code === 200) {
-          this.messageList = data.data;
+          this.messageList = data.data || [];
         }
       });
     },
@@ -126,30 +135,46 @@ export default {
   },
 };
 </script>
+
 <style scoped lang="scss">
-.new-item {
+.admin-dashboard__intro {
+  margin-bottom: 18px;
+}
+
+.admin-dashboard__eyebrow {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2a9d6f;
+}
+
+.admin-dashboard__title {
+  margin: 0 0 8px;
+  font-family: var(--nb-font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--nb-ink);
+}
+
+.admin-dashboard__lede {
+  margin: 0;
+  font-size: 14px;
+  color: var(--nb-muted);
+  max-width: 52ch;
+}
+
+.admin-dashboard__side {
   display: flex;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 18px;
+}
 
-  .item {
-    padding: 5px;
-    box-sizing: border-box;
-
-    img {
-      width: 168px;
-      height: 104px;
-      border-radius: 5px;
-    }
-  }
-
-  .item-bottom {
-    padding: 5px;
-    box-sizing: border-box;
-
-    .title {
-      font-size: 16px;
-      font-weight: 800;
-    }
-  }
+.admin-dashboard__empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--nb-muted);
 }
 </style>

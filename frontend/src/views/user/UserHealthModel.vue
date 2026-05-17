@@ -213,6 +213,8 @@ export default {
         title: "Delete Health Record Data",
         text: `Once deleted, it cannot be recovered. Do you want to continue?`,
         icon: "warning",
+        danger: true,
+        confirmButtonText: "Delete",
       });
       if (confirmed) {
         try {

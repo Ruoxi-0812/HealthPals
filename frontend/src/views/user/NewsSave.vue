@@ -96,15 +96,12 @@ export default {
       return timeAgo(time);
     },
     newsItemClick(newsSave) {
-      const news = {
-        id: newsSave.newsId,
-        name: newsSave.name,
-        content: newsSave.content,
-        createTime: newsSave.createTime,
-        tagName: newsSave.tagName,
-      };
-      sessionStorage.setItem("newsInfo", JSON.stringify(news));
-      this.$router.push("/news-detail");
+      if (newsSave && newsSave.newsId != null) {
+        this.$router.push({
+          path: "/news-detail",
+          query: { id: String(newsSave.newsId) },
+        });
+      }
     },
     loadAllSaveNews() {
       const userInfo = sessionStorage.getItem("userInfo");

@@ -134,12 +134,21 @@
         </foreach>
     </delete>
 
-    <insert id="save">
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO evaluations(parent_id, commenter_id, replier_id, content_type, content_id, content,
                                 upvote_list, create_time)
         VALUES (#{parentId}, #{commenterId}, #{replierId}, #{contentType}, #{contentId}, #{content},
                 #{upvoteList}, #{createTime})
     </insert>
+
+    <select id="listCommenterIdsByContent" resultType="java.lang.Integer">
+        SELECT DISTINCT e.commenter_id
+        FROM evaluations e
+        WHERE e.content_id = #{contentId}
+          AND e.content_type = #{contentType}
+          AND e.commenter_id IS NOT NULL
+          AND e.commenter_id != #{excludeUserId}
+    </select>
 
     <select id="selectChildComments" parameterType="list" resultType="Integer">
         SELECT e.id FROM evaluations e WHERE e.parentId IN

@@ -1,7 +1,7 @@
 <template>
-  <el-row style="background-color: #ffffff; padding: 5px 0; border-radius: 5px">
-    <el-row style="padding: 10px; margin-left: 10px">
-      <el-row>
+  <div class="admin-page">
+    <div class="admin-page__toolbar">
+      <div class="admin-toolbar-row">
         <el-select
           @change="changeNewsTag"
           size="small"
@@ -18,7 +18,7 @@
         </el-select>
         <el-date-picker
           size="small"
-          style="margin-left: 5px; width: 220px"
+          style="width: 220px"
           v-model="searchTime"
           type="daterange"
           range-separator="to"
@@ -28,7 +28,7 @@
         </el-date-picker>
         <el-input
           size="small"
-          style="width: 188px; margin-left: 5px; margin-right: 6px"
+          class="admin-filter-input"
           v-model="newsQueryDto.name"
           placeholder="News Title"
           clearable
@@ -40,23 +40,16 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
-        <span style="float: right">
-          <el-button
-            size="small"
-            style="
-              background-color: rgb(96, 98, 102);
-              color: rgb(247, 248, 249);
-              border: none;
-            "
-            class="customer"
-            type="info"
+        <div class="admin-page__toolbar-actions">
+          <el-button type="primary" size="small"
             @click="add()"
             ><i class="el-icon-plus"></i>Add News</el-button
           >
-        </span>
-      </el-row>
-    </el-row>
-    <el-row style="margin: 0 20px; border-top: 1px solid rgb(245, 245, 245)">
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-page__body">
       <el-table
         row-key="id"
         @selection-change="handleSelectionChange"
@@ -83,13 +76,11 @@
           <template slot-scope="scope">
             <i
               v-if="!scope.row.isTop"
-              style="margin-right: 5px"
-              class="el-icon-warning"
+              class="el-icon-warning admin-status-ic"
             ></i>
             <i
               v-else
-              style="margin-right: 5px; color: rgb(253, 199, 50)"
-              class="el-icon-success"
+              class="el-icon-success admin-status-ic admin-status-ic--ok"
             ></i>
             <el-tooltip
               v-if="!scope.row.isTop"
@@ -125,8 +116,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        style="margin: 20px 0"
+      <el-pagination class="admin-pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="currentPage"
@@ -135,118 +125,49 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </el-row>
+    </div>
     <el-dialog
-      :show-close="false"
+      custom-class="hp-dialog admin-dialog-editor"
+      :show-close="true"
+      append-to-body
       :visible.sync="dialogUserOperaion"
-      width="50%"
+      width="860px"
     >
-      <div slot="title">
-        <p class="dialog-title">
-          {{ !isOperation ? "Add News" : "Edit News" }}
-        </p>
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">News</span>
+        <h2 class="hp-dialog__title">{{ !isOperation ? "Add article" : "Edit article" }}</h2>
       </div>
-      <div style="padding: 0 20px">
-        <!-- Cover -->
-        <el-row style="margin-top: 10px">
-          <p>*Cover</p>
-          <el-upload
-            class="avatar-uploader"
-            action="/api/personal-heath/v1.0/file/upload"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-          >
-            <img
-              v-if="data.cover"
-              :src="data.cover"
-              style="height: 120px; width: 188px"
-            />
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+      <div class="hp-dialog__body admin-form-stack">
+        <label class="hp-field">
+          <span class="hp-field__label">Cover</span>
+          <el-upload class="hp-dialog__avatar-uploader avatar-uploader" action="/api/personal-heath/v1.0/file/upload" :show-file-list="false" :on-success="handleAvatarSuccess">
+            <img v-if="data.cover" :src="data.cover" class="admin-cover-preview" />
+            <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
-        </el-row>
-        <!-- Title -->
-        <el-row>
-          <p>*Title</p>
-          <input
-            style="font-size: 32px; line-height: 45px"
-            class="dialog-input"
-            v-model="data.name"
-            placeholder="Title"
-          />
-        </el-row>
-        <!-- Category -->
-        <el-row style="margin: 12px 0">
-          <el-row>
-            <span class="dialog-hover">Category</span>
-          </el-row>
-          <el-radio-group style="margin-top: 10px" v-model="data.tagId">
-            <el-radio
-              :key="index"
-              :label="tag.id"
-              v-for="(tag, index) in tagsList"
-              >{{ tag.name }}</el-radio
-            >
+        </label>
+        <label class="hp-field"><span class="hp-field__label">Title</span><input v-model="data.name" class="hp-field__input" type="text" placeholder="Article title" /></label>
+        <label class="hp-field">
+          <span class="hp-field__label">Category</span>
+          <el-radio-group v-model="data.tagId">
+            <el-radio :key="index" :label="tag.id" v-for="(tag, index) in tagsList">{{ tag.name }}</el-radio>
           </el-radio-group>
-        </el-row>
-        <!-- Recommended -->
-        <el-row style="margin: 12px 0">
-          <el-row>
-            <span class="dialog-hover">Recommended</span>
-          </el-row>
-          <el-switch
-            style="user-select: none; padding: 0 6px"
-            v-model="data.isTop"
-            active-color="#13ce66"
-            inactive-color="rgb(226, 226, 226)"
-          >
-          </el-switch>
-        </el-row>
-        <el-row>
-          <p>*Content Description</p>
-          <Editor
-            height="calc(100vh - 500px)"
-            :receiveContent="data.content"
-            @on-receive="onReceiveContent"
-          />
-        </el-row>
+        </label>
+        <div class="admin-switch-row">
+          <span class="admin-switch-row__label">Featured on home</span>
+          <el-switch v-model="data.isTop" active-color="#2a9d6f" inactive-color="#e0e0e0" />
+        </div>
+        <label class="hp-field">
+          <span class="hp-field__label">Content</span>
+          <Editor height="min(360px, 50vh)" :receiveContent="data.content" @on-receive="onReceiveContent" />
+        </label>
       </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          size="small"
-          v-if="!isOperation"
-          style="
-            background-color: rgb(96, 98, 102);
-            color: rgb(247, 248, 249);
-            border: none;
-          "
-          class="customer"
-          type="info"
-          @click="addOperation()"
-          >Add</el-button
-        >
-        <el-button
-          size="small"
-          v-else
-          style="
-            background-color: rgb(96, 98, 102);
-            color: rgb(247, 248, 249);
-            border: none;
-          "
-          class="customer"
-          type="info"
-          @click="updateOperation()"
-          >Edit</el-button
-        >
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
-          @click="dialogUserOperaion = false"
-          >Cancel</el-button
-        >
-      </span>
+      <div slot="footer" class="hp-dialog__footer">
+        <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="dialogUserOperaion = false">Cancel</button>
+        <button v-if="!isOperation" type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="addOperation()">Publish</button>
+        <button v-else type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="updateOperation()">Save</button>
+      </div>
     </el-dialog>
-  </el-row>
+  </div>
 </template>
 
 <script>
@@ -317,6 +238,8 @@ export default {
         title: "Delete News Data",
         text: `Deletion is irreversible, do you want to continue?`,
         icon: "warning",
+        danger: true,
+        confirmButtonText: "Delete",
       });
       if (confirmed) {
         try {
@@ -454,36 +377,3 @@ export default {
   },
 };
 </script>
-
-<style scoped lang="scss">
-.tag-tip {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 5px;
-  background-color: rgb(245, 245, 245);
-  color: rgb(104, 118, 130);
-}
-
-.input-def {
-  height: 40px;
-  line-height: 40px;
-  outline: none;
-  border: none;
-  font-size: 20px;
-  color: rgb(102, 102, 102);
-  font-weight: 900;
-  width: 100%;
-}
-
-.dialog-footer {
-  /* Center the buttons */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Adjust spacing between buttons if needed */
-.customer {
-  margin: 0 8px;
-}
-</style>

@@ -199,25 +199,10 @@ export default {
       this.pathToDo(this.messagePath);
     },
     async out() {
-      const confirmed = await this.$swalConfirm({
-        title: "Logout or not",
-        text: `After logging out, you will have to log in again to use the system`,
-        icon: "warning",
-      });
+      const confirmed = await this.$swalLogout();
       if (confirmed) {
-        this.$swal.fire({
-          title: "Log out",
-          text: "You have successfully logged out.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 1300,
-        });
-        setTimeout(() => {
-          clearToken();
-          this.$router.push("/loginPath");
-        }, 1300);
-      } else {
-        console.log("Canceled the logout operation");
+        clearToken();
+        this.$router.push("/login");
       }
     },
   },

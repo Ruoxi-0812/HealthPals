@@ -1,7 +1,7 @@
 <template>
-  <el-row style="background-color: #ffffff; padding: 5px 0; border-radius: 5px">
-    <el-row style="padding: 10px; margin-left: 10px">
-      <el-row>
+  <div class="admin-page">
+    <div class="admin-page__toolbar">
+      <div class="admin-toolbar-row">
         <el-date-picker
           size="small"
           style="width: 220px"
@@ -14,7 +14,7 @@
         </el-date-picker>
         <el-input
           size="small"
-          style="width: 188px; margin-left: 5px; margin-right: 6px"
+          class="admin-filter-input"
           v-model="userQueryDto.userName"
           placeholder="Username"
           clearable
@@ -26,23 +26,16 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
-        <span style="float: right">
-          <el-button
-            size="small"
-            style="
-              background-color: rgb(96, 98, 102);
-              color: rgb(247, 248, 249);
-              border: none;
-            "
-            class="customer"
-            type="info"
+        <div class="admin-page__toolbar-actions">
+          <el-button type="primary" size="small"
             @click="add()"
             ><i class="el-icon-plus"></i>Add User</el-button
           >
-        </span>
-      </el-row>
-    </el-row>
-    <el-row style="margin: 0 20px; border-top: 1px solid rgb(245, 245, 245)">
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-page__body">
       <el-table
         @selection-change="handleSelectionChange"
         :data="tableData"
@@ -77,13 +70,11 @@
           <template slot-scope="scope">
             <i
               v-if="scope.row.isLogin"
-              style="margin-right: 5px"
-              class="el-icon-warning"
+              class="el-icon-warning admin-status-ic"
             ></i>
             <i
               v-else
-              style="margin-right: 5px; color: rgb(253, 199, 50)"
-              class="el-icon-success"
+              class="el-icon-success admin-status-ic admin-status-ic--ok"
             ></i>
             <el-tooltip
               v-if="scope.row.isLogin"
@@ -92,12 +83,7 @@
               content="Once suspended, the user cannot log in. Only an admin can restore access."
               placement="bottom-end"
             >
-              <span
-                style="
-                  text-decoration: underline;
-                  text-decoration-style: dashed;
-                "
-                >Suspended</span
+              <span class="admin-status-link">Suspended</span
               >
             </el-tooltip>
             <span v-else>Active</span>
@@ -107,13 +93,11 @@
           <template slot-scope="scope">
             <i
               v-if="scope.row.isWord"
-              style="margin-right: 5px"
-              class="el-icon-warning"
+              class="el-icon-warning admin-status-ic"
             ></i>
             <i
               v-else
-              style="margin-right: 5px; color: rgb(253, 199, 50)"
-              class="el-icon-success"
+              class="el-icon-success admin-status-ic admin-status-ic--ok"
             ></i>
             <el-tooltip
               v-if="scope.row.isWord"
@@ -122,12 +106,7 @@
               content="Once muted, the user cannot comment. Only an admin can unmute them."
               placement="bottom-end"
             >
-              <span
-                style="
-                  text-decoration: underline;
-                  text-decoration-style: dashed;
-                "
-                >Muted</span
+              <span class="admin-status-link">Muted</span
               >
             </el-tooltip>
             <span v-else>Active</span>
@@ -151,8 +130,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        style="margin: 10px 0"
+      <el-pagination class="admin-pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="currentPage"
@@ -161,154 +139,81 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </el-row>
-    <!-- Operation Panel -->
+    </div>
     <el-dialog
-      :show-close="false"
+      custom-class="hp-dialog admin-dialog-wide"
+      :show-close="true"
+      append-to-body
       :visible.sync="dialogUserOperation"
-      width="25%"
+      width="480px"
     >
-      <div slot="title">
-        <p class="dialog-title">
-          {{ !isOperation ? "Add User" : "Edit User Information" }}
-        </p>
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Users</span>
+        <h2 class="hp-dialog__title">
+          {{ !isOperation ? "Add user" : "Edit user" }}
+        </h2>
       </div>
-      <div style="padding: 0 20px">
-        <el-row>
+      <div class="hp-dialog__body admin-form-stack">
+        <label class="hp-field">
+          <span class="hp-field__label">Avatar</span>
           <el-upload
-            class="avatar-uploader"
-            action="/api/personal-health/v1.0/file/upload"
+            class="hp-dialog__avatar-uploader avatar-uploader"
+            action="/api/personal-heath/v1.0/file/upload"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
           >
-            <img v-if="userAvatar" :src="userAvatar" class="dialog-avatar" />
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <img v-if="userAvatar" :src="userAvatar" class="hp-dialog__avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
-        </el-row>
-        <el-row>
-          <span class="dialog-hover">Username</span>
-          <input
-            class="dialog-input"
-            v-model="data.userName"
-            placeholder="Username"
-          />
-          <span class="dialog-hover">Account</span>
-          <input
-            class="dialog-input"
-            v-model="data.userAccount"
-            placeholder="Account"
-          />
-          <span class="dialog-hover">Email</span>
-          <input
-            class="dialog-input"
-            v-model="data.userEmail"
-            placeholder="Email"
-          />
-          <span class="dialog-hover">Password</span>
-          <input
-            class="dialog-input"
-            v-model="userPwd"
-            type="password"
-            placeholder="Password"
-          />
-        </el-row>
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">Username</span>
+          <input v-model="data.userName" class="hp-field__input" type="text" placeholder="Display name" />
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">Account</span>
+          <input v-model="data.userAccount" class="hp-field__input" type="text" placeholder="Login account" :disabled="isOperation" />
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">Email</span>
+          <input v-model="data.userEmail" class="hp-field__input" type="email" placeholder="Email address" />
+        </label>
+        <label v-if="!isOperation" class="hp-field">
+          <span class="hp-field__label">Password</span>
+          <input v-model="userPwd" class="hp-field__input" type="password" placeholder="At least 6 characters" />
+        </label>
       </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          size="small"
-          v-if="!isOperation"
-          style="
-            background-color: rgb(96, 98, 102);
-            color: rgb(247, 248, 249);
-            border: none;
-          "
-          class="customer"
-          type="info"
-          @click="addOperation()"
-          >Add</el-button
-        >
-        <el-button
-          size="small"
-          v-else
-          style="
-            background-color: rgb(96, 98, 102);
-            color: rgb(247, 248, 249);
-            border: none;
-          "
-          class="customer"
-          type="info"
-          @click="updateOperation()"
-          >Update</el-button
-        >
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(211, 241, 241); border: none"
-          @click="cancel"
-          >Cancel</el-button
-        >
-      </span>
+      <div slot="footer" class="hp-dialog__footer">
+        <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="cancel">Cancel</button>
+        <button v-if="!isOperation" type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="addOperation()">Add user</button>
+        <button v-else type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="updateOperation()">Save</button>
+      </div>
     </el-dialog>
-    <el-dialog
-      :show-close="false"
-      :visible.sync="dialogStatusOperation"
-      width="25%"
-    >
-      <div slot="title">
-        <p class="dialog-title">Account Status</p>
+    <el-dialog custom-class="hp-dialog" :show-close="true" append-to-body :visible.sync="dialogStatusOperation" width="440px">
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Users</span>
+        <h2 class="hp-dialog__title">Account status</h2>
       </div>
-      <div style="padding: 0 20px">
-        <el-row>
-          <el-switch
-            active-color="rgb(230, 62, 49)"
-            inactive-color="rgb(246,246,246)"
-            v-model="data.isLogin"
-            active-text="Suspend"
-            inactive-text="Active"
-          >
-          </el-switch>
-        </el-row>
-        <el-row style="margin: 20px 0">
-          <el-switch
-            active-color="rgb(230, 62, 49)"
-            inactive-color="rgb(246,246,246)"
-            v-model="data.isWord"
-            active-text="Mute"
-            inactive-text="Active"
-          >
-          </el-switch>
-        </el-row>
-        <span class="dialog-hover">Set as Admin</span>
-        <el-switch
-          v-model="roleStatus"
-          active-color="rgb(230, 62, 49)"
-          inactive-color="rgb(246,246,246)"
-        >
-        </el-switch>
+      <div class="hp-dialog__body admin-form-stack">
+        <div class="admin-switch-row">
+          <span class="admin-switch-row__label">Suspend login</span>
+          <el-switch v-model="data.isLogin" active-color="#2a9d6f" inactive-color="#e0e0e0" active-text="Yes" inactive-text="No" />
+        </div>
+        <div class="admin-switch-row">
+          <span class="admin-switch-row__label">Mute comments</span>
+          <el-switch v-model="data.isWord" active-color="#2a9d6f" inactive-color="#e0e0e0" active-text="Yes" inactive-text="No" />
+        </div>
+        <div class="admin-switch-row">
+          <span class="admin-switch-row__label">Administrator role</span>
+          <el-switch v-model="roleStatus" active-color="#2a9d6f" inactive-color="#e0e0e0" active-text="Admin" inactive-text="User" />
+        </div>
       </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          size="small"
-          style="
-            background-color: rgb(96, 98, 102);
-            color: rgb(247, 248, 249);
-            border: none;
-          "
-          class="customer"
-          type="info"
-          @click="confirmStatus"
-          >Confirm</el-button
-        >
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
-          @click="cancel"
-          >Cancel</el-button
-        >
-      </span>
+      <div slot="footer" class="hp-dialog__footer">
+        <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="cancel">Cancel</button>
+        <button type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="confirmStatus">Confirm</button>
+      </div>
     </el-dialog>
-  </el-row>
+  </div>
 </template>
 
 <script>
@@ -427,6 +332,8 @@ export default {
         title: "Delete User Data",
         text: `This action cannot be undone. Continue?`,
         icon: "warning",
+        danger: true,
+        confirmButtonText: "Delete",
       });
       if (confirmed) {
         try {
@@ -578,35 +485,3 @@ export default {
   },
 };
 </script>
-<style scoped lang="scss">
-.tag-tip {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 5px;
-  background-color: rgb(245, 245, 245);
-  color: rgb(104, 118, 130);
-}
-
-.input-def {
-  height: 40px;
-  line-height: 40px;
-  outline: none;
-  border: none;
-  font-size: 20px;
-  color: rgb(102, 102, 102);
-  font-weight: 900;
-  width: 100%;
-}
-
-.dialog-footer {
-  /* Center the buttons */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Adjust button spacing */
-.customer {
-  margin: 0 8px;
-}
-</style>

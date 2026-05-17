@@ -2,9 +2,11 @@
   <div class="banner-wrap">
     <img
       class="banner-image"
-      :src="activeData.cover"
+      :src="bannerCoverSrc"
       style="min-height: 218px; max-height: 308px"
       :style="{ width: width, borderRadius: borderRadius }"
+      referrerpolicy="no-referrer"
+      @error="onCoverImgError"
     />
     <div class="tip-name" role="button" tabindex="0" @click="onClick" @keydown.enter.prevent="onClick">
       <p class="banner-title">{{ activeData.name }}</p>
@@ -25,6 +27,8 @@
 </template>
 
 <script>
+import { newsCoverSrc, onCoverImgError } from "@/utils/coverImage";
+
 export default {
   name: "Banner",
   props: {
@@ -71,12 +75,21 @@ export default {
       timerId: null,
     };
   },
+  computed: {
+    bannerCoverSrc() {
+      return newsCoverSrc(
+        this.activeData && this.activeData.cover,
+        this.activeData && this.activeData.id,
+      );
+    },
+  },
   beforeDestroy() {
     if (this.timerId != null) {
       clearInterval(this.timerId);
     }
   },
   methods: {
+    onCoverImgError,
     onClick() {
       this.$emit("on-click", this.activeData);
     },

@@ -5,6 +5,7 @@ import "element-ui/lib/theme-chalk/index.css";
 import { provinceAndCityData, regionData } from "element-china-area-data";
 import VueSweetalert2 from "vue-sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import "./assets/css/sweetalert-theme.scss";
 import "./assets/css/editor.scss";
 import "./assets/css/button.scss";
 import "./assets/css/elementui-cover.scss";
@@ -12,6 +13,7 @@ import "./assets/css/basic.scss";
 import "./assets/css/dialog.scss";
 import "./assets/css/input.scss";
 import "./assets/css/neobrutal.scss";
+import "./assets/css/admin-page.scss";
 import request from "@/utils/request";
 import md5 from "js-md5";
 

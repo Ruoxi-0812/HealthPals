@@ -2,7 +2,7 @@
   <div class="health-ai-page">
     <header class="health-ai-page__head">
       <span class="health-ai-page__eyebrow">Assistant</span>
-      <h1 class="health-ai-page__title">Ask AI</h1>
+      <h1 class="health-ai-page__title">Ask Pal</h1>
       <p class="health-ai-page__disclaimer">
         General wellness information only—not medical advice. For emergencies
         or serious symptoms, contact emergency services or a qualified clinician.

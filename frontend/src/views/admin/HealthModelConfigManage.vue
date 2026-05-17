@@ -1,10 +1,10 @@
 <template>
-  <el-row style="background-color: #ffffff; padding: 5px 0; border-radius: 5px">
-    <el-row style="padding: 10px; margin-left: 5px">
-      <el-row>
+  <div class="admin-page">
+    <div class="admin-page__toolbar">
+      <div class="admin-toolbar-row">
         <el-input
           size="small"
-          style="width: 188px; margin-left: 5px; margin-right: 6px"
+          class="admin-filter-input"
           v-model="healthModelConfigQueryDto.name"
           placeholder="Configuration name"
           clearable
@@ -16,23 +16,16 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
-        <span style="float: right">
-          <el-button
-            size="small"
-            style="
-              background-color: rgb(96, 98, 102);
-              color: rgb(247, 248, 249);
-              border: none;
-            "
-            class="customer"
-            type="info"
+        <div class="admin-page__toolbar-actions">
+          <el-button type="primary" size="small"
             @click="add()"
             ><i class="el-icon-plus"></i>New Models</el-button
           >
-        </span>
-      </el-row>
-    </el-row>
-    <el-row style="margin: 0 20px; border-top: 1px solid rgb(245, 245, 245)">
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-page__body">
       <el-table
         row-key="id"
         @selection-change="handleSelectionChange"
@@ -88,8 +81,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        style="margin: 20px 0"
+      <el-pagination class="admin-pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="currentPage"
@@ -98,124 +90,42 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </el-row>
+    </div>
     <el-dialog
-      :show-close="false"
+      custom-class="hp-dialog admin-dialog-wide"
+      :show-close="true"
+      append-to-body
       :visible.sync="dialogUserOperaion"
-      width="26%"
+      width="520px"
     >
-      <div slot="title">
-        <p class="dialog-title">
-          {{
-            !isOperation ? "Health model added" : "Health Model Modifications"
-          }}
-        </p>
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Health models</span>
+        <h2 class="hp-dialog__title">{{ !isOperation ? "Add model" : "Edit model" }}</h2>
       </div>
-      <div style="padding: 0 20px">
-        <p>*Icon</p>
-        <!-- Icon -->
-        <el-row style="margin-top: 10px">
-          <el-upload
-            class="avatar-uploader"
-            action="/api/personal-heath/v1.0/file/upload"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-          >
-            <img
-              v-if="data.cover"
-              :src="data.cover"
-              style="height: 64px; width: 64px"
-            />
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+      <div class="hp-dialog__body admin-form-stack">
+        <label class="hp-field">
+          <span class="hp-field__label">Icon</span>
+          <el-upload class="hp-dialog__avatar-uploader avatar-uploader" action="/api/personal-heath/v1.0/file/upload" :show-file-list="false" :on-success="handleAvatarSuccess">
+            <img v-if="data.cover" :src="data.cover" class="admin-icon-preview" />
+            <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
-        </el-row>
-        <!-- Configuration Name -->
-        <el-row style="padding: 0 10px 0 0">
-          <p>
-            <span class="modelName">*Configuration Name</span>
-          </p>
-          <input
-            class="input-title"
-            v-model="data.name"
-            placeholder="Please enter"
-          />
-        </el-row>
-        <!-- Unit -->
-        <el-row style="padding: 0 10px 0 0">
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Unit</span>
-          </p>
-          <input
-            class="input-title"
-            v-model="data.unit"
-            placeholder="Please enter"
-          />
-        </el-row>
-        <!-- Symbol -->
-        <el-row style="padding: 0 10px 0 0">
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Symbol</span>
-          </p>
-          <input
-            class="input-title"
-            v-model="data.symbol"
-            placeholder="Please enter"
-          />
-        </el-row>
-        <!-- Regular value -->
-        <el-row style="padding: 0 20px 0 0">
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Thresholds (format: min,max)</span>
-          </p>
-          <input
-            class="input-title"
-            v-model="data.valueRange"
-            placeholder="Please enter"
-          />
-        </el-row>
-        <!-- Brief Introduction -->
-        <el-row style="padding: 0 10px 0 0">
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*Brief Introduction</span>
-          </p>
-          <el-input
-            type="textarea"
-            :autosize="{ minRows: 2, maxRows: 3 }"
-            placeholder="Brief Introduction"
-            v-model="data.detail"
-          >
-          </el-input>
-        </el-row>
+        </label>
+        <label class="hp-field"><span class="hp-field__label">Name</span><input v-model="data.name" class="hp-field__input" placeholder="Configuration name" /></label>
+        <label class="hp-field"><span class="hp-field__label">Unit</span><input v-model="data.unit" class="hp-field__input" placeholder="e.g. kg, bpm" /></label>
+        <label class="hp-field"><span class="hp-field__label">Symbol</span><input v-model="data.symbol" class="hp-field__input" placeholder="Short label" /></label>
+        <label class="hp-field"><span class="hp-field__label">Thresholds (min,max)</span><input v-model="data.valueRange" class="hp-field__input" placeholder="3000,10000" /></label>
+        <label class="hp-field">
+          <span class="hp-field__label">Description</span>
+          <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="Brief introduction" v-model="data.detail" />
+        </label>
       </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          size="small"
-          v-if="!isOperation"
-          style="background-color: rgb(43, 121, 203); border: none"
-          class="customer"
-          type="info"
-          @click="addOperation"
-          >additional</el-button
-        >
-        <el-button
-          size="small"
-          v-else
-          style="background-color: rgb(43, 121, 203); border: none"
-          class="customer"
-          type="info"
-          @click="updateOperation"
-          >revise</el-button
-        >
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
-          @click="cannel()"
-          >cancel</el-button
-        >
-      </span>
+      <div slot="footer" class="hp-dialog__footer">
+        <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="cannel()">Cancel</button>
+        <button v-if="!isOperation" type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="addOperation">Add</button>
+        <button v-else type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="updateOperation">Save</button>
+      </div>
     </el-dialog>
-  </el-row>
+  </div>
 </template>
 
 <script>
@@ -266,6 +176,8 @@ export default {
         title: "Deleting Health Model Data",
         text: `Deleted unrecoverable, do you continue?`,
         icon: "warning",
+        danger: true,
+        confirmButtonText: "Delete",
       });
       if (confirmed) {
         try {

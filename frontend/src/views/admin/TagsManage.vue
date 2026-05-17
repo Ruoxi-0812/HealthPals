@@ -1,51 +1,39 @@
 <template>
-  <el-row style="background-color: #ffffff; padding: 5px 0; border-radius: 5px">
-    <el-row style="padding: 10px; margin-left: 5px">
-      <el-row>
-        <el-input
-          size="small"
-          style="width: 188px; margin-left: 5px; margin-right: 6px"
-          v-model="tagsQueryDto.name"
-          placeholder="Tag Name"
-          clearable
-          @clear="handleFilterClear"
-        >
-          <el-button
-            slot="append"
-            @click="handleFilter"
-            icon="el-icon-search"
-          ></el-button>
-        </el-input>
-        <span style="float: right">
-          <el-button
-            size="small"
-            style="
-              background-color: rgb(96, 98, 102);
-              color: rgb(247, 248, 249);
-              border: none;
-            "
-            class="customer"
-            type="info"
-            @click="add()"
-            ><i class="el-icon-plus"></i>Add Tag</el-button
-          >
-        </span>
-      </el-row>
-    </el-row>
-    <el-row style="margin: 0 20px; border-top: 1px solid rgb(245, 245, 245)">
+  <div class="admin-page">
+    <div class="admin-page__toolbar">
+      <el-input
+        size="small"
+        class="admin-filter-input"
+        v-model="tagsQueryDto.name"
+        placeholder="Tag name"
+        clearable
+        @clear="handleFilterClear"
+      >
+        <el-button
+          slot="append"
+          icon="el-icon-search"
+          @click="handleFilter"
+        />
+      </el-input>
+      <div class="admin-page__toolbar-actions">
+        <el-button type="primary" size="small" @click="add()">
+          <i class="el-icon-plus" /> Add tag
+        </el-button>
+      </div>
+    </div>
+
+    <div class="admin-page__body">
       <el-table row-key="id" :data="tableData" style="width: 100%">
-        <el-table-column prop="name" label="Tag Name"></el-table-column>
-        <el-table-column label="Actions" width="120">
+        <el-table-column prop="name" label="Tag name" />
+        <el-table-column label="Actions" width="140">
           <template slot-scope="scope">
             <span class="text-button" @click="handleEdit(scope.row)">Edit</span>
-            <span class="text-button" @click="handleDelete(scope.row)"
-              >Delete</span
-            >
+            <span class="text-button" @click="handleDelete(scope.row)">Delete</span>
           </template>
         </el-table-column>
       </el-table>
       <el-pagination
-        style="margin: 20px 0"
+        class="admin-pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="currentPage"
@@ -53,78 +41,76 @@
         :page-size="pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
-      ></el-pagination>
-    </el-row>
-    <el-dialog :show-close="false" :visible.sync="dialogOperaion" width="24%">
-      <div slot="title">
-        <p class="dialog-title">{{ !isOperation ? "Add Tag" : "Edit Tag" }}</p>
+      />
+    </div>
+
+    <el-dialog
+      custom-class="hp-dialog"
+      :show-close="true"
+      :visible.sync="dialogOperaion"
+      width="420px"
+      append-to-body
+    >
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Tags</span>
+        <h2 class="hp-dialog__title">
+          {{ !isOperation ? "Add tag" : "Edit tag" }}
+        </h2>
       </div>
-      <div style="padding: 0 20px; margin-bottom: 30px">
-        <el-row>
+      <div class="hp-dialog__body">
+        <label class="hp-field">
+          <span class="hp-field__label">Name</span>
           <input
-            style="font-size: 34px"
-            class="dialog-input"
             v-model="data.name"
-            placeholder="Tag Name"
+            class="hp-field__input"
+            placeholder="Tag name"
           />
-        </el-row>
+        </label>
       </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          size="small"
-          v-if="!isOperation"
-          style="
-            background-color: rgb(96, 98, 102);
-            color: rgb(247, 248, 249);
-            border: none;
-          "
-          class="customer"
-          type="info"
-          @click="addOperation()"
-          >Add</el-button
-        >
-        <el-button
-          size="small"
-          v-else
-          style="
-            background-color: rgb(96, 98, 102);
-            color: rgb(247, 248, 249);
-            border: none;
-          "
-          class="customer"
-          type="info"
-          @click="updateOperation()"
-          >Update</el-button
-        >
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
+      <div slot="footer" class="hp-dialog__footer">
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--ghost"
           @click="cancel"
-          >Cancel</el-button
         >
-      </span>
+          Cancel
+        </button>
+        <button
+          v-if="!isOperation"
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
+          @click="addOperation()"
+        >
+          Add
+        </button>
+        <button
+          v-else
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
+          @click="updateOperation()"
+        >
+          Save
+        </button>
+      </div>
     </el-dialog>
-  </el-row>
+  </div>
 </template>
 
 <script>
 export default {
   data() {
     return {
-      userPwd: "",
       data: {},
       filterText: "",
       currentPage: 1,
       pageSize: 10,
       totalItems: 0,
-      dialogOperaion: false, // Dialog visibility control
-      isOperation: false, // Flag to identify add or edit operation
+      dialogOperaion: false,
+      isOperation: false,
       tableData: [],
       searchTime: [],
       selectedRows: [],
-      status: null,
-      tagsQueryDto: {}, // Search criteria
+      tagsQueryDto: {},
     };
   },
   created() {
@@ -136,37 +122,28 @@ export default {
       this.dialogOperaion = false;
       this.isOperation = false;
     },
-    handleAvatarSuccess(res, file) {
-      if (res.code !== 200) {
-        this.$message.error(`Tag avatar upload failed`);
-        return;
-      }
-      this.$message.success(`Tag avatar uploaded successfully`);
-      this.data.userAvatar = res.data;
-      console.log(this.data);
-    },
-    // Handle multi-selection
     handleSelectionChange(selection) {
       this.selectedRows = selection;
     },
-    // Batch delete data
     async batchDelete() {
       if (!this.selectedRows.length) {
         this.$message(`No data selected`);
         return;
       }
       const confirmed = await this.$swalConfirm({
-        title: "Delete Tag Data",
-        text: `Deletion is irreversible, do you want to continue?`,
+        title: "Delete tag",
+        text: `This cannot be undone. Continue?`,
         icon: "warning",
+        danger: true,
+        confirmButtonText: "Delete",
       });
       if (confirmed) {
         try {
-          let ids = this.selectedRows.map((entity) => entity.id);
+          const ids = this.selectedRows.map((entity) => entity.id);
           const response = await this.$axios.post(`/tags/batchDelete`, ids);
           if (response.data.code === 200) {
             this.$swal.fire({
-              title: "Delete Notification",
+              title: "Deleted",
               text: response.data.msg,
               icon: "success",
               showConfirmButton: false,
@@ -174,24 +151,17 @@ export default {
             });
             this.cancel();
             this.fetchFreshData();
-            return;
           }
         } catch (e) {
           console.error(`Tag deletion error:`, e);
         }
       }
     },
-    resetQueryCondition() {
-      this.tagsQueryDto = {};
-      this.searchTime = [];
-      this.fetchFreshData();
-    },
-    // Update tag information
     async updateOperation() {
       try {
         const response = await this.$axios.put("/tags/update", this.data);
         this.$swal.fire({
-          title: "Tag Update",
+          title: "Tag updated",
           text: response.data.msg,
           icon: response.data.code === 200 ? "success" : "error",
           showConfirmButton: false,
@@ -206,7 +176,6 @@ export default {
         this.$message.error("Submission failed, please try again later!");
       }
     },
-    // Add tag information
     async addOperation() {
       try {
         const response = await this.$axios.post("/tags/save", this.data);
@@ -224,7 +193,6 @@ export default {
     },
     async fetchFreshData() {
       try {
-        // Request parameters
         const params = {
           current: this.currentPage,
           size: this.pageSize,
@@ -270,4 +238,10 @@ export default {
   },
 };
 </script>
-<style scoped lang="scss"></style>
+
+<style scoped lang="scss">
+.admin-filter-input {
+  width: 220px;
+  max-width: 100%;
+}
+</style>

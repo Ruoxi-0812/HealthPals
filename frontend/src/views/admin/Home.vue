@@ -1,48 +1,46 @@
 <template>
-  <div class="menu-container">
-    <div class="menu-side" :class="{ 'menu-side-narrow': flag }">
-      <div style="display: flex; align-items: center">
-        <Logo
-          style="padding: 0 40px; margin: 10px 0"
-          sysName="HealthPals"
-          :flag="flag"
-          :bag="colorLogo"
-        />
+  <div class="menu-container admin-shell">
+    <aside class="menu-side" :class="{ 'menu-side-narrow': flag }">
+      <div class="menu-side__brand">
+        <Logo sysName="HealthPals" :flag="flag" :bag="colorLogo" />
       </div>
-      <div style="margin-top: 12px">
-        <AdminMenu
-          :flag="flag"
-          :routes="adminRoutes"
-          :bag="bagMenu"
-          @select="handleRouteSelect"
-        />
-      </div>
-    </div>
+      <AdminMenu
+        :flag="flag"
+        :routes="adminRoutes"
+        :bag="bagMenu"
+        @select="handleRouteSelect"
+      />
+    </aside>
     <div class="main">
-      <div class="header-section">
+      <header class="header-section">
         <LevelHeader
           @eventListener="eventListener"
           @selectOperation="selectOperation"
           :tag="tag"
           :userInfo="userInfo"
         />
-      </div>
-      <div class="content-section">
-        <router-view></router-view>
+      </header>
+      <div class="content-section admin-shell__content">
+        <router-view />
       </div>
     </div>
-    <!-- Personal Center -->
-    <el-dialog :show-close="false" :visible.sync="dialogOperaion" width="26%">
-      <div slot="title" style="padding: 25px 0 0 20px">
-        <span style="font-size: 18px; font-weight: 800">Personal Center</span>
+
+    <el-dialog
+      custom-class="hp-dialog"
+      :show-close="true"
+      :visible.sync="dialogOperaion"
+      width="440px"
+      append-to-body
+    >
+      <div slot="title" class="hp-dialog__head">
+        <span class="hp-dialog__eyebrow">Profile</span>
+        <h2 class="hp-dialog__title">Personal center</h2>
       </div>
-      <el-row style="padding: 10px 20px 20px 20px">
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0; margin-bottom: 10px">
-            <span class="modelName">*Avatar</span>
-          </p>
+      <div class="hp-dialog__body">
+        <label class="hp-field">
+          <span class="hp-field__label">Avatar</span>
           <el-upload
-            class="avatar-uploader"
+            class="hp-dialog__avatar-uploader avatar-uploader"
             action="/api/personal-heath/v1.0/file/upload"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
@@ -50,52 +48,50 @@
             <img
               v-if="userInfo.url"
               :src="userInfo.url"
-              style="width: 80px; height: 80px"
+              class="hp-dialog__avatar"
             />
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
-        </el-row>
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*User Name</span>
-          </p>
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">Username</span>
           <input
-            class="input-title"
             v-model="userInfo.name"
-            placeholder="User Name"
+            class="hp-field__input"
+            type="text"
+            placeholder="Display name"
           />
-        </el-row>
-        <el-row>
-          <p style="font-size: 12px; padding: 3px 0">
-            <span class="modelName">*User Email</span>
-          </p>
+        </label>
+        <label class="hp-field">
+          <span class="hp-field__label">Email</span>
           <input
-            class="input-title"
             v-model="userInfo.email"
-            placeholder="User Email"
+            class="hp-field__input"
+            type="email"
+            placeholder="you@example.com"
           />
-        </el-row>
-      </el-row>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-          class="customer"
-          size="small"
-          style="background-color: rgb(241, 241, 241); border: none"
+        </label>
+      </div>
+      <div slot="footer" class="hp-dialog__footer">
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--ghost"
           @click="dialogOperaion = false"
-          >Cancel</el-button
         >
-        <el-button
-          size="small"
-          style="background-color: #15559a; border: none"
-          class="customer"
-          type="info"
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
           @click="updateUserInfo"
-          >Revise</el-button
         >
-      </span>
+          Save changes
+        </button>
+      </div>
     </el-dialog>
   </div>
 </template>
+
 <script>
 import request from "@/utils/request.js";
 import router from "@/router/index";
@@ -103,6 +99,7 @@ import { clearToken } from "@/utils/storage";
 import AdminMenu from "@/components/VerticalMenu.vue";
 import Logo from "@/components/Logo.vue";
 import LevelHeader from "@/components/LevelHeader.vue";
+
 export default {
   name: "Admin",
   components: {
@@ -123,15 +120,14 @@ export default {
       },
       flag: false,
       tag: "Visualization",
-      bag: "rgb(246,246,246)",
-      colorLogo: "rgb(51,51,51)",
-      bagMenu: "rgb(248,248,248)",
+      colorLogo: "#2f4a40",
+      bagMenu: "#ffffff",
       dialogOperaion: false,
     };
   },
   created() {
-    let menus = router.options.routes.filter(
-      (route) => route.path == "/admin",
+    const menus = router.options.routes.filter(
+      (route) => route.path === "/admin",
     )[0];
     this.adminRoutes = menus.children;
     this.tokenCheckLoad();
@@ -152,7 +148,7 @@ export default {
           this.dialogOperaion = false;
           this.tokenCheckLoad();
           this.$swal.fire({
-            title: "Modification of personal information",
+            title: "Profile updated",
             text: data.msg,
             icon: "success",
             showConfirmButton: false,
@@ -162,21 +158,21 @@ export default {
       } catch (e) {
         this.dialogOperaion = false;
         this.$swal.fire({
-          title: "Modification of personal information Error",
-          text: e,
+          title: "Update failed",
+          text: String(e),
           icon: "error",
           showConfirmButton: false,
           timer: 2000,
         });
-        console.error(`Modification of personal information Error:${e}`);
+        console.error(`Profile update error: ${e}`);
       }
     },
-    handleAvatarSuccess(res, file) {
+    handleAvatarSuccess(res) {
       if (res.code !== 200) {
         this.$message.error(`Avatar upload error`);
         return;
       }
-      this.$message.success(`Avatar upload success`);
+      this.$message.success(`Avatar uploaded`);
       this.userInfo.url = res.data;
     },
     eventListener(event) {
@@ -188,23 +184,10 @@ export default {
       }
     },
     async loginOut() {
-      const confirmed = await this.$swalConfirm({
-        title: "Logging out?",
-        text: `Need to log in again after logging out?`,
-        icon: "warning",
-      });
+      const confirmed = await this.$swalLogout();
       if (confirmed) {
-        this.$swal.fire({
-          title: "Exit Login Successful",
-          text: "1s and then return to the login page",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 1000,
-        });
-        setTimeout(() => {
-          clearToken();
-          this.$router.push("/login");
-        }, 1000);
+        clearToken();
+        this.$router.push("/login");
       }
     },
     menuOperationHistory() {
@@ -214,9 +197,9 @@ export default {
       this.flag = flag;
     },
     handleRouteSelect(index) {
-      let ary = this.adminRoutes.filter((entity) => entity.path == index);
+      const ary = this.adminRoutes.filter((entity) => entity.path === index);
       this.tag = ary[0].name;
-      if (this.$router.currentRoute.fullPath == index) {
+      if (this.$router.currentRoute.fullPath === index) {
         return;
       }
       this.$router.push(index);
@@ -239,64 +222,58 @@ export default {
           userEmail: email,
         } = res.data.data;
         this.userInfo = { id, url, name, role, email };
-        const rolePath = role === 1 ? "/admin" : "/user";
-        const targetMenu = router.options.routes.find(
-          (route) => route.path === rolePath,
-        );
-        if (targetMenu) {
-          this.routers = targetMenu.children;
-        } else {
-          console.warn(
-            `A route corresponding to the role was not found: ${rolePath}`,
-          );
-        }
       } catch (error) {
-        console.error(
-          "An error occurred while obtaining user authentication information:",
-          error,
-        );
+        console.error("Auth load error:", error);
         this.$message.error(
-          "Authentication information failed to load, please try again!",
+          "Authentication failed to load, please try again.",
         );
       }
     },
   },
 };
 </script>
+
 <style scoped lang="scss">
 .menu-container {
   display: flex;
   height: 100vh;
   width: 100%;
+  background: var(--nb-bg-soft, #e7f6ee);
 
   .menu-side {
-    width: 253px;
+    width: 248px;
     min-width: 115px;
     height: 100vh;
-    padding-top: 10px;
+    padding: 12px 0 16px;
     box-sizing: border-box;
-    transition: width 0.3s ease;
-    background-color: rgb(248, 248, 248);
-    border-right: 1px solid rgb(240, 240, 240);
+    transition: width 0.25s ease;
+    background: #fff;
+    border-right: 1px solid rgba(126, 197, 160, 0.22);
+    box-shadow: 4px 0 18px rgba(53, 92, 75, 0.04);
+    display: flex;
+    flex-direction: column;
   }
 
   .menu-side-narrow {
     width: 115px;
   }
 
+  .menu-side__brand {
+    padding: 8px 16px 4px;
+  }
+
   .main {
-    flex-grow: 1;
-    overflow-x: hidden;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 
     .header-section {
-      max-width: 100%;
-      padding: 0 15px;
-    }
-
-    .content-section {
-      flex-grow: 1;
-      padding: 5px;
-      overflow-y: auto;
+      flex-shrink: 0;
+      padding: 0 4px 0 0;
+      background: #fff;
+      border-bottom: 1px solid rgba(126, 197, 160, 0.18);
     }
   }
 }
