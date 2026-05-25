@@ -73,3 +73,93 @@ export function timeAgo(dateInput) {
     day: "numeric",
   });
 }
+
+/** Short date for tables (e.g. May 17 or May 17, 2025). */
+export function formatDateShort(dateInput) {
+  const date = parseDateTime(dateInput);
+  if (!date) {
+    return "—";
+  }
+  const now = new Date();
+  const opts = { month: "short", day: "numeric" };
+  if (date.getFullYear() !== now.getFullYear()) {
+    opts.year = "numeric";
+  }
+  return date.toLocaleDateString(undefined, opts);
+}
+
+/** Time only (e.g. 1:26 PM). */
+export function formatTimeShort(dateInput) {
+  const date = parseDateTime(dateInput);
+  if (!date) {
+    return "";
+  }
+  return date.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** Compact date + time for admin tables (e.g. May 17, 1:40 PM). */
+export function formatRecordedLine(dateInput) {
+  const date = formatDateShort(dateInput);
+  const time = formatTimeShort(dateInput);
+  if (!time || date === "—") {
+    return date;
+  }
+  return `${date}, ${time}`;
+}
+
+/** Preset day counts for health trend charts. */
+export const HEALTH_TIME_RANGES = [
+  { value: 7, label: "Last 7 days" },
+  { value: 30, label: "Last 30 days" },
+  { value: 60, label: "Last 60 days" },
+  { value: 90, label: "Last 90 days" },
+  { value: 180, label: "Last 6 months" },
+  { value: 365, label: "Last 12 months" },
+];
+
+/**
+ * Compact labels for chart X-axis (avoids raw yyyy-MM-dd HH:mm:ss).
+ */
+export function formatChartAxisLabel(dateInput, allDates = []) {
+  const date = parseDateTime(dateInput);
+  if (!date) {
+    return String(dateInput ?? "");
+  }
+  const parsed = (allDates || [])
+    .map(parseDateTime)
+    .filter((d) => d != null);
+  if (parsed.length <= 1) {
+    return formatRecordedLine(dateInput);
+  }
+  const sameDay = parsed.every(
+    (d) => d.toDateString() === parsed[0].toDateString(),
+  );
+  if (sameDay) {
+    return formatTimeShort(dateInput);
+  }
+  const spanMs =
+    Math.max(...parsed.map((d) => d.getTime())) -
+    Math.min(...parsed.map((d) => d.getTime()));
+  if (spanMs < 48 * 60 * 60 * 1000) {
+    return formatTimeShort(dateInput);
+  }
+  return formatDateShort(dateInput);
+}
+
+/** Full local date-time for tooltips. */
+export function formatDateTimeFull(dateInput) {
+  const date = parseDateTime(dateInput);
+  if (!date) {
+    return "";
+  }
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}

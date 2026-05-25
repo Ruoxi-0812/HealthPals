@@ -1,40 +1,73 @@
 <template>
-  <div class="admin-dashboard">
-    <header class="admin-dashboard__intro">
-      <span class="admin-dashboard__eyebrow">Overview</span>
-      <h1 class="admin-dashboard__title">Indicator panel</h1>
-      <p class="admin-dashboard__lede">
-        User growth, health metrics, and recent system messages at a glance.
-      </p>
-    </header>
-
-    <div class="admin-dashboard__grid">
+  <div class="admin-page admin-page--dashboard">
+    <div class="admin-page__body admin-page__body--dashboard">
+      <div class="admin-dashboard__grid">
       <div class="admin-dashboard__side">
-        <section class="admin-dashboard__card">
+        <section class="admin-dashboard__card admin-dashboard__card--chart">
           <h2 class="admin-dashboard__card-title">Distribution</h2>
           <PieChart
+            height="240px"
             fontColor="#24332b"
-            bag="#f3faf6"
+            bag="transparent"
             :values="pieValues"
             :types="pieTypes"
           />
         </section>
 
-        <section class="admin-dashboard__card">
-          <h2 class="admin-dashboard__card-title">Recent messages</h2>
+        <section class="admin-dashboard__card admin-dashboard__card--messages">
+          <div class="admin-message-card__header">
+            <h2 class="admin-dashboard__card-title">Recent messages</h2>
+            <span v-if="messageList.length" class="admin-message-card__count">
+              {{ messageList.length }}
+            </span>
+          </div>
           <div v-if="messageList.length" class="admin-message-list">
             <article
               v-for="(message, idx) in messageList"
               :key="message.id || idx"
               class="admin-message-item"
+              :class="messageItemClass(message)"
             >
-              <div class="admin-message-item__name">
-                {{ message.receiverName }}
+              <span
+                class="admin-message-item__icon"
+                :class="'admin-message-item__icon--type-' + message.messageType"
+                aria-hidden="true"
+              >
+                <i :class="messageIcon(message.messageType)" />
+              </span>
+              <div class="admin-message-item__body">
+                <div class="admin-message-item__meta">
+                  <span class="admin-message-item__name">{{
+                    message.receiverName
+                  }}</span>
+                  <span
+                    class="admin-message-item__chip"
+                    :class="'admin-message-item__chip--type-' + message.messageType"
+                  >
+                    {{ typeLabel(message.messageType) }}
+                  </span>
+                  <time
+                    class="admin-message-item__time"
+                    :datetime="message.createTime"
+                    :title="message.createTime"
+                  >
+                    {{ time(message.createTime) }}
+                  </time>
+                </div>
+                <p
+                  v-if="message.messageType === 3 && healthAlertParts(message)"
+                  class="admin-message-item__text admin-message-item__text--alert"
+                >
+                  <span>{{ healthAlertParts(message).lead }} </span>
+                  <strong class="admin-message-item__metric">{{
+                    healthAlertParts(message).metric
+                  }}</strong>
+                  <span> {{ healthAlertParts(message).tail }}</span>
+                </p>
+                <p v-else class="admin-message-item__text">
+                  {{ message.content }}
+                </p>
               </div>
-              <p class="admin-message-item__text">{{ message.content }}</p>
-              <time class="admin-message-item__time">{{
-                time(message.createTime)
-              }}</time>
             </article>
           </div>
           <p v-else class="admin-dashboard__empty">No messages yet.</p>
@@ -42,7 +75,7 @@
       </div>
 
       <div class="admin-dashboard__charts">
-        <section class="admin-dashboard__card">
+        <section class="admin-dashboard__card admin-dashboard__card--chart">
           <LineChart
             height="290px"
             tag="Total Users"
@@ -51,7 +84,7 @@
             :date="userDates"
           />
         </section>
-        <section class="admin-dashboard__card">
+        <section class="admin-dashboard__card admin-dashboard__card--chart">
           <LineChart
             height="290px"
             tag="Health Metrics"
@@ -61,6 +94,7 @@
           />
         </section>
       </div>
+    </div>
     </div>
   </div>
 </template>
@@ -92,6 +126,55 @@ export default {
   methods: {
     time(createTime) {
       return timeAgo(createTime);
+    },
+    typeLabel(messageType) {
+      const map = {
+        1: "Comment",
+        2: "Like",
+        3: "Health alert",
+        4: "System",
+      };
+      return map[messageType] || "Message";
+    },
+    messageIcon(messageType) {
+      const map = {
+        1: "el-icon-chat-line-round",
+        2: "el-icon-star-on",
+        3: "el-icon-warning-outline",
+        4: "el-icon-bell",
+      };
+      return map[messageType] || "el-icon-message";
+    },
+    messageItemClass(message) {
+      return {
+        "admin-message-item--unread": !message.isRead,
+        "admin-message-item--alert": message.messageType === 3,
+      };
+    },
+    healthAlertParts(message) {
+      const text = (message.content || "").trim();
+      if (!text) return null;
+
+      const bracket = text.match(/【([^】]+)】/);
+      if (bracket) {
+        const idx = text.indexOf(bracket[0]);
+        return {
+          lead: text.slice(0, idx).trim() || "Recorded",
+          metric: bracket[1],
+          tail: text.slice(idx + bracket[0].length).trim(),
+        };
+      }
+
+      const reading = text.match(/^Your\s+(.+?)\s+reading\s+\(([^)]+)\)/i);
+      if (reading) {
+        return {
+          lead: "Your",
+          metric: `${reading[1]} · ${reading[2]}`,
+          tail: text.slice(reading[0].length).trim(),
+        };
+      }
+
+      return null;
     },
     loadMessages() {
       const messageQueryDto = {
@@ -137,35 +220,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.admin-dashboard__intro {
-  margin-bottom: 18px;
-}
-
-.admin-dashboard__eyebrow {
-  display: inline-block;
-  margin-bottom: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #2a9d6f;
-}
-
-.admin-dashboard__title {
-  margin: 0 0 8px;
-  font-family: var(--nb-font-display);
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--nb-ink);
-}
-
-.admin-dashboard__lede {
-  margin: 0;
-  font-size: 14px;
-  color: var(--nb-muted);
-  max-width: 52ch;
-}
-
 .admin-dashboard__side {
   display: flex;
   flex-direction: column;

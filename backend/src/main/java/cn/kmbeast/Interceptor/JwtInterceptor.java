@@ -40,7 +40,13 @@ public class JwtInterceptor implements HandlerInterceptor {
             return true;
         }
         String requestURI = request.getRequestURI();
-        if (requestURI.contains("/login") || requestURI.contains("/error") || requestURI.contains("/file") || requestURI.contains("/register")) {
+        if (
+                requestURI.contains("/login")
+                        || requestURI.contains("/google-login")
+                        || requestURI.contains("/error")
+                        || requestURI.contains("/file")
+                        || requestURI.contains("/register")
+        ) {
             return true;
         }
         String token = request.getHeader("token");

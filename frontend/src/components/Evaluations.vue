@@ -1,21 +1,30 @@
 <template>
   <div class="ev-comments">
     <header class="ev-comments__head">
-      <h2 class="ev-comments__title">
-        Comments
-        <span class="ev-comments__count">{{ evaluationsCount }}</span>
-      </h2>
-      <p class="ev-comments__hint">Jump in—the water’s fine.</p>
+      <div class="ev-comments__heading">
+        <h2 class="ev-comments__title">
+          Comments
+          <span class="ev-comments__count">{{ evaluationsCount }}</span>
+        </h2>
+        <span class="ev-comments__accent" aria-hidden="true" />
+      </div>
+      <p class="ev-comments__hint">
+        Share what stood out, ask a quick follow-up, or leave a helpful note.
+      </p>
     </header>
 
     <div class="ev-comments__composer">
       <el-avatar class="ev-comments__avatar" :src="userData.userAvatar" />
       <div class="ev-panel" :class="{ 'is-focused': isFocused }">
+        <div class="ev-panel__top">
+          <span class="ev-panel__label">Add a comment</span>
+          <span class="ev-panel__helper">Keep it kind and useful.</span>
+        </div>
         <textarea
           v-model="content"
           class="ev-panel__input"
-          placeholder="Share a quick thought… (keep it kind)"
-          rows="3"
+          placeholder="Share your thoughts about this article..."
+          rows="1"
           @focus="onFocus"
           @blur="onBlur"
         />
@@ -33,7 +42,15 @@
       </div>
     </div>
 
-    <div class="ev-thread">
+    <div v-if="!commentList.length" class="ev-empty">
+      <div class="ev-empty__icon">
+        <i class="el-icon-chat-dot-round" aria-hidden="true" />
+      </div>
+      <p class="ev-empty__title">No comments yet</p>
+      <p class="ev-empty__text">Be the first to start the conversation.</p>
+    </div>
+
+    <div v-else class="ev-thread">
       <div
         v-for="(comment, index) in commentList"
         :key="'c-' + (comment.id || index)"
@@ -654,16 +671,22 @@ $ev-accent: #2a9d6f;
 $ev-accent-dark: #248760;
 $ev-ink: #24332b;
 $ev-muted: rgba(36, 51, 43, 0.55);
+$ev-border: rgba(126, 197, 160, 0.22);
 
 .ev-comments {
   width: 100%;
   font-family: var(--nb-font, system-ui, sans-serif);
   color: $ev-ink;
-  user-select: none;
 }
 
 .ev-comments__head {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+}
+
+.ev-comments__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .ev-comments__title {
@@ -676,6 +699,14 @@ $ev-muted: rgba(36, 51, 43, 0.55);
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.ev-comments__accent {
+  width: 68px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(42, 157, 111, 0.1), rgba(42, 157, 111, 0.26));
+  border: 1px solid rgba(42, 157, 111, 0.16);
 }
 
 .ev-comments__count {
@@ -698,6 +729,7 @@ $ev-muted: rgba(36, 51, 43, 0.55);
   font-size: 14px;
   color: $ev-muted;
   line-height: 1.45;
+  max-width: 54ch;
 }
 
 .ev-comments__composer {
@@ -715,11 +747,12 @@ $ev-muted: rgba(36, 51, 43, 0.55);
 .ev-panel {
   flex: 1;
   min-width: 0;
-  background: var(--nb-paper-2, #f3faf6);
-  border: 2px solid rgba(126, 197, 160, 0.28);
-  border-radius: 16px;
-  padding: 12px 14px 44px;
+  background: linear-gradient(180deg, rgba(248, 252, 250, 0.98) 0%, rgba(242, 248, 244, 0.95) 100%);
+  border: 1px solid rgba(126, 197, 160, 0.3);
+  border-radius: 20px;
+  padding: 12px 16px 50px;
   position: relative;
+  box-shadow: 0 14px 30px rgba(53, 92, 75, 0.08);
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
@@ -729,18 +762,43 @@ $ev-muted: rgba(36, 51, 43, 0.55);
   &.is-open {
     border-color: rgba(42, 157, 111, 0.5);
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(42, 157, 111, 0.14);
+    box-shadow:
+      0 0 0 4px rgba(42, 157, 111, 0.12),
+      0 18px 36px rgba(53, 92, 75, 0.12);
   }
 
   &.is-nested {
-    padding-bottom: 40px;
+    padding-bottom: 50px;
+    border-radius: 18px;
+    box-shadow: none;
   }
+}
+
+.ev-panel__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.ev-panel__label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(53, 82, 71, 0.55);
+}
+
+.ev-panel__helper {
+  font-size: 12px;
+  color: rgba(36, 51, 43, 0.44);
 }
 
 .ev-panel__input {
   display: block;
   width: 100%;
-  min-height: 72px;
+  min-height: 92px;
   margin: 0;
   padding: 4px 2px;
   border: none;
@@ -758,11 +816,25 @@ $ev-muted: rgba(36, 51, 43, 0.55);
   }
 }
 
+.ev-comments__composer .ev-panel__input {
+  min-height: 40px;
+  font-size: 14px;
+}
+
+.ev-comments__composer .ev-panel {
+  border-radius: 18px;
+  padding: 10px 14px 44px;
+}
+
+.ev-comments__composer .ev-panel__top {
+  margin-bottom: 6px;
+}
+
 .ev-panel__foot {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 10px;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -777,8 +849,10 @@ $ev-muted: rgba(36, 51, 43, 0.55);
 .ev-panel__submit.el-button {
   border-radius: 999px;
   font-weight: 600;
+  min-width: 92px;
   padding-left: 18px;
   padding-right: 18px;
+  box-shadow: 0 10px 20px rgba(42, 157, 111, 0.2);
 }
 
 .ev-panel__submit.el-button--primary {
@@ -792,10 +866,49 @@ $ev-muted: rgba(36, 51, 43, 0.55);
   }
 }
 
+.ev-empty {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 28px 20px;
+  border: 1px dashed rgba(126, 197, 160, 0.34);
+  border-radius: 18px;
+  background: rgba(248, 252, 250, 0.78);
+}
+
+.ev-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  background: rgba(42, 157, 111, 0.1);
+  color: $ev-accent-dark;
+  font-size: 22px;
+}
+
+.ev-empty__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  color: #355247;
+}
+
+.ev-empty__text {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: $ev-muted;
+}
+
 .ev-thread {
   display: flex;
   flex-direction: column;
   gap: 22px;
+}
+
+.ev-comment {
+  position: relative;
 }
 
 .ev-comment__row {
@@ -811,6 +924,11 @@ $ev-muted: rgba(36, 51, 43, 0.55);
 .ev-comment__main {
   flex: 1;
   min-width: 0;
+  padding: 16px 18px 14px;
+  border: 1px solid $ev-border;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 10px 24px rgba(53, 92, 75, 0.05);
 }
 
 .ev-comment__headline {
@@ -899,6 +1017,7 @@ $ev-muted: rgba(36, 51, 43, 0.55);
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 16px;
+  padding-top: 2px;
 }
 
 .ev-muted {
@@ -920,7 +1039,11 @@ $ev-muted: rgba(36, 51, 43, 0.55);
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  transition: color 0.15s ease;
+  padding: 6px 10px;
+  border-radius: 999px;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 
   i {
     font-size: 14px;
@@ -928,10 +1051,12 @@ $ev-muted: rgba(36, 51, 43, 0.55);
 
   &:hover {
     color: $ev-accent-dark;
+    background: rgba(42, 157, 111, 0.08);
   }
 
   &.is-on {
     color: #1a5c4a;
+    background: rgba(42, 157, 111, 0.1);
   }
 }
 
@@ -965,7 +1090,10 @@ $ev-muted: rgba(36, 51, 43, 0.55);
 .ev-nested__inner {
   flex: 1;
   min-width: 0;
-  padding-bottom: 4px;
+  padding: 12px 14px 8px;
+  border-radius: 16px;
+  background: rgba(244, 249, 246, 0.88);
+  border: 1px solid rgba(126, 197, 160, 0.18);
 }
 
 .ev-report-dialog {
@@ -1013,5 +1141,54 @@ $ev-muted: rgba(36, 51, 43, 0.55);
 .reportItem:hover {
   border: 1px solid #4b87bc;
   color: #4b87bc;
+}
+
+@media (max-width: 720px) {
+  .ev-comments__composer,
+  .ev-comment__row {
+    gap: 12px;
+  }
+
+  .ev-comments__composer,
+  .ev-comment__row,
+  .ev-comments__heading {
+    align-items: flex-start;
+  }
+
+  .ev-panel__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ev-panel__foot {
+    position: static;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(126, 197, 160, 0.16);
+  }
+
+  .ev-panel {
+    padding-bottom: 14px;
+  }
+
+  .ev-comments__composer .ev-panel__input {
+    min-height: 34px;
+  }
+
+  .ev-comments__avatar,
+  .ev-comment__avatar {
+    transform: scale(0.94);
+    transform-origin: top left;
+  }
+
+  .ev-comment__main {
+    padding: 14px;
+  }
+
+  .ev-link {
+    padding-left: 0;
+    padding-right: 0;
+    background: transparent;
+  }
 }
 </style>

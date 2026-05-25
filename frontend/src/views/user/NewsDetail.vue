@@ -1,18 +1,46 @@
 <template>
   <div class="news-detail">
+    <div class="news-detail__toolbar">
+      <button type="button" class="news-detail__back" @click="goBack">
+        <i class="el-icon-arrow-left" aria-hidden="true" />
+        <span>Back to news</span>
+      </button>
+    </div>
+
     <el-row :gutter="28" class="news-detail__row">
       <el-col :xs="24" :md="16" class="news-detail__main-wrap">
         <article
           :key="'article-' + (newsInfo.id || 'loading')"
           class="news-detail__article nb-surface"
         >
-          <h1 class="news-detail__title">{{ newsInfo.name }}</h1>
+          <div class="news-detail__hero">
+            <img
+              class="news-detail__hero-img"
+              :src="newsHeroCoverSrc(newsInfo)"
+              :alt="newsInfo.name || 'Article cover'"
+              referrerpolicy="no-referrer"
+              @error="onCoverImgError"
+            />
+            <div class="news-detail__hero-overlay"></div>
+            <span class="news-detail__hero-badge">Editor pick</span>
+          </div>
 
-          <div class="news-detail__meta">
-            <span class="news-detail__tag">{{ newsInfo.tagName }}</span>
-            <time class="news-detail__time" :datetime="newsInfo.createTime">{{
-              parseTime(newsInfo.createTime)
-            }}</time>
+          <div class="news-detail__header">
+            <div class="news-detail__header-main">
+              <div class="news-detail__meta">
+                <span class="news-detail__tag">{{ newsInfo.tagName || "Wellness" }}</span>
+                <time class="news-detail__time" :datetime="newsInfo.createTime">{{
+                  parseTime(newsInfo.createTime)
+                }}</time>
+                <span class="news-detail__read-time">{{ estimatedReadMinutes }} min read</span>
+              </div>
+
+              <h1 class="news-detail__title">{{ newsInfo.name }}</h1>
+              <p v-if="articleSummary" class="news-detail__summary">
+                {{ articleSummary }}
+              </p>
+            </div>
+
             <button
               type="button"
               class="news-detail__save"
@@ -41,10 +69,11 @@
       </el-col>
 
       <el-col :xs="24" :md="8" class="news-detail__aside-wrap">
-        <aside class="news-detail__aside">
+        <aside class="news-detail__aside nb-surface">
+          <p class="news-detail__aside-eyebrow">Continue reading</p>
           <h2 class="news-detail__aside-title">Recommended</h2>
           <p class="news-detail__aside-sub">
-            More from our editors—tap a card to read.
+            {{ newsTopList.length || 0 }} more picks from our editors.
           </p>
           <ul class="news-detail__rec-list">
             <li
@@ -85,6 +114,7 @@ import { timeAgo } from "@/utils/data";
 import Evaluations from "@/components/Evaluations.vue";
 import {
   newsCoverSrc,
+  newsHeroCoverSrc,
   onCoverImgError,
   pickUniqueCoverNews,
 } from "@/utils/coverImage";
@@ -106,6 +136,27 @@ export default {
       const text = html.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim();
       return text.length > 0;
     },
+    articlePlainText() {
+      return ((this.newsInfo && this.newsInfo.content) || "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    },
+    articleSummary() {
+      if (!this.articlePlainText) {
+        return "";
+      }
+      const snippet = this.articlePlainText.slice(0, 160).trim();
+      return this.articlePlainText.length > 160 ? `${snippet}...` : snippet;
+    },
+    estimatedReadMinutes() {
+      if (!this.articlePlainText) {
+        return 1;
+      }
+      const words = this.articlePlainText.split(/\s+/).filter(Boolean).length;
+      return Math.max(1, Math.round(words / 180));
+    },
   },
   watch: {
     "$route.query.id"(id) {
@@ -120,7 +171,17 @@ export default {
   },
   methods: {
     newsCoverSrc,
+    newsHeroCoverSrc,
     onCoverImgError,
+    goBack() {
+      if (window.history.length > 1) {
+        this.$router.go(-1);
+        return;
+      }
+      if (this.$route.path !== "/news-record") {
+        this.$router.push("/news-record");
+      }
+    },
     loadSaveStatus() {
       if (this.newsInfo == null || this.newsInfo.id == null) {
         return;
@@ -240,19 +301,107 @@ export default {
   box-sizing: border-box;
 }
 
+.news-detail__toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 14px;
+}
+
+.news-detail__back {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #36584a;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(126, 197, 160, 0.22);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(53, 92, 75, 0.08);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(42, 157, 111, 0.35);
+    box-shadow: 0 12px 24px rgba(53, 92, 75, 0.12);
+  }
+}
+
 .news-detail__row {
   width: 100%;
 }
 
 .news-detail__article {
-  padding: clamp(22px, 3vw, 36px);
+  overflow: hidden;
+  padding: 0;
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(126, 197, 160, 0.22);
   margin-bottom: 24px;
+  box-shadow: 0 18px 40px rgba(53, 92, 75, 0.1);
+}
+
+.news-detail__hero {
+  position: relative;
+  height: clamp(180px, 28vw, 270px);
+  overflow: hidden;
+  background: linear-gradient(135deg, #dfeee7 0%, #f6fbf8 100%);
+}
+
+.news-detail__hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.news-detail__hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(12, 28, 20, 0.04) 0%, rgba(12, 28, 20, 0.4) 100%),
+    linear-gradient(120deg, rgba(42, 157, 111, 0.18) 0%, rgba(255, 255, 255, 0) 55%);
+}
+
+.news-detail__hero-badge {
+  position: absolute;
+  left: 24px;
+  bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(18, 52, 39, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+}
+
+.news-detail__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: clamp(22px, 3vw, 32px) clamp(22px, 3vw, 36px) 24px;
+  border-bottom: 1px solid rgba(126, 197, 160, 0.2);
+}
+
+.news-detail__header-main {
+  min-width: 0;
 }
 
 .news-detail__title {
-  margin: 0 0 18px;
+  margin: 0;
   font-family: var(--nb-font-display);
   font-size: clamp(1.55rem, 2.8vw, 2.15rem);
   font-weight: 600;
@@ -266,9 +415,7 @@ export default {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 16px;
-  padding: 14px 0 22px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(126, 197, 160, 0.2);
+  margin-bottom: 16px;
 }
 
 .news-detail__tag {
@@ -287,11 +434,26 @@ export default {
   color: var(--nb-muted);
 }
 
+.news-detail__read-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: #356b55;
+}
+
+.news-detail__summary {
+  margin: 14px 0 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(36, 51, 43, 0.68);
+}
+
 .news-detail__save {
-  margin-left: auto;
+  flex-shrink: 0;
   appearance: none;
   cursor: pointer;
-  padding: 8px 18px;
+  align-self: flex-start;
+  padding: 10px 18px;
   font-family: var(--nb-font);
   font-size: 13px;
   font-weight: 600;
@@ -326,7 +488,7 @@ export default {
 
 /* Prose for server-rendered article HTML */
 .news-detail__empty {
-  margin: 0 0 1.5em;
+  margin: 0 clamp(22px, 3vw, 36px) 1.5em;
   padding: 16px 18px;
   border-radius: 12px;
   background: rgba(232, 244, 238, 0.65);
@@ -335,6 +497,7 @@ export default {
 }
 
 .news-detail__body {
+  padding: 26px clamp(22px, 3vw, 36px) 0;
   font-family: var(--nb-font);
   font-size: 16px;
   line-height: 1.75;
@@ -388,20 +551,51 @@ export default {
   :deep(img) {
     max-width: 100%;
     height: auto;
-    border-radius: 12px;
-    margin: 1em 0;
+    border-radius: 16px;
+    margin: 1.2em 0;
+    box-shadow: 0 14px 28px rgba(53, 92, 75, 0.12);
+  }
+
+  :deep(a) {
+    color: #2a8d66;
+    text-decoration-color: rgba(42, 141, 102, 0.35);
+    text-underline-offset: 0.18em;
+  }
+
+  :deep(blockquote) {
+    margin: 1.35em 0;
+    padding: 16px 18px;
+    border-left: 4px solid #2a9d6f;
+    border-radius: 0 14px 14px 0;
+    background: rgba(232, 244, 238, 0.66);
+    color: rgba(36, 51, 43, 0.8);
   }
 }
 
 .news-detail__comments {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(126, 197, 160, 0.2);
+  margin: 28px clamp(18px, 3vw, 30px) clamp(18px, 3vw, 30px);
+  padding: 22px;
+  border: 1px solid rgba(126, 197, 160, 0.18);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(249, 252, 250, 0.98) 0%, rgba(242, 248, 244, 0.9) 100%);
 }
 
 .news-detail__aside {
   position: sticky;
   top: 88px;
+  padding: 22px 18px 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(126, 197, 160, 0.2);
+  box-shadow: 0 16px 34px rgba(53, 92, 75, 0.08);
+}
+
+.news-detail__aside-eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(53, 82, 71, 0.52);
 }
 
 .news-detail__aside-title {
@@ -414,7 +608,7 @@ export default {
 }
 
 .news-detail__aside-sub {
-  margin: 0 0 18px;
+  margin: 0 0 20px;
   font-size: 13px;
   line-height: 1.5;
   color: var(--nb-muted);
@@ -428,6 +622,10 @@ export default {
 
 .news-detail__rec-item {
   margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .news-detail__rec-card {
@@ -505,15 +703,54 @@ export default {
     margin-top: 8px;
   }
 
+  .news-detail__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .news-detail__save {
-    margin-left: 0;
     width: 100%;
-    margin-top: 4px;
   }
 
   .news-detail__meta {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 10px 12px;
+  }
+}
+
+@media (max-width: 720px) {
+  .news-detail {
+    max-width: 100%;
+    padding-inline: 10px;
+  }
+
+  .news-detail__hero {
+    height: 190px;
+  }
+
+  .news-detail__hero-badge {
+    left: 16px;
+    bottom: 16px;
+  }
+
+  .news-detail__header,
+  .news-detail__body,
+  .news-detail__empty {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .news-detail__comments {
+    margin: 22px 14px 14px;
+    padding: 16px;
+  }
+
+  .news-detail__rec-card {
+    padding: 10px;
+  }
+
+  .news-detail__rec-img {
+    width: 92px;
+    min-width: 92px;
   }
 }
 </style>

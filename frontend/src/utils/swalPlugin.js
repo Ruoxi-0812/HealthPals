@@ -36,6 +36,16 @@ function withDangerConfirm(options) {
   };
 }
 
+function normalizeConfirmIcon(options = {}) {
+  if (!options || options.icon !== "question") {
+    return options;
+  }
+  return {
+    ...options,
+    icon: options.danger === true ? "warning" : "info",
+  };
+}
+
 /**
  * Auto-closing alert (success / error / info). Uses the same HealthPals theme as $swal.
  */
@@ -60,15 +70,17 @@ const swalPlugin = {
     };
 
     Vue.prototype.$swalConfirm = async function (options = {}) {
-      const merged = withDangerConfirm({
-        title: "Are you sure?",
-        text: "",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Confirm",
-        cancelButtonText: "Cancel",
-        ...options,
-      });
+      const merged = normalizeConfirmIcon(
+        withDangerConfirm({
+          title: "Please confirm",
+          text: "",
+          icon: "info",
+          showCancelButton: true,
+          confirmButtonText: "Confirm",
+          cancelButtonText: "Cancel",
+          ...options,
+        }),
+      );
 
       try {
         const result = await themedSwal.fire(merged);
@@ -82,9 +94,9 @@ const swalPlugin = {
     Vue.prototype.$swalLogout = async function () {
       try {
         const result = await themedSwal.fire({
-          title: "Log out?",
+          title: "Log out",
           text: "You’ll need to sign in again to access your records, messages, and health tools.",
-          icon: "question",
+          icon: "info",
           showCancelButton: true,
           confirmButtonText: "Log out",
           cancelButtonText: "Stay signed in",

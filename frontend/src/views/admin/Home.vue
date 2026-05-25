@@ -24,71 +24,6 @@
         <router-view />
       </div>
     </div>
-
-    <el-dialog
-      custom-class="hp-dialog"
-      :show-close="true"
-      :visible.sync="dialogOperaion"
-      width="440px"
-      append-to-body
-    >
-      <div slot="title" class="hp-dialog__head">
-        <span class="hp-dialog__eyebrow">Profile</span>
-        <h2 class="hp-dialog__title">Personal center</h2>
-      </div>
-      <div class="hp-dialog__body">
-        <label class="hp-field">
-          <span class="hp-field__label">Avatar</span>
-          <el-upload
-            class="hp-dialog__avatar-uploader avatar-uploader"
-            action="/api/personal-heath/v1.0/file/upload"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-          >
-            <img
-              v-if="userInfo.url"
-              :src="userInfo.url"
-              class="hp-dialog__avatar"
-            />
-            <i v-else class="el-icon-plus avatar-uploader-icon" />
-          </el-upload>
-        </label>
-        <label class="hp-field">
-          <span class="hp-field__label">Username</span>
-          <input
-            v-model="userInfo.name"
-            class="hp-field__input"
-            type="text"
-            placeholder="Display name"
-          />
-        </label>
-        <label class="hp-field">
-          <span class="hp-field__label">Email</span>
-          <input
-            v-model="userInfo.email"
-            class="hp-field__input"
-            type="email"
-            placeholder="you@example.com"
-          />
-        </label>
-      </div>
-      <div slot="footer" class="hp-dialog__footer">
-        <button
-          type="button"
-          class="hp-dialog__btn hp-dialog__btn--ghost"
-          @click="dialogOperaion = false"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          class="hp-dialog__btn hp-dialog__btn--primary"
-          @click="updateUserInfo"
-        >
-          Save changes
-        </button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -122,7 +57,6 @@ export default {
       tag: "Visualization",
       colorLogo: "#2f4a40",
       bagMenu: "#ffffff",
-      dialogOperaion: false,
     };
   },
   created() {
@@ -132,55 +66,32 @@ export default {
     this.adminRoutes = menus.children;
     this.tokenCheckLoad();
     this.menuOperationHistory();
+    this.syncTagFromRoute(this.$route.path);
+  },
+  mounted() {
+    this.$root.$on("app:user-profile-updated", this.handleUserProfileUpdated);
+  },
+  beforeDestroy() {
+    this.$root.$off("app:user-profile-updated", this.handleUserProfileUpdated);
+  },
+  watch: {
+    "$route.path"(path) {
+      this.syncTagFromRoute(path);
+    },
   },
 
   methods: {
-    async updateUserInfo() {
-      try {
-        const userUpdateDTO = {
-          userAvatar: this.userInfo.url,
-          userName: this.userInfo.name,
-          userEmail: this.userInfo.email,
-        };
-        const resposne = await this.$axios.put(`/user/update`, userUpdateDTO);
-        const { data } = resposne;
-        if (data.code === 200) {
-          this.dialogOperaion = false;
-          this.tokenCheckLoad();
-          this.$swal.fire({
-            title: "Profile updated",
-            text: data.msg,
-            icon: "success",
-            showConfirmButton: false,
-            timer: 1000,
-          });
-        }
-      } catch (e) {
-        this.dialogOperaion = false;
-        this.$swal.fire({
-          title: "Update failed",
-          text: String(e),
-          icon: "error",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        console.error(`Profile update error: ${e}`);
-      }
-    },
-    handleAvatarSuccess(res) {
-      if (res.code !== 200) {
-        this.$message.error(`Avatar upload error`);
-        return;
-      }
-      this.$message.success(`Avatar uploaded`);
-      this.userInfo.url = res.data;
-    },
     eventListener(event) {
       if (event === "center") {
-        this.dialogOperaion = true;
+        this.openSettings();
       }
       if (event === "loginOut") {
         this.loginOut();
+      }
+    },
+    openSettings() {
+      if (this.$route.path !== "/adminSettings") {
+        this.$router.push("/adminSettings");
       }
     },
     async loginOut() {
@@ -196,9 +107,28 @@ export default {
     selectOperation(flag) {
       this.flag = flag;
     },
+    syncTagFromRoute(path) {
+      const matched = this.adminRoutes.find((entity) => entity.path === path);
+      this.tag = matched ? matched.name : "Dashboard";
+    },
+    handleUserProfileUpdated(payload) {
+      if (!payload) {
+        return;
+      }
+      this.userInfo = {
+        ...this.userInfo,
+        id: payload.id != null ? payload.id : this.userInfo.id,
+        url: payload.url != null ? payload.url : this.userInfo.url,
+        name: payload.name != null ? payload.name : this.userInfo.name,
+        email: payload.email != null ? payload.email : this.userInfo.email,
+        role: payload.role != null ? payload.role : this.userInfo.role,
+      };
+    },
     handleRouteSelect(index) {
       const ary = this.adminRoutes.filter((entity) => entity.path === index);
-      this.tag = ary[0].name;
+      if (ary.length) {
+        this.tag = ary[0].name;
+      }
       if (this.$router.currentRoute.fullPath === index) {
         return;
       }
@@ -246,7 +176,6 @@ export default {
     height: 100vh;
     padding: 12px 0 16px;
     box-sizing: border-box;
-    transition: width 0.25s ease;
     background: #fff;
     border-right: 1px solid rgba(126, 197, 160, 0.22);
     box-shadow: 4px 0 18px rgba(53, 92, 75, 0.04);
@@ -255,11 +184,26 @@ export default {
   }
 
   .menu-side-narrow {
-    width: 115px;
+    width: 96px;
+    min-width: 96px;
   }
 
   .menu-side__brand {
     padding: 8px 16px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .menu-side-narrow .menu-side__brand {
+    padding: 8px 0 6px;
+    justify-content: center;
+  }
+
+  .menu-side-narrow .menu-side__brand :deep(.logo) {
+    width: auto;
+    justify-content: center;
+    transform: translateX(-3px);
   }
 
   .main {

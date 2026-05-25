@@ -1,110 +1,164 @@
 <template>
-  <div class="admin-page">
-    <div class="admin-page__toolbar">
-      <div class="admin-toolbar-row">
+  <div>
+    <AdminPageShell page-class="admin-page--comments">
+      <template #toolbar>
+<div class="admin-toolbar-row">
         <el-date-picker
           size="small"
-          style="width: 220px"
+          class="admin-date-picker"
           v-model="searchTime"
           type="daterange"
           range-separator="to"
-          start-placeholder="Comments begin"
-          end-placeholder="Comments end"
-        >
-        </el-date-picker>
+          start-placeholder="Comment from"
+          end-placeholder="Comment to"
+        />
         <el-input
           size="small"
           class="admin-filter-input"
           v-model="evalustionsQueryDto.content"
-          placeholder="Comments content"
+          placeholder="Comment content"
           clearable
           @clear="handleFilterClear"
         >
           <el-button
             slot="append"
-            @click="handleFilter"
             icon="el-icon-search"
-          ></el-button>
+            @click="handleFilter"
+          />
         </el-input>
       </div>
-    </div>
-
-    <div class="admin-page__body">
+      </template>
       <el-table
+        stripe
         row-key="id"
+        :row-class-name="rowClassName"
         @selection-change="handleSelectionChange"
         :data="tableData"
-        style="width: 100%"
+        class="admin-table-full"
+        empty-text="No comments match your filters."
       >
-        <el-table-column prop="content" label="text">
+        <el-table-column
+          prop="content"
+          min-width="240"
+          label="Comment"
+          class-name="admin-col-comment-body"
+        >
           <template slot-scope="scope">
             <el-tooltip
-              class="item"
-              effect="dark"
               :content="scope.row.content"
-              placement="bottom"
+              placement="top"
+              :disabled="!scope.row.content"
             >
-              <div class="cell-name">{{ scope.row.content }}</div>
+              <p
+                class="admin-comment-body"
+                v-html="highlightKeyword(scope.row.content)"
+              />
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="upvoteList" width="60" label="like">
+        <el-table-column
+          width="200"
+          label="Author"
+          class-name="admin-col-comment-author"
+        >
           <template slot-scope="scope">
-            <span
-              v-if="scope.row.upvoteList !== null"
-              style="font-size: 16px; font-weight: bolder"
-              >{{ scope.row.upvoteList.split(",").length }}</span
+            <div class="admin-comment-author">
+              <span
+                class="admin-comment-author__name"
+                v-html="highlightKeyword(scope.row.userName)"
+              />
+              <div class="admin-comment-author__meta">
+                <span
+                  v-if="scope.row.parentId != null && scope.row.replierName"
+                  class="admin-comment-author__reply"
+                >
+                  <i class="el-icon-right" aria-hidden="true" />
+                  <span v-html="highlightKeyword(scope.row.replierName)" />
+                </span>
+                <span
+                  class="admin-badge admin-badge--nowrap"
+                  :class="
+                    scope.row.parentId == null
+                      ? 'admin-badge--warn'
+                      : 'admin-badge--muted'
+                  "
+                >
+                  {{
+                    scope.row.parentId == null ? "Top-level" : "Reply"
+                  }}
+                </span>
+                <span
+                  class="admin-badge admin-badge--nowrap"
+                  :class="sourceBadgeClass(scope.row.contentType)"
+                >
+                  {{ sourceLabel(scope.row.contentType) }}
+                </span>
+                <span
+                  class="admin-comment-likes"
+                  :class="{
+                    'admin-comment-likes--zero': !likeCount(scope.row),
+                  }"
+                >
+                  <i class="el-icon-star-on" aria-hidden="true" />
+                  {{ likeCount(scope.row) }}
+                </span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="createTime"
+          width="148"
+          label="Posted"
+          class-name="admin-col-recorded"
+        >
+          <template slot-scope="scope">
+            <el-tooltip
+              :content="formatDateTimeFull(scope.row.createTime)"
+              placement="top"
+              :disabled="!scope.row.createTime"
             >
-            <span v-else style="font-size: 16px; font-weight: bolder">0</span>
+              <span class="admin-health-recorded">{{
+                formatRecordedLine(scope.row.createTime)
+              }}</span>
+            </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="contentType" width="100" label="Mount Source">
+        <el-table-column
+          label="Actions"
+          width="96"
+          align="center"
+          header-align="center"
+          class-name="admin-col-actions"
+        >
           <template slot-scope="scope">
-            <span>{{ scope.row.contentType }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" width="168" label="Comment on">
-          <template slot-scope="scope">
-            <span>{{ scope.row.createTime }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="userName" width="120" label="Commentator">
-          <template slot-scope="scope">
-            <span v-html="highlightKeyword(scope.row.userName)"></span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="replierName" width="120" label="Commented on">
-          <template slot-scope="scope">
-            <span v-html="highlightKeyword(scope.row.replierName)"></span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="parentId" width="120" label="level">
-          <template slot-scope="scope">
-            <i
-              v-if="scope.row.parentId === null"
-              class="el-icon-warning admin-status-ic"
-            ></i>
-            <i
-              v-else
-              class="el-icon-success admin-status-ic admin-status-ic--ok"
-            ></i>
-            <span
-              v-if="scope.row.parentId === null"
-              style="text-decoration: underline; text-decoration-style: dashed"
-              >parent-level</span
-            >
-            <span v-else>sub-level</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="data manipulation" width="100px" fixed="right">
-          <template slot-scope="scope">
-            <span class="text-button" @click="handleDelete(scope.row)"
-              >delete</span
-            >
+            <div class="admin-row-actions">
+              <el-tooltip content="View reports" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--primary"
+                  aria-label="View reports"
+                  @click="reportsList(scope.row)"
+                >
+                  <i class="el-icon-pie-chart" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Delete comment" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--danger"
+                  aria-label="Delete comment"
+                  @click="handleDelete(scope.row)"
+                >
+                  <i class="el-icon-delete" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination class="admin-pagination"
+      <el-pagination
+        class="admin-pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="currentPage"
@@ -112,8 +166,9 @@
         :page-size="pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
-      ></el-pagination>
-    </div>
+      />
+    </AdminPageShell>
+
     <el-dialog
       custom-class="hp-dialog admin-dialog-wide"
       :show-close="true"
@@ -128,9 +183,18 @@
       <div class="hp-dialog__body admin-report-grid">
         <PieChart :types="types" :values="values" />
         <div>
-          <p v-if="!reportsDate.length" class="admin-dashboard__empty">No data available</p>
-          <div v-else class="admin-form-stack" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
-            <div v-for="(entity, index) in reportsDate" :key="index" class="admin-report-stat">
+          <p v-if="!reportsDate.length" class="admin-dashboard__empty">
+            No data available
+          </p>
+          <div
+            v-else
+            class="admin-report-stats-grid admin-form-stack"
+          >
+            <div
+              v-for="(entity, index) in reportsDate"
+              :key="index"
+              class="admin-report-stat"
+            >
               <div class="admin-report-stat__count">{{ entity.count }}</div>
               <div class="admin-report-stat__name">{{ entity.name }}</div>
             </div>
@@ -138,45 +202,38 @@
         </div>
       </div>
       <div slot="footer" class="hp-dialog__footer">
-        <button type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="reportDialog = false">Close</button>
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
+          @click="reportDialog = false"
+        >
+          Close
+        </button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import Editor from "@/components/Editor";
+import AdminPageShell from "@/components/admin/AdminPageShell.vue";
+
 import PieChart from "@/components/PieChart";
+import {
+  formatDateTimeFull,
+  formatRecordedLine,
+} from "@/utils/data";
+
 export default {
-  components: {
-    Editor,
-    PieChart,
-  },
+  components: { AdminPageShell, PieChart },
   data() {
     return {
-      data: { cover: "" },
       reportsDate: [],
-      filterText: "",
       tableData: [],
       currentPage: 1,
       pageSize: 10,
       totalItems: 0,
-      dialogOperaion: false,
-      isOperation: false,
       searchTime: [],
       selectedRows: [],
-      html: {},
-      fileList: [],
-      dynamicTags: ["Healthy", "Wellness"],
-      inputVisible: false,
-      inputValue: "",
-      coverDialog: false,
-      commentDialog: false,
-      evaluationsList: [],
-      count: 0,
-      evaluationsDelete: false,
-      idToDelete: null,
-      contentDialog: false,
       reportDialog: false,
       types: [],
       values: [],
@@ -187,8 +244,28 @@ export default {
     this.fetchFreshData();
   },
   methods: {
-    keySearch() {
-      this.fetchFreshData();
+    formatDateTimeFull,
+    formatRecordedLine,
+    likeCount(row) {
+      if (!row.upvoteList) {
+        return 0;
+      }
+      return row.upvoteList.split(",").filter((id) => id.trim()).length;
+    },
+    sourceLabel(contentType) {
+      const map = {
+        NEWS: "Article",
+      };
+      return map[contentType] || contentType || "—";
+    },
+    sourceBadgeClass(contentType) {
+      const map = {
+        NEWS: "admin-badge--type-comment",
+      };
+      return map[contentType] || "admin-badge--role-user";
+    },
+    rowClassName({ row }) {
+      return row.parentId != null ? "admin-comment-row--reply" : "";
     },
     reportsList(row) {
       this.reportDialog = true;
@@ -199,196 +276,75 @@ export default {
         `/evaluations-reports/reportCount/${id}`,
       );
       const { data } = response;
-      this.reportsDate = data.data;
+      this.reportsDate = data.data || [];
       this.types = this.reportsDate.map((entity) => entity.name);
       this.values = this.reportsDate.map((entity) => entity.count);
     },
-    showContent(news) {
-      this.data = news;
-      this.contentDialog = true;
-    },
-    async removeEvaluations(id) {
-      this.evaluationsDelete = true;
-      this.idToDelete = id;
-    },
-    confirmDelete() {
-      this.$axios
-        .delete(`/evaluations/delete/${this.idToDelete}`)
-        .then((response) => {
-          this.$message[response.data.code === 200 ? "success" : "error"](
-            response.data.msg,
-          );
-          if (response.data.code === 200) {
-            this.evaluationsDelete = false;
-            this.loadEvaluationsList();
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-    handleEvaluationsClose() {
-      this.commentDialog = false;
-    },
-
-    commentList(news) {
-      this.data = news;
-      this.commentDialog = true;
-      this.loadEvaluationsList();
-    },
-
-    async loadEvaluationsList() {
-      try {
-        const response = await this.$axios.get(
-          `/evaluations/list/${this.data.id}/evaluations`,
-        );
-        this.evaluationsList = response.data.data.data;
-        this.count = response.data.data.count;
-      } catch (error) {
-        console.error(`Load comment list exception:`, error);
-      }
-    },
-
-    showPic(news) {
-      this.data = news;
-      this.coverDialog = true;
-    },
-    handleClose(tag) {
-      this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1);
-    },
-    showInput() {
-      this.inputVisible = true;
-      this.$nextTick((_) => {
-        this.$refs.saveTagInput.$refs.input.focus();
-      });
-    },
-    handleInputConfirm() {
-      let inputValue = this.inputValue;
-      if (inputValue) {
-        this.dynamicTags.push(inputValue);
-      }
-      this.inputVisible = false;
-      this.inputValue = "";
-    },
-    goBack() {
-      this.data = {};
-      this.dialogOperaion = false;
-    },
-    goBackPage() {
-      this.data = {};
-      this.commentDialog = false;
-    },
-
     handleSelectionChange(selection) {
       this.selectedRows = selection;
     },
-
     async batchDelete() {
       if (!this.selectedRows.length) {
         this.$message(`No data selected`);
         return;
       }
       const confirmed = await this.$swalConfirm({
-        title: "Delete comment data",
-        text: `Deleted unrecoverable, do you continue?`,
+        title: "Delete comment",
+        text: `Deleted comments cannot be recovered. Continue?`,
         icon: "warning",
         danger: true,
         confirmButtonText: "Delete",
       });
       if (confirmed) {
         try {
-          let ids = this.selectedRows.map((entity) => entity.id);
+          const ids = this.selectedRows.map((entity) => entity.id);
           const response = await this.$axios.post(
             `/evaluations/batchDelete`,
             ids,
           );
           if (response.data.code === 200) {
             this.$swal.fire({
-              title: "Delete Hint",
+              title: "Deleted",
               text: response.data.msg,
               icon: "success",
               showConfirmButton: false,
               timer: 2000,
             });
+            this.selectedRows = [];
             this.fetchFreshData();
-            return;
           }
         } catch (e) {
           this.$swal.fire({
-            title: "Error Hint",
-            text: e,
+            title: "Error",
+            text: String(e),
             icon: "error",
             showConfirmButton: false,
             timer: 2000,
           });
-          console.error(`Comment message deletion anomaly: `, e);
+          console.error(`Comment deletion error:`, e);
         }
       }
     },
-
     highlightKeyword(text) {
       if (text == null) {
-        return;
+        return "";
       }
-      if (this.filterText != "") {
-        const regex = new RegExp(this.filterText, "gi");
-        return text.replace(
+      const escaped = String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      const keyword = this.evalustionsQueryDto.content;
+      if (keyword) {
+        const regex = new RegExp(
+          keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+          "gi",
+        );
+        return escaped.replace(
           regex,
-          '<span class="highlight" style="background-color: #bec936;color:#373834;">$&</span>',
+          '<span class="admin-search-highlight">$&</span>',
         );
       }
-      return text;
-    },
-    resetQueryCondition() {
-      this.filterText = "";
-      this.searchTime = "";
-      this.fetchFreshData();
-    },
-    async updateOperation() {
-      try {
-        const response = await this.$axios.put(
-          "/evaluations/update",
-          this.data,
-        );
-        this.$message[response.data.code === 200 ? "success" : "error"](
-          response.data.msg,
-        );
-        if (response.data.code === 200) {
-          this.closeDialog();
-          this.fetchFreshData();
-          this.clearFormData();
-        }
-      } catch (error) {
-        console.error("Error when submitting form:", error);
-        this.$message.error("Submission failed, please try again later!");
-      }
-    },
-    async addOperation() {
-      this.data.tag = this.dynamicTags.join(",");
-      try {
-        const response = await this.$axios.post("/evaluations/save", this.data);
-        this.$message[response.data.code === 200 ? "success" : "error"](
-          response.data.msg,
-        );
-        if (response.data.code === 200) {
-          this.closeDialog();
-          this.fetchFreshData();
-          this.clearFormData();
-        }
-      } catch (error) {
-        console.error("Error when submitting form:", error);
-        this.$message.error("Submission failed, please try again later!");
-      }
-    },
-
-    closeDialog() {
-      this.dialogOperaion = false;
-    },
-
-    clearFormData() {
-      this.data = {};
-      this.html = "";
-      this.fileList = [];
+      return escaped;
     },
     async fetchFreshData() {
       try {
@@ -410,7 +366,7 @@ export default {
           ...this.evalustionsQueryDto,
         };
 
-        let response = await this.$axios.post("/evaluations/query", params);
+        const response = await this.$axios.post("/evaluations/query", params);
         const { data } = response;
         this.tableData = data.data;
         this.totalItems = data.total;
@@ -418,10 +374,13 @@ export default {
         console.error("Fetch data failed:", error);
       }
     },
-    add() {
-      this.dialogOperaion = true;
-    },
     handleFilter() {
+      this.currentPage = 1;
+      this.fetchFreshData();
+    },
+    handleFilterClear() {
+      this.evalustionsQueryDto = {};
+      this.searchTime = [];
       this.currentPage = 1;
       this.fetchFreshData();
     },
@@ -434,66 +393,10 @@ export default {
       this.currentPage = val;
       this.fetchFreshData();
     },
-    handleEdit(row) {
-      this.dialogOperaion = true;
-      this.isOperation = true;
-      this.data = row;
-      console.log(this.data);
-    },
     async handleDelete(row) {
-      this.selectedRows.push(row);
-      this.batchDelete();
+      this.selectedRows = [row];
+      await this.batchDelete();
     },
   },
 };
 </script>
-<style scoped lang="scss">
-.main {
-  padding: 50px 0;
-  border-radius: 3px;
-  display: flex;
-  justify-content: center;
-
-  .item:last-child {
-    border-right: none;
-  }
-
-  .count,
-  .tag {
-    text-align: center;
-  }
-
-  .count {
-    height: 30px;
-    line-height: 30px;
-    font-size: 26px;
-    font-weight: bold;
-    color: rgb(120 102 102);
-  }
-
-  .tag {
-    height: 30px;
-    line-height: 30px;
-    font-size: 12px;
-    color: rgb(120 102 102);
-  }
-}
-
-.tag {
-  color: #1e80ff;
-  background-color: #eaf2ff;
-  padding: 3px 4px;
-  border-radius: 3px;
-  font-size: 10px;
-  margin-right: 5px;
-}
-
-.tag1 {
-  color: #1c1c1c;
-  background-color: #d7d8b8;
-  padding: 3px 4px;
-  border-radius: 3px;
-  font-size: 10px;
-  margin-right: 5px;
-}
-</style>

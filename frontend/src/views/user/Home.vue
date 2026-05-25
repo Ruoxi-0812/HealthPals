@@ -1,7 +1,7 @@
 <template>
   <div class="home-page">
     <div class="home-inner">
-      <!-- Hero：全宽轮播 + 下方精选（无左右分栏，避免一侧留白） -->
+      <!-- Hero: full-width carousel + featured row below (no side column gap) -->
       <section class="home-hero home-hero--loading" v-if="topLoading">
         <div class="hero-skeleton-banner skeleton-pulse" />
         <div class="hero-skeleton-featured">
@@ -347,7 +347,7 @@ $shadow-hover: 0 20px 40px rgba(30, 47, 40, 0.12);
   }
 }
 
-/* Hero：全宽横图 + 下方卡片，无侧栏空白 */
+/* Hero: full-width banner + cards below, no empty side gutter */
 .home-hero {
   margin-bottom: 22px;
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="line-main">
-    <div class="line-main__toolbar">
+    <div v-if="showToolbar" class="line-main__toolbar">
       <span v-if="tag" class="line-main__tag">{{ tag }}</span>
       <span class="line-main__timing">
         <span class="line-main__timing-label">Time range</span>
@@ -12,10 +12,10 @@
           @change="emitSelection"
         >
           <el-option
-            v-for="item in options"
-            :key="item.num"
-            :label="item.name"
-            :value="item.num"
+            v-for="item in rangeOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
           />
         </el-select>
       </span>
@@ -25,6 +25,12 @@
 </template>
 <script>
 import * as echarts from "echarts";
+import {
+  HEALTH_TIME_RANGES,
+  formatChartAxisLabel,
+  formatDateTimeFull,
+} from "@/utils/data";
+
 export default {
   name: "DialogLine",
   props: {
@@ -44,18 +50,19 @@ export default {
       type: String,
       default: "220px",
     },
+    showToolbar: {
+      type: Boolean,
+      default: true,
+    },
+    timeRange: {
+      type: Number,
+      default: null,
+    },
   },
   data() {
     return {
       chart: null,
-      options: [
-        { num: 7, name: "Last 7 days" },
-        { num: 30, name: "Last 30 days" },
-        { num: 60, name: "Last 60 days" },
-        { num: 90, name: "Last 90 days" },
-        { num: 180, name: "Last 6 months" },
-        { num: 365, name: "Last 12 months" },
-      ],
+      rangeOptions: HEALTH_TIME_RANGES,
       selectedValue: 365,
     };
   },
@@ -72,9 +79,14 @@ export default {
       },
       deep: true,
     },
+    timeRange(val) {
+      if (val != null && val !== this.selectedValue) {
+        this.selectedValue = val;
+      }
+    },
   },
   mounted() {
-    this.selectedValue = 365;
+    this.selectedValue = this.timeRange != null ? this.timeRange : 365;
     this.$nextTick(() => this.initChart());
     window.addEventListener("resize", this.handleResize);
   },
@@ -101,7 +113,6 @@ export default {
         this.values.length > 0 &&
         Array.isArray(this.date) &&
         this.date.length > 0;
-
       let option;
       if (!hasData) {
         option = {
@@ -124,31 +135,61 @@ export default {
           series: [],
         };
       } else {
+        const pointCount = this.values.length;
+        const axisLabels = this.date.map((d) =>
+          formatChartAxisLabel(d, this.date),
+        );
+        const numericValues = this.values.map((v) => Number(v));
+        const minVal = Math.min(...numericValues.filter((n) => !isNaN(n)));
+        const maxVal = Math.max(...numericValues.filter((n) => !isNaN(n)));
+        const yPadding =
+          minVal === maxVal
+            ? Math.max(Math.abs(minVal) * 0.15, 1)
+            : (maxVal - minVal) * 0.12;
+
         option = {
           grid: {
             left: 48,
             right: 24,
-            top: 28,
-            bottom: 32,
+            top: pointCount === 1 ? 36 : 28,
+            bottom: pointCount > 6 ? 48 : 36,
             borderWidth: 0,
           },
           tooltip: {
             trigger: "axis",
-            formatter: "{b} → {c}",
+            formatter: (params) => {
+              const p = params[0];
+              if (!p) {
+                return "";
+              }
+              const full = formatDateTimeFull(this.date[p.dataIndex]);
+              return `${full || p.name}<br/><strong>${p.value}</strong>`;
+            },
           },
           xAxis: {
             type: "category",
-            data: this.date,
+            data: axisLabels,
+            boundaryGap: pointCount <= 2,
             axisLine: { lineStyle: { color: "rgba(126, 197, 160, 0.45)" } },
             axisTick: { show: false },
             axisLabel: {
               color: axisColor,
               fontSize: 11,
-              rotate: this.date.length > 8 ? 28 : 0,
+              rotate: pointCount > 8 ? 28 : 0,
+              hideOverlap: true,
             },
           },
           yAxis: {
             type: "value",
+            scale: pointCount > 1 && minVal !== maxVal,
+            min:
+              pointCount === 1 && !isNaN(minVal)
+                ? Math.max(0, minVal - yPadding)
+                : undefined,
+            max:
+              pointCount === 1 && !isNaN(maxVal)
+                ? maxVal + yPadding
+                : undefined,
             axisLine: { show: false },
             axisTick: { show: false },
             splitLine: {
@@ -162,14 +203,16 @@ export default {
           series: [
             {
               type: "line",
-              smooth: true,
-              symbolSize: 6,
+              smooth: pointCount > 2,
+              showSymbol: true,
+              symbolSize: pointCount === 1 ? 12 : pointCount <= 4 ? 8 : 6,
               data: this.values,
-              areaStyle: {
-                color: "rgba(42, 157, 111, 0.14)",
-              },
+              areaStyle:
+                pointCount > 1
+                  ? { color: "rgba(42, 157, 111, 0.14)" }
+                  : undefined,
               lineStyle: {
-                width: 2,
+                width: pointCount === 1 ? 0 : 2,
                 color: "#2a9d6f",
               },
               itemStyle: {
@@ -214,15 +257,17 @@ export default {
 }
 
 .line-main__tag {
-  font-size: 13px;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--nb-muted, #5c6560);
+  font-family: var(--nb-font-display, Georgia, serif);
+  color: var(--nb-ink, #24332b);
 }
 
 .line-main__timing {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  margin-left: auto;
 }
 
 .line-main__timing-label {
@@ -235,9 +280,17 @@ export default {
   min-width: 168px;
 
   :deep(.el-input__inner) {
-    border-radius: 999px;
-    border-color: rgba(126, 197, 160, 0.45);
+    height: 32px;
+    border-radius: 10px;
+    background: #f3faf6 !important;
+    border: 1px solid rgba(126, 197, 160, 0.38) !important;
     font-weight: 500;
+    color: var(--nb-ink, #24332b);
+
+    &:focus {
+      border-color: rgba(42, 157, 111, 0.55) !important;
+      box-shadow: 0 0 0 3px rgba(42, 157, 111, 0.15);
+    }
   }
 }
 

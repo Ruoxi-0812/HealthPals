@@ -1,12 +1,14 @@
 <template>
-  <div class="admin-page">
-    <div class="admin-page__toolbar">
-      <div class="admin-toolbar-row">
+  <div>
+    <AdminPageShell page-class="admin-page--news">
+      <template #toolbar>
+<div class="admin-toolbar-row">
         <el-select
+          class="admin-filter-select"
           @change="changeNewsTag"
           size="small"
           v-model="newsQueryDto.tagId"
-          placeholder="News Category"
+          placeholder="Category"
         >
           <el-option
             v-for="tag in tagsList"
@@ -18,19 +20,19 @@
         </el-select>
         <el-date-picker
           size="small"
-          style="width: 220px"
+          class="admin-date-picker"
           v-model="searchTime"
           type="daterange"
           range-separator="to"
-          start-placeholder="Publish Start"
-          end-placeholder="Publish End"
+          start-placeholder="Published from"
+          end-placeholder="Published to"
         >
         </el-date-picker>
         <el-input
           size="small"
           class="admin-filter-input"
           v-model="newsQueryDto.name"
-          placeholder="News Title"
+          placeholder="Article title"
           clearable
           @clear="handleFilterClear"
         >
@@ -41,78 +43,115 @@
           ></el-button>
         </el-input>
         <div class="admin-page__toolbar-actions">
-          <el-button type="primary" size="small"
-            @click="add()"
-            ><i class="el-icon-plus"></i>Add News</el-button
-          >
+          <el-tooltip content="Add article" placement="bottom">
+            <button
+              type="button"
+              class="admin-toolbar-btn admin-toolbar-btn--primary"
+              aria-label="Add article"
+              @click="add()"
+            >
+              <i class="el-icon-plus" aria-hidden="true" />
+              <span>Add article</span>
+            </button>
+          </el-tooltip>
         </div>
       </div>
-    </div>
-
-    <div class="admin-page__body">
+      </template>
       <el-table
+        stripe
         row-key="id"
         @selection-change="handleSelectionChange"
         :data="tableData"
-        style="width: 100%"
+        class="admin-table-full"
+        empty-text="No articles match your filters."
       >
-        <el-table-column prop="cover" width="80" label="Cover">
+        <el-table-column min-width="280" label="Article">
           <template slot-scope="scope">
-            <img
-              :src="scope.row.cover"
-              style="width: 48px; height: 34px; border-radius: 5px"
-            />
+            <div class="admin-article-cell">
+              <img
+                v-if="scope.row.cover"
+                :src="scope.row.cover"
+                class="admin-table-thumb admin-table-thumb--article"
+                alt=""
+              />
+              <div class="admin-article-cell__body">
+                <span class="admin-article-title">{{ scope.row.name }}</span>
+                <span
+                  v-if="scope.row.tagName"
+                  class="admin-badge admin-badge--role-user admin-badge--nowrap"
+                >
+                  <i class="el-icon-folder-opened" aria-hidden="true" />
+                  {{ scope.row.tagName }}
+                </span>
+              </div>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="tagName" width="138" label="Category">
+        <el-table-column
+          prop="isTop"
+          width="100"
+          label="Featured"
+          class-name="admin-col-nowrap"
+        >
           <template slot-scope="scope">
             <span
-              ><i class="el-icon-discount" style="margin-right: 3px"></i>
-              {{ scope.row.tagName }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="isTop" width="128" label="Recommended">
-          <template slot-scope="scope">
-            <i
-              v-if="!scope.row.isTop"
-              class="el-icon-warning admin-status-ic"
-            ></i>
-            <i
-              v-else
-              class="el-icon-success admin-status-ic admin-status-ic--ok"
-            ></i>
-            <el-tooltip
-              v-if="!scope.row.isTop"
-              class="item"
-              effect="dark"
-              content="Not recommended, will not be displayed"
-              placement="bottom-end"
+              v-if="scope.row.isTop"
+              class="admin-badge admin-badge--ok admin-badge--nowrap"
             >
-              <span
-                style="
-                  cursor: pointer;
-                  text-decoration: underline;
-                  text-decoration-style: dashed;
-                "
-                >Not Recommended</span
-              >
-            </el-tooltip>
-            <span v-else>Recommended</span>
+              <i class="el-icon-star-on" aria-hidden="true" />
+              Featured
+            </span>
+            <span v-else class="admin-model-meta">—</span>
           </template>
         </el-table-column>
         <el-table-column
           prop="createTime"
-          width="168"
-          label="Publish Time"
-        ></el-table-column>
-        <el-table-column prop="name" label="Title"></el-table-column>
-        <el-table-column label="Actions" width="120">
+          width="148"
+          label="Published"
+          class-name="admin-col-recorded"
+        >
           <template slot-scope="scope">
-            <span class="text-button" @click="handleEdit(scope.row)">Edit</span>
-            <span class="text-button" @click="handleDelete(scope.row)"
-              >Delete</span
+            <el-tooltip
+              :content="formatDateTimeFull(scope.row.createTime)"
+              placement="top"
+              :disabled="!scope.row.createTime"
             >
+              <span class="admin-health-recorded">{{
+                formatRecordedLine(scope.row.createTime)
+              }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="Actions"
+          width="118"
+          align="center"
+          header-align="center"
+          class-name="admin-col-actions"
+        >
+          <template slot-scope="scope">
+            <div class="admin-row-actions">
+              <el-tooltip content="Edit article" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--primary"
+                  aria-label="Edit article"
+                  @click="handleEdit(scope.row)"
+                >
+                  <i class="el-icon-edit" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Delete article" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--danger"
+                  aria-label="Delete article"
+                  @click="handleDelete(scope.row)"
+                >
+                  <i class="el-icon-delete" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -125,7 +164,8 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </div>
+    </AdminPageShell>
+
     <el-dialog
       custom-class="hp-dialog admin-dialog-editor"
       :show-close="true"
@@ -171,9 +211,16 @@
 </template>
 
 <script>
+import AdminPageShell from "@/components/admin/AdminPageShell.vue";
+
 import Editor from "@/components/Editor";
+import {
+  formatDateTimeFull,
+  formatRecordedLine,
+} from "@/utils/data";
+
 export default {
-  components: { Editor },
+  components: { AdminPageShell, Editor },
   data() {
     return {
       userPwd: "",
@@ -198,6 +245,8 @@ export default {
     this.loadAllTags();
   },
   methods: {
+    formatDateTimeFull,
+    formatRecordedLine,
     changeNewsTag(tagId) {
       this.newsQueryDto.tagId = tagId;
       this.fetchFreshData();

@@ -23,6 +23,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 // Allow login, registration, and file-related requests to pass through
                 .excludePathPatterns(
                         API + "/user/login",
+                        API + "/user/google-login",
                         API + "/user/register",
                         API + "/file/upload",
                         API + "/file/getFile"

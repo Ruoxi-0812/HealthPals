@@ -1,10 +1,11 @@
 <template>
-  <div class="admin-page">
-    <div class="admin-page__toolbar">
-      <div class="admin-toolbar-row">
+  <div>
+    <AdminPageShell page-class="admin-page--messages">
+      <template #toolbar>
+<div class="admin-toolbar-row">
         <el-date-picker
           size="small"
-          style="width: 220px"
+          class="admin-date-picker"
           v-model="searchTime"
           type="daterange"
           range-separator="to"
@@ -26,40 +27,113 @@
           />
         </el-input>
         <div class="admin-page__toolbar-actions">
-          <el-button type="primary" size="small" @click="allMessagePush">
-            <i class="el-icon-plus" /> Targeted push
-          </el-button>
+          <el-tooltip content="Targeted push" placement="bottom">
+            <button
+              type="button"
+              class="admin-toolbar-btn admin-toolbar-btn--primary"
+              aria-label="Targeted push"
+              @click="allMessagePush"
+            >
+              <i class="el-icon-plus" aria-hidden="true" />
+              <span>Targeted push</span>
+            </button>
+          </el-tooltip>
         </div>
       </div>
-    </div>
-
-    <div class="admin-page__body">
-      <el-table :data="tableData" style="width: 100%">
-        <el-table-column prop="name" width="98" label="Read status">
+      </template>
+<el-table
+        stripe
+        row-key="id"
+        :row-class-name="rowClassName"
+        :data="tableData"
+        class="admin-table-full"
+        empty-text="No messages match your filters."
+      >
+        <el-table-column
+          width="132"
+          label="Delivery"
+          class-name="admin-col-msg-meta"
+        >
           <template slot-scope="scope">
-            <span>{{ scope.row.isRead ? "Read" : "Unread" }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="messageType" width="148" label="Type">
-          <template slot-scope="scope">
-            <span v-if="scope.row.messageType === 1">Comment reply</span>
-            <span v-else-if="scope.row.messageType === 2">Comment like</span>
-            <span v-else-if="scope.row.messageType === 3">Metric reminder</span>
-            <span v-else>System</span>
+            <div class="admin-msg-meta">
+              <div class="admin-msg-meta__tags">
+                <span
+                  v-if="!scope.row.isRead"
+                  class="admin-badge admin-badge--nowrap admin-badge--ok"
+                >
+                  Unread
+                </span>
+                <span
+                  class="admin-badge admin-badge--nowrap"
+                  :class="typeBadgeClass(scope.row.messageType)"
+                >
+                  {{ typeLabel(scope.row.messageType) }}
+                </span>
+              </div>
+              <span class="admin-msg-meta__receiver">{{
+                scope.row.receiverName || "—"
+              }}</span>
+            </div>
           </template>
         </el-table-column>
         <el-table-column
-          prop="receiverName"
-          width="108"
-          label="Receiver"
-        />
-        <el-table-column prop="content" label="Message" />
-        <el-table-column prop="createTime" width="168" label="Sent" />
-        <el-table-column label="Actions" width="88">
+          prop="content"
+          min-width="280"
+          label="Message"
+          class-name="admin-col-msg-body"
+        >
           <template slot-scope="scope">
-            <span class="text-button" @click="handleDelete(scope.row)">
-              Delete
-            </span>
+            <p
+              v-if="healthAlertParts(scope.row)"
+              class="admin-msg-content admin-msg-content--alert"
+            >
+              <span>{{ healthAlertParts(scope.row).lead }} </span>
+              <strong class="admin-msg-content__metric">{{
+                healthAlertParts(scope.row).metric
+              }}</strong>
+              <span> {{ healthAlertParts(scope.row).tail }}</span>
+            </p>
+            <p v-else class="admin-msg-content">{{ scope.row.content }}</p>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="createTime"
+          width="128"
+          label="Sent"
+          class-name="admin-col-recorded"
+        >
+          <template slot-scope="scope">
+            <el-tooltip
+              :content="formatDateTimeFull(scope.row.createTime)"
+              placement="top"
+              :disabled="!scope.row.createTime"
+            >
+              <span class="admin-health-recorded">{{
+                formatRecordedLine(scope.row.createTime)
+              }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="Actions"
+          width="72"
+          align="center"
+          header-align="center"
+          class-name="admin-col-actions"
+        >
+          <template slot-scope="scope">
+            <div class="admin-row-actions">
+              <el-tooltip content="Delete message" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--danger"
+                  aria-label="Delete message"
+                  @click="handleDelete(scope.row)"
+                >
+                  <i class="el-icon-delete" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -73,7 +147,7 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       />
-    </div>
+    </AdminPageShell>
 
     <el-dialog
       custom-class="hp-dialog"
@@ -118,7 +192,16 @@
 </template>
 
 <script>
+import AdminPageShell from "@/components/admin/AdminPageShell.vue";
+
+import {
+  formatDateShort,
+  formatTimeShort,
+  formatDateTimeFull,
+} from "@/utils/data";
+
 export default {
+  components: { AdminPageShell },
   data() {
     return {
       data: {},
@@ -140,6 +223,72 @@ export default {
     this.loadAllMessageType();
   },
   methods: {
+    formatDateShort,
+    formatTimeShort,
+    formatDateTimeFull,
+    formatRecordedLine(createTime) {
+      const date = formatDateShort(createTime);
+      const time = formatTimeShort(createTime);
+      if (!time || date === "—") {
+        return date;
+      }
+      return `${date}, ${time}`;
+    },
+    typeLabel(messageType) {
+      const map = {
+        1: "Comment reply",
+        2: "Comment like",
+        3: "Metric reminder",
+        4: "System",
+      };
+      return map[messageType] || "Message";
+    },
+    typeIcon(messageType) {
+      const map = {
+        1: "el-icon-chat-line-round",
+        2: "el-icon-star-on",
+        3: "el-icon-warning-outline",
+        4: "el-icon-bell",
+      };
+      return map[messageType] || "el-icon-message";
+    },
+    typeBadgeClass(messageType) {
+      const map = {
+        1: "admin-badge--type-comment",
+        2: "admin-badge--type-like",
+        3: "admin-badge--type-metric",
+        4: "admin-badge--type-system",
+      };
+      return map[messageType] || "admin-badge--role-user";
+    },
+    healthAlertParts(message) {
+      if (message.messageType !== 3) {
+        return null;
+      }
+      const text = (message.content || "").trim();
+      if (!text) {
+        return null;
+      }
+      const bracket = text.match(/【([^】]+)】/);
+      if (bracket) {
+        const idx = text.indexOf(bracket[0]);
+        return {
+          lead: text.slice(0, idx).trim() || "Recorded",
+          metric: bracket[1],
+          tail: text.slice(idx + bracket[0].length).trim(),
+        };
+      }
+      return null;
+    },
+    rowClassName({ row }) {
+      if (!row.isRead) {
+        return "admin-msg-row--unread";
+      }
+      if (row.messageType === 3) {
+        return "admin-msg-row--alert";
+      }
+      return "";
+    },
     messagePushOperation() {
       const message = {
         content: this.messageContent,
@@ -157,6 +306,7 @@ export default {
             });
             this.dialogMessageOperation = false;
             this.messageContent = "";
+            this.fetchFreshData();
           }
         });
     },
@@ -195,6 +345,7 @@ export default {
               showConfirmButton: false,
               timer: 2000,
             });
+            this.selectedRows = [];
             this.fetchFreshData();
           }
         } catch (e) {
@@ -233,8 +384,10 @@ export default {
       this.fetchFreshData();
     },
     handleFilterClear() {
-      this.filterText = "";
-      this.handleFilter();
+      this.messageQueryDto = {};
+      this.searchTime = [];
+      this.currentPage = 1;
+      this.fetchFreshData();
     },
     handleSizeChange(val) {
       this.pageSize = val;
@@ -246,11 +399,9 @@ export default {
       this.fetchFreshData();
     },
     handleDelete(row) {
-      this.selectedRows.push(row);
+      this.selectedRows = [row];
       this.batchDelete();
     },
   },
 };
 </script>
-
-<style scoped lang="scss"></style>

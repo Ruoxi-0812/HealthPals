@@ -1,6 +1,7 @@
 <template>
   <el-menu
     class="admin-menu"
+    :class="{ 'is-collapsed': flag }"
     :collapse-transition="false"
     :collapse="flag"
     :default-active="activeIndex"
@@ -12,7 +13,7 @@
     <el-menu-item
       v-for="(item, index) in routes"
       :key="index"
-      v-if="!item.children || item.children.length === 0"
+      v-if="(!item.children || item.children.length === 0) && !item.isHidden"
       :index="item.path"
       :class="{ 'is-active': activeIndex === item.path }"
     >
@@ -72,9 +73,17 @@ export default {
   overflow-y: auto;
 }
 
+.admin-menu.is-collapsed {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
 .admin-menu__icon {
   font-size: 18px;
   color: #4d8b73;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .admin-menu__label {
@@ -83,11 +92,27 @@ export default {
 }
 
 .admin-menu :deep(.el-menu-item) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   height: 46px !important;
   line-height: 46px !important;
   margin: 4px 0;
+  padding-left: 14px !important;
+  padding-right: 12px !important;
   border-radius: 12px;
   user-select: none;
+}
+
+.admin-menu.is-collapsed :deep(.el-menu-item) {
+  justify-content: center;
+  gap: 0;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.admin-menu :deep(.el-menu-item [class^="el-icon-"]) {
+  margin-right: 0;
 }
 
 .admin-menu :deep(.el-menu-item:hover) {

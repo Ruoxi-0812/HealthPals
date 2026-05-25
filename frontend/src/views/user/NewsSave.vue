@@ -1,97 +1,119 @@
 <template>
   <div class="save-page">
-    <header class="save-page__head section-head">
-      <div>
-        <span class="section-head__eyebrow">Library</span>
-        <h1 class="section-head__title">My favorites</h1>
-        <p class="section-head__lede">
-          Articles you saved for later. Open any card to pick up where you left
-          off.
-        </p>
+    <div v-if="loading" class="save-page__surface nb-surface">
+      <div class="save-page__skeleton-grid">
+        <div
+          v-for="n in 6"
+          :key="'sk-' + n"
+          class="save-page__skeleton-card skeleton-pulse"
+        />
       </div>
-      <p v-if="newsSaveList.length" class="save-page__count">
-        {{ newsSaveList.length }}
-        {{ newsSaveList.length === 1 ? "article" : "articles" }} saved
-      </p>
-    </header>
-
-    <div v-if="newsSaveList.length === 0" class="save-page__empty nb-surface--sm">
-      <el-empty description="">
-        <template slot="image">
-          <div class="save-page__empty-icon" aria-hidden="true">
-            <i class="el-icon-star-off" />
-          </div>
-        </template>
-        <template slot="description">
-          <p class="save-page__empty-title">No saved articles yet</p>
-          <p class="save-page__empty-text">
-            When you find something worth revisiting, save it from the article
-            page—it will show up here.
-          </p>
-          <router-link class="save-page__empty-cta" to="/news-record">
-            Browse the news home
-          </router-link>
-        </template>
-      </el-empty>
     </div>
 
-    <div v-else class="save-page__grid">
-      <article
-        v-for="(news, index) in newsSaveList"
-        :key="news.id || news.newsId || index"
-        class="save-card"
-        tabindex="0"
-        role="link"
-        @click="newsItemClick(news)"
-        @keydown.enter.prevent="newsItemClick(news)"
+    <template v-else>
+      <div
+        v-if="newsSaveList.length"
+        class="save-page__toolbar nb-surface--sm"
       >
-        <div class="save-card__media">
-          <img
-            :src="news.cover"
-            :alt="news.name"
-            class="save-card__img"
-            loading="lazy"
-            @error="onImgError"
-          />
+        <p class="save-page__count">
+          {{ newsSaveList.length }}
+          {{ newsSaveList.length === 1 ? "article" : "articles" }} saved
+        </p>
+        <router-link class="save-page__browse" to="/news-record">
+          Browse articles
+          <i class="el-icon-right" aria-hidden="true" />
+        </router-link>
+      </div>
+
+      <div
+        v-if="newsSaveList.length === 0"
+        class="save-page__empty nb-surface--sm"
+      >
+        <el-empty description="">
+          <template slot="image">
+            <div class="save-page__empty-icon" aria-hidden="true">
+              <i class="el-icon-star-off" />
+            </div>
+          </template>
+          <template slot="description">
+            <p class="save-page__empty-title">No saved articles yet</p>
+            <p class="save-page__empty-text">
+              Save articles from the news feed to find them here later.
+            </p>
+            <router-link class="save-page__empty-cta" to="/news-record">
+              Browse the news home
+            </router-link>
+          </template>
+        </el-empty>
+      </div>
+
+      <div v-else class="save-page__surface nb-surface">
+        <div class="save-page__grid">
+          <article
+            v-for="(news, index) in newsSaveList"
+            :key="news.id || news.newsId || index"
+            class="feed-card save-card"
+            tabindex="0"
+            role="link"
+            @click="newsItemClick(news)"
+            @keydown.enter.prevent="newsItemClick(news)"
+          >
+            <div class="feed-card__media save-card__media">
+              <img
+                :src="newsCoverSrc(news.cover, news.newsId)"
+                :alt="news.name"
+                class="feed-card__img"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                @error="onCoverImgError"
+              />
+              <button
+                type="button"
+                class="save-card__unsave"
+                aria-label="Remove from favorites"
+                :disabled="removingId === news.newsId"
+                @click.stop="unsaveNews(news)"
+              >
+                <i class="el-icon-star-on" aria-hidden="true" />
+              </button>
+            </div>
+            <div class="feed-card__body">
+              <h2 class="feed-card__title save-card__title">{{ news.name }}</h2>
+              <div class="feed-card__meta">
+                <span v-if="news.tagName" class="pill pill--ghost">{{
+                  news.tagName
+                }}</span>
+                <time :datetime="news.createTime">
+                  Saved {{ parseTime(news.createTime) }}
+                </time>
+              </div>
+            </div>
+          </article>
         </div>
-        <div class="save-card__body">
-          <h2 class="save-card__title">{{ news.name }}</h2>
-          <div class="save-card__meta">
-            <span class="save-card__pill">{{ news.tagName }}</span>
-            <time class="save-card__time" :datetime="news.createTime">
-              Saved {{ parseTime(news.createTime) }}
-            </time>
-          </div>
-        </div>
-      </article>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <script>
 import { timeAgo } from "@/utils/data";
-
-const BLANK_COVER =
-  "data:image/svg+xml," +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200"><rect fill="#e8f4ed" width="320" height="200"/><text x="160" y="105" text-anchor="middle" fill="#7a9a8a" font-family="system-ui,sans-serif" font-size="14">No image</text></svg>`,
-  );
+import { newsCoverSrc, onCoverImgError } from "@/utils/coverImage";
 
 export default {
   name: "NewsSave",
   data() {
     return {
       newsSaveList: [],
+      loading: true,
+      removingId: null,
     };
   },
   created() {
     this.loadAllSaveNews();
   },
   methods: {
-    onImgError(e) {
-      const el = e && e.target;
-      if (el) el.src = BLANK_COVER;
-    },
+    newsCoverSrc,
+    onCoverImgError,
     parseTime(time) {
       return timeAgo(time);
     },
@@ -103,9 +125,41 @@ export default {
         });
       }
     },
+    async unsaveNews(news) {
+      if (!news || news.newsId == null || this.removingId != null) {
+        return;
+      }
+      this.removingId = news.newsId;
+      try {
+        const response = await this.$axios.post("/news-save/operation", {
+          newsId: news.newsId,
+        });
+        const { data } = response;
+        if (data.code === 200) {
+          this.newsSaveList = this.newsSaveList.filter(
+            (item) => item.newsId !== news.newsId,
+          );
+          this.$message.success("Removed from favorites");
+        } else {
+          this.$message.error(data.msg || "Could not remove save");
+        }
+      } catch (e) {
+        this.$message.error(String(e));
+      } finally {
+        this.removingId = null;
+      }
+    },
     loadAllSaveNews() {
+      this.loading = true;
       const userInfo = sessionStorage.getItem("userInfo");
-      const userInfoEntity = JSON.parse(userInfo);
+      let userInfoEntity;
+      try {
+        userInfoEntity = JSON.parse(userInfo);
+      } catch {
+        this.loading = false;
+        this.newsSaveList = [];
+        return;
+      }
       const newsSaveQueryDto = {
         userId: userInfoEntity.id,
       };
@@ -114,8 +168,11 @@ export default {
         .then((response) => {
           const { data } = response;
           if (data.code === 200) {
-            this.newsSaveList = data.data;
+            this.newsSaveList = data.data || [];
           }
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
   },
@@ -123,69 +180,112 @@ export default {
 </script>
 
 <style scoped lang="scss">
+$ink: #24332b;
+$ink-soft: rgba(36, 51, 43, 0.62);
+$accent: #3d8b6a;
+$accent-soft: rgba(61, 139, 106, 0.12);
+$mint: rgba(126, 197, 160, 0.15);
+$shadow: 0 8px 22px rgba(53, 92, 75, 0.08);
+$shadow-hover: 0 14px 32px rgba(53, 92, 75, 0.14);
+$radius-md: 16px;
+
 .save-page {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
 }
 
-.section-head {
-  margin-bottom: 22px;
+.save-page__toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-}
-
-.section-head__eyebrow {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(36, 51, 43, 0.52);
-  margin-bottom: 6px;
-}
-
-.section-head__title {
-  margin: 0 0 8px;
-  font-family: var(--nb-font-display, Georgia, serif);
-  font-size: clamp(1.45rem, 2.4vw, 1.75rem);
-  font-weight: 600;
-  color: var(--nb-ink, #24332b);
-  letter-spacing: -0.02em;
-}
-
-.section-head__lede {
-  margin: 0;
-  max-width: 48ch;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--nb-muted, rgba(36, 51, 43, 0.62));
+  gap: 12px 16px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(126, 197, 160, 0.22);
+  border-radius: 14px;
 }
 
 .save-page__count {
   margin: 0;
   font-size: 13px;
-  font-weight: 600;
-  color: rgba(36, 51, 43, 0.55);
+  font-weight: 650;
+  color: $ink-soft;
+}
+
+.save-page__browse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 650;
+  color: $accent;
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: darken($accent, 8%);
+  }
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.save-page__surface {
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(126, 197, 160, 0.22);
+  border-radius: $radius-md;
+  box-shadow: $shadow;
 }
 
 .save-page__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 18px;
   align-content: start;
-  justify-items: stretch;
+  width: 100%;
 }
 
-.save-card {
+.save-page__skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+  padding: 18px;
+  width: 100%;
+}
+
+.save-page__skeleton-card {
+  border-radius: 14px;
+  min-height: 280px;
+  background: rgba(126, 197, 160, 0.16);
+}
+
+.skeleton-pulse {
+  animation: save-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes save-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.feed-card {
   height: 100%;
   margin: 0;
-  background: var(--nb-paper, #fff);
-  border-radius: 16px;
-  border: 1px solid rgba(126, 197, 160, 0.22);
-  box-shadow: 0 8px 22px rgba(53, 92, 75, 0.08);
+  background: #fff;
+  border-radius: $radius-md;
+  border: 1px solid rgba(126, 197, 160, 0.2);
+  box-shadow: $shadow;
   overflow: hidden;
   cursor: pointer;
   transition:
@@ -198,33 +298,83 @@ export default {
 
   &:hover,
   &:focus-visible {
-    transform: translateY(-4px);
-    box-shadow: 0 14px 32px rgba(53, 92, 75, 0.14);
-    border-color: rgba(42, 157, 111, 0.35);
+    transform: translateY(-3px);
+    box-shadow: $shadow-hover;
+    border-color: rgba(61, 139, 106, 0.35);
   }
 
   &:focus-visible {
     box-shadow:
       0 0 0 3px rgba(126, 197, 160, 0.35),
-      0 14px 32px rgba(53, 92, 75, 0.12);
+      $shadow-hover;
   }
 }
 
 .save-card__media {
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: rgba(126, 197, 160, 0.15);
+  position: relative;
 }
 
-.save-card__img {
+.feed-card__media {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: $mint;
+}
+
+.feed-card__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.35s ease;
 }
 
-.save-card__body {
-  padding: 14px 16px 16px;
+.feed-card:hover .feed-card__img {
+  transform: scale(1.04);
+}
+
+.save-card__unsave {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  appearance: none;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #c97c3a;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(53, 92, 75, 0.15);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #fff;
+    color: #9b3d3d;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 1;
+  }
+}
+
+.feed-card:hover .save-card__unsave,
+.feed-card:focus-within .save-card__unsave {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feed-card__body {
+  padding: 16px 16px 18px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -232,44 +382,49 @@ export default {
 }
 
 .save-card__title {
-  margin: 0;
-  font-family: var(--nb-font-display, Georgia, serif);
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--nb-ink, #24332b);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  word-break: break-word;
+  -webkit-line-clamp: 3;
 }
 
-.save-card__meta {
+.feed-card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: $ink;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.feed-card__meta {
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: 10px;
   font-size: 12px;
-  color: rgba(36, 51, 43, 0.55);
+  color: $ink-soft;
+
+  time {
+    opacity: 0.88;
+  }
 }
 
-.save-card__pill {
+.pill {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  font-family: var(--nb-font, system-ui, sans-serif);
-  background: rgba(42, 157, 111, 0.1);
-  color: #2a6b52;
-  border: 1px solid rgba(42, 157, 111, 0.22);
-}
+  background: $accent-soft;
+  color: darken($accent, 6%);
+  border: 1px solid rgba(61, 139, 106, 0.2);
 
-.save-card__time {
-  font-weight: 500;
-  font-family: var(--nb-font, system-ui, sans-serif);
+  &--ghost {
+    background: rgba(232, 244, 238, 0.9);
+    color: $ink-soft;
+    border-color: rgba(126, 197, 160, 0.28);
+  }
 }
 
 .save-page__empty {
@@ -277,7 +432,7 @@ export default {
   text-align: center;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(126, 197, 160, 0.22);
-  border-radius: 16px;
+  border-radius: $radius-md;
 }
 
 .save-page__empty :deep(.el-empty__description) {
@@ -301,7 +456,7 @@ export default {
   margin: 0 0 8px;
   font-size: 17px;
   font-weight: 650;
-  color: var(--nb-ink, #24332b);
+  color: $ink;
 }
 
 .save-page__empty-text {
@@ -309,7 +464,7 @@ export default {
   max-width: 40ch;
   font-size: 14px;
   line-height: 1.55;
-  color: var(--nb-muted, rgba(36, 51, 43, 0.62));
+  color: $ink-soft;
 }
 
 .save-page__empty-cta {

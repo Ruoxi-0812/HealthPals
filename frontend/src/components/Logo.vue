@@ -6,9 +6,7 @@
       :src="logoSrc"
       fit="contain"
     ></el-image>
-    <div v-if="!flag">
-      <span :style="{ color: bag, display: 'block' }">{{ sysName }}</span>
-    </div>
+    <span v-if="!flag" class="logo__name" :style="{ color: bag }">{{ sysName }}</span>
   </span>
 </template>
 <script>
@@ -51,20 +49,24 @@ export default {
   font-family: var(--nb-font-display);
   font-weight: 700;
   font-size: 20px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   user-select: none;
   line-height: 1;
-
-  span {
-    margin-left: 8px;
-    color: #666;
-  }
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .logo-image {
   flex-shrink: 0;
+}
+
+.logo__name {
+  display: block;
+  margin-left: 10px;
+  color: #666;
+  white-space: nowrap;
 }
 
 .logo-image :deep(.el-image__inner) {

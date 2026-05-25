@@ -11,8 +11,8 @@ Vue.use(VueRouter);
 
 const routes = [
   {
-    path: "*",
-    redirect: "/login",
+    path: "/",
+    component: () => import(`@/views/public/Landing.vue`),
   },
   {
     path: "/login",
@@ -93,6 +93,14 @@ const routes = [
         component: () => import(`@/views/admin/EvaluationsManage.vue`),
         meta: { requireAuth: true },
       },
+      {
+        path: "/adminSettings",
+        name: "Settings",
+        icon: "el-icon-setting",
+        component: () => import(`@/views/admin/Settings.vue`),
+        meta: { requireAuth: true },
+        isHidden: true,
+      },
     ],
   },
   {
@@ -101,7 +109,7 @@ const routes = [
     meta: {
       requireAuth: true,
     },
-    /* 直接打开 /user 时没有子路由匹配，主区域会为空白；默认进首页 */
+    /* Visiting /user alone matches no child route; redirect to home */
     redirect: "/news-record",
     children: [
       {
@@ -137,6 +145,15 @@ const routes = [
         },
       },
       {
+        name: "Settings",
+        path: "/settings",
+        component: () => import(`@/views/user/Settings.vue`),
+        meta: {
+          requireAuth: true,
+        },
+        isHidden: true,
+      },
+      {
         name: "Health Information Details",
         path: "/news-detail",
         component: () => import(`@/views/user/NewsDetail.vue`),
@@ -155,6 +172,10 @@ const routes = [
         isHidden: true,
       },
     ],
+  },
+  {
+    path: "*",
+    redirect: "/",
   },
 ];
 const router = new VueRouter({

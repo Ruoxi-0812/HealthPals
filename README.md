@@ -55,7 +55,18 @@ Open http://localhost:21091 (proxies `/api` → backend).
 | `SPRING_DATASOURCE_PASSWORD` | Backend (required locally) |
 | `APP_AI_API_KEY` | Backend — health assistant |
 | `VUE_APP_GOOGLE_CLIENT_ID` | `frontend/.env.development` — see `.env.example` |
-| `google.oauth.client-id` | `backend/.../application.yml` |
+| `GOOGLE_OAUTH_CLIENT_ID` | Backend environment variable for Google token verification |
+
+### Google Sign-In setup
+
+To enable `Continue with Google`, configure the same Google Web client id in both apps:
+
+1. Create a Google OAuth **Web application** credential in Google Cloud.
+2. Add your frontend origin, for example `http://localhost:21091`, to **Authorized JavaScript origins**.
+3. Set `VUE_APP_GOOGLE_CLIENT_ID` in `frontend/.env.development`.
+4. Set `GOOGLE_OAUTH_CLIENT_ID` in the backend environment before starting Spring Boot.
+
+If either side is missing this value, the Google button stays unavailable and the backend will reject Google login requests.
 
 ## Build
 

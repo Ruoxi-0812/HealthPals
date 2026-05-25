@@ -1,15 +1,16 @@
 <template>
-  <div class="admin-page">
-    <div class="admin-page__toolbar">
-      <div class="admin-toolbar-row">
+  <div>
+    <AdminPageShell page-class="admin-page--health-records">
+      <template #toolbar>
+<div class="admin-toolbar-row">
         <el-date-picker
           size="small"
-          style="width: 220px"
+          class="admin-date-picker"
           v-model="searchTime"
           type="daterange"
           range-separator="to"
-          start-placeholder="Record Start"
-          end-placeholder="Record End"
+          start-placeholder="Recorded from"
+          end-placeholder="Recorded to"
         >
         </el-date-picker>
         <el-input
@@ -26,79 +27,161 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
+        <div class="admin-page__toolbar-actions">
+          <el-tooltip content="Add record" placement="bottom">
+            <button
+              type="button"
+              class="admin-toolbar-btn admin-toolbar-btn--primary"
+              aria-label="Add record"
+              @click="add()"
+            >
+              <i class="el-icon-plus" aria-hidden="true" />
+              <span>Add record</span>
+            </button>
+          </el-tooltip>
+        </div>
       </div>
-    </div>
-
-    <div class="admin-page__body">
-      <el-table
+      </template>
+<el-table
+        stripe
         row-key="id"
+        :row-class-name="rowClassName"
         @selection-change="handleSelectionChange"
         :data="tableData"
+        class="admin-table-full"
+        empty-text="No health records match your filters."
       >
-        <el-table-column prop="name" width="88" label="Status">
-          <template slot-scope="scope">
-            <i
-              v-if="!statusCheck(scope.row)"
-              class="el-icon-warning admin-status-ic"
-            ></i>
-            <i
-              v-else
-              class="el-icon-success admin-status-ic admin-status-ic--ok"
-            ></i>
-            <el-tooltip
-              v-if="!statusCheck(scope.row)"
-              class="item"
-              effect="dark"
-              content="Abnormal indicators, remind user to handle them promptly"
-              placement="bottom-end"
-            >
-              <span class="admin-status-link">Abnormal</span>
-            </el-tooltip>
-            <span v-else>Normal</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="value" width="148" label="Record Value" sortable>
-          <template slot-scope="scope">
-            <span>{{ scope.row.value }}({{ scope.row.unit }})</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="userName" label="Recorded By"></el-table-column>
         <el-table-column
-          prop="valueRange"
-          width="88"
-          label="Threshold"
-        ></el-table-column>
-        <el-table-column prop="name" width="140" label="Model Name">
-          <template slot-scope="scope">
-            <span
-              ><i class="el-icon-receiving" style="margin-right: 3px"></i
-              >{{ scope.row.name }}</span
-            >
-          </template>
-        </el-table-column>
-        <el-table-column prop="unit" width="88" label="Unit"></el-table-column>
-        <el-table-column
-          prop="symbol"
-          width="88"
-          label="Symbol"
-        ></el-table-column>
-        <el-table-column
-          prop="userId"
-          width="108"
-          label="User ID"
+          prop="value"
+          min-width="200"
+          label="Reading"
           sortable
-        ></el-table-column>
+          class-name="admin-col-reading"
+        >
+          <template slot-scope="scope">
+            <div class="admin-health-reading">
+              <div class="admin-health-reading__main">
+                <el-tooltip
+                  v-if="!statusCheck(scope.row)"
+                  effect="dark"
+                  content="Out of range — user should review this reading."
+                  placement="top"
+                >
+                  <span class="admin-badge admin-badge--warn admin-badge--nowrap">
+                    <i class="el-icon-warning-outline" aria-hidden="true" />
+                    Abnormal
+                  </span>
+                </el-tooltip>
+                <span
+                  v-else
+                  class="admin-badge admin-badge--ok admin-badge--nowrap"
+                >
+                  <i class="el-icon-circle-check" aria-hidden="true" />
+                  Normal
+                </span>
+                <span class="admin-health-value">
+                  <strong>{{ scope.row.value }}</strong>
+                  <span
+                    v-if="scope.row.unit"
+                    class="admin-health-value__unit"
+                    >{{ scope.row.unit }}</span
+                  >
+                </span>
+              </div>
+              <p
+                v-if="scope.row.valueRange"
+                class="admin-health-reading__threshold"
+              >
+                Range {{ scope.row.valueRange }}
+              </p>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="userName"
+          width="120"
+          label="User"
+          show-overflow-tooltip
+          class-name="admin-col-user-cell"
+        >
+          <template slot-scope="scope">
+            <div class="admin-health-user">
+              <span class="admin-health-user__name">{{
+                scope.row.userName || "—"
+              }}</span>
+              <span v-if="scope.row.userId" class="admin-health-user__id"
+                >#{{ scope.row.userId }}</span
+              >
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="name"
+          width="220"
+          label="Metric"
+          show-overflow-tooltip
+          class-name="admin-col-nowrap"
+        >
+          <template slot-scope="scope">
+            <span class="admin-tag-cell">
+              <i
+                class="el-icon-data-line admin-tag-cell__icon"
+                aria-hidden="true"
+              />
+              <span class="admin-tag-cell__name">{{ scope.row.name }}</span>
+            </span>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="createTime"
-          width="178"
-          label="Record Time"
+          width="148"
+          label="Recorded"
           sortable
-        ></el-table-column>
-        <el-table-column label="Actions" width="80">
+          show-overflow-tooltip
+          class-name="admin-col-recorded"
+        >
           <template slot-scope="scope">
-            <span class="text-button" @click="handleDelete(scope.row)"
-              >Delete</span
+            <el-tooltip
+              :content="formatDateTimeFull(scope.row.createTime)"
+              placement="top"
+              :disabled="!scope.row.createTime"
             >
+              <span class="admin-health-recorded">{{
+                formatRecordedLine(scope.row.createTime)
+              }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="Actions"
+          width="118"
+          align="center"
+          header-align="center"
+          class-name="admin-col-actions"
+        >
+          <template slot-scope="scope">
+            <div class="admin-row-actions">
+              <el-tooltip content="Edit record" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--primary"
+                  aria-label="Edit record"
+                  @click="handleEdit(scope.row)"
+                >
+                  <i class="el-icon-edit" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Delete record" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--danger"
+                  aria-label="Delete record"
+                  @click="handleDelete(scope.row)"
+                >
+                  <i class="el-icon-delete" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -111,7 +194,8 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </div>
+    </AdminPageShell>
+
     <el-dialog
       custom-class="hp-dialog admin-dialog-wide"
       :show-close="true"
@@ -138,7 +222,16 @@
 </template>
 
 <script>
+import AdminPageShell from "@/components/admin/AdminPageShell.vue";
+
+import {
+  formatDateShort,
+  formatTimeShort,
+  formatDateTimeFull,
+} from "@/utils/data";
+
 export default {
+  components: { AdminPageShell },
   data() {
     return {
       data: {},
@@ -159,11 +252,9 @@ export default {
     };
   },
   watch: {
-    dialogUserOperaion(v1, v2) {
-      if (!v1) {
-        this.isOperation = !this.isOperation;
-      }
-      if (!v1 && v2) {
+    dialogUserOperaion(open) {
+      if (!open) {
+        this.isOperation = false;
         this.data = {};
       }
     },
@@ -172,7 +263,20 @@ export default {
     this.fetchFreshData();
   },
   methods: {
-    // Check if the user's input value is within the normal range and assign a status
+    formatDateShort,
+    formatTimeShort,
+    formatDateTimeFull,
+    formatRecordedLine(createTime) {
+      const date = formatDateShort(createTime);
+      const time = formatTimeShort(createTime);
+      if (!time || date === "—") {
+        return date;
+      }
+      return `${date}, ${time}`;
+    },
+    rowClassName({ row }) {
+      return this.statusCheck(row) ? "" : "admin-health-row--abnormal";
+    },
     statusCheck(data) {
       // User input value
       const inputValue = data.value;
@@ -324,6 +428,8 @@ const response = await this.$axios.post("/user-health/save", this.data);
       }
     },
     add() {
+      this.isOperation = false;
+      this.data = {};
       this.dialogUserOperaion = true;
     },
     handleFilter() {
@@ -331,8 +437,10 @@ const response = await this.$axios.post("/user-health/save", this.data);
       this.fetchFreshData();
     },
     handleFilterClear() {
-      this.filterText = "";
-      this.handleFilter();
+      this.userHealthQueryDto = {};
+      this.searchTime = [];
+      this.currentPage = 1;
+      this.fetchFreshData();
     },
     handleSizeChange(val) {
       this.pageSize = val;
@@ -344,12 +452,12 @@ const response = await this.$axios.post("/user-health/save", this.data);
       this.fetchFreshData();
     },
     handleEdit(row) {
-      this.dialogUserOperaion = true;
       this.isOperation = true;
-this.data = { ...row };
+      this.data = { ...row };
+      this.dialogUserOperaion = true;
     },
     handleDelete(row) {
-      this.selectedRows.push(row);
+      this.selectedRows = [row];
       this.batchDelete();
     },
   },

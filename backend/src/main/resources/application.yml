@@ -25,7 +25,8 @@ mybatis:
 
 google:
   oauth:
-    client-id: ""
+    # Set the same Google Web client id used by the frontend button.
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID:1065681035226-nourptdl49kkbqi840oep347amhe0c70.apps.googleusercontent.com}
 
 # Health Q&A assistant (OpenAI-compatible Chat Completions). Set API key via environment—do not commit secrets.
 # Example: export APP_AI_API_KEY=sk-...

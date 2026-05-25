@@ -1,12 +1,13 @@
 <template>
-  <div class="admin-page">
-    <div class="admin-page__toolbar">
-      <div class="admin-toolbar-row">
+  <div>
+    <AdminPageShell page-class="admin-page--models">
+      <template #toolbar>
+<div class="admin-toolbar-row">
         <el-input
           size="small"
           class="admin-filter-input"
           v-model="healthModelConfigQueryDto.name"
-          placeholder="Configuration name"
+          placeholder="Model name"
           clearable
           @clear="handleFilterClear"
         >
@@ -17,67 +18,161 @@
           ></el-button>
         </el-input>
         <div class="admin-page__toolbar-actions">
-          <el-button type="primary" size="small"
-            @click="add()"
-            ><i class="el-icon-plus"></i>New Models</el-button
-          >
+          <el-tooltip content="Add model" placement="bottom">
+            <button
+              type="button"
+              class="admin-toolbar-btn admin-toolbar-btn--primary"
+              aria-label="Add model"
+              @click="add()"
+            >
+              <i class="el-icon-plus" aria-hidden="true" />
+              <span>Add model</span>
+            </button>
+          </el-tooltip>
         </div>
       </div>
-    </div>
-
-    <div class="admin-page__body">
-      <el-table
+      </template>
+<el-table
+        stripe
         row-key="id"
         @selection-change="handleSelectionChange"
         :data="tableData"
-        style="width: 100%"
+        class="admin-table-full"
+        empty-text="No models match your search."
       >
-        <el-table-column prop="cover" width="80" label="Diagram">
+        <el-table-column prop="cover" width="72" label="Icon">
           <template slot-scope="scope">
             <img
               :src="scope.row.cover"
-              style="width: 30px; height: 30px; border-radius: 5px"
+              class="admin-table-thumb--sm admin-table-thumb--model"
+              alt=""
             />
           </template>
         </el-table-column>
         <el-table-column
           prop="name"
-          width="218"
-          label="Model Name"
-        ></el-table-column>
-        <el-table-column prop="isGlobal" label="Limits" width="128">
+          min-width="200"
+          label="Name"
+          show-overflow-tooltip
+        >
           <template slot-scope="scope">
-            <span>{{
-              scope.row.isGlobal ? "Global Model" : "Private Model"
-            }}</span>
+            <span class="admin-model-name">{{ scope.row.name }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="isGlobal"
+          label="Scope"
+          width="100"
+          align="center"
+          header-align="center"
+          class-name="admin-col-center"
+        >
+          <template slot-scope="scope">
+            <span
+              class="admin-badge admin-badge--nowrap"
+              :class="
+                scope.row.isGlobal
+                  ? 'admin-badge--role-admin'
+                  : 'admin-badge--role-user'
+              "
+            >
+              {{ scope.row.isGlobal ? "Global" : "Private" }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column
           prop="userName"
-          width="108"
-          label="Configure Users"
-        ></el-table-column>
+          width="100"
+          label="Owner"
+          show-overflow-tooltip
+          class-name="admin-col-nowrap"
+        >
+          <template slot-scope="scope">
+            <span class="admin-model-meta">{{
+              scope.row.userName || "—"
+            }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="valueRange"
-          width="128"
-          label="value range"
-        ></el-table-column>
-        <el-table-column prop="unit" width="88" label="unit"></el-table-column>
+          width="112"
+          label="Threshold"
+          align="center"
+          header-align="center"
+          class-name="admin-col-center admin-col-nowrap"
+        >
+          <template slot-scope="scope">
+            <span class="admin-model-meta admin-model-meta--mono">{{
+              scope.row.valueRange || "—"
+            }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="unit"
+          width="80"
+          label="Unit"
+          align="center"
+          header-align="center"
+          class-name="admin-col-center admin-col-nowrap"
+        >
+          <template slot-scope="scope">
+            <span class="admin-model-meta">{{ scope.row.unit || "—" }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="symbol"
           width="88"
-          label="symbol"
-        ></el-table-column>
+          label="Symbol"
+          align="center"
+          header-align="center"
+          class-name="admin-col-center admin-col-nowrap"
+        >
+          <template slot-scope="scope">
+            <span class="admin-model-meta admin-model-meta--mono">{{
+              scope.row.symbol || "—"
+            }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="detail"
-          label="Model Introduction"
-        ></el-table-column>
-        <el-table-column label="Manipulate" width="120">
+          min-width="140"
+          label="Description"
+          show-overflow-tooltip
+        >
           <template slot-scope="scope">
-            <span class="text-button" @click="handleEdit(scope.row)">Edit</span>
-            <span class="text-button" @click="handleDelete(scope.row)"
-              >Delete</span
-            >
+            <span class="admin-model-desc">{{ scope.row.detail || "—" }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="Actions"
+          width="118"
+          align="center"
+          header-align="center"
+          class-name="admin-col-actions"
+        >
+          <template slot-scope="scope">
+            <div class="admin-row-actions">
+              <el-tooltip content="Edit model" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--primary"
+                  aria-label="Edit model"
+                  @click="handleEdit(scope.row)"
+                >
+                  <i class="el-icon-edit" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Delete model" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--danger"
+                  aria-label="Delete model"
+                  @click="handleDelete(scope.row)"
+                >
+                  <i class="el-icon-delete" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -90,7 +185,8 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </div>
+    </AdminPageShell>
+
     <el-dialog
       custom-class="hp-dialog admin-dialog-wide"
       :show-close="true"
@@ -110,14 +206,24 @@
             <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
         </label>
-        <label class="hp-field"><span class="hp-field__label">Name</span><input v-model="data.name" class="hp-field__input" placeholder="Configuration name" /></label>
+        <label class="hp-field"><span class="hp-field__label">Name</span><input v-model="data.name" class="hp-field__input" placeholder="Model name" /></label>
         <label class="hp-field"><span class="hp-field__label">Unit</span><input v-model="data.unit" class="hp-field__input" placeholder="e.g. kg, bpm" /></label>
         <label class="hp-field"><span class="hp-field__label">Symbol</span><input v-model="data.symbol" class="hp-field__input" placeholder="Short label" /></label>
-        <label class="hp-field"><span class="hp-field__label">Thresholds (min,max)</span><input v-model="data.valueRange" class="hp-field__input" placeholder="3000,10000" /></label>
+        <label class="hp-field"><span class="hp-field__label">Threshold (min,max)</span><input v-model="data.valueRange" class="hp-field__input" placeholder="3000,10000" /></label>
         <label class="hp-field">
           <span class="hp-field__label">Description</span>
           <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="Brief introduction" v-model="data.detail" />
         </label>
+        <div class="admin-switch-row">
+          <span class="admin-switch-row__label">Global model</span>
+          <el-switch
+            v-model="data.isGlobal"
+            active-color="#2a9d6f"
+            inactive-color="#e0e0e0"
+            active-text="Yes"
+            inactive-text="No"
+          />
+        </div>
       </div>
       <div slot="footer" class="hp-dialog__footer">
         <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="cannel()">Cancel</button>
@@ -129,10 +235,13 @@
 </template>
 
 <script>
+import AdminPageShell from "@/components/admin/AdminPageShell.vue";
+
 export default {
+  components: { AdminPageShell },
   data() {
     return {
-      data: { cover: "" },
+      data: { cover: "", isGlobal: true },
       filterText: "",
       currentPage: 1,
       pageSize: 10,
@@ -229,7 +338,7 @@ export default {
     cannel() {
       this.dialogUserOperaion = false;
       this.isOperation = false;
-      this.data = {};
+      this.data = { cover: "", isGlobal: true };
       this.valueRange = null;
     },
 
@@ -284,6 +393,8 @@ export default {
       }
     },
     add() {
+      this.isOperation = false;
+      this.data = { cover: "", isGlobal: true };
       this.dialogUserOperaion = true;
     },
     handleFilter() {
@@ -291,8 +402,9 @@ export default {
       this.fetchFreshData();
     },
     handleFilterClear() {
-      this.filterText = "";
-      this.handleFilter();
+      this.healthModelConfigQueryDto = {};
+      this.currentPage = 1;
+      this.fetchFreshData();
     },
     handleSizeChange(val) {
       this.pageSize = val;
@@ -309,7 +421,7 @@ export default {
       this.data = { ...row };
     },
     handleDelete(row) {
-      this.selectedRows.push(row);
+      this.selectedRows = [row];
       this.batchDelete();
     },
   },

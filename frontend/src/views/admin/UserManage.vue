@@ -1,15 +1,16 @@
 <template>
-  <div class="admin-page">
-    <div class="admin-page__toolbar">
-      <div class="admin-toolbar-row">
+  <div>
+    <AdminPageShell page-class="admin-page--users">
+      <template #toolbar>
+<div class="admin-toolbar-row">
         <el-date-picker
           size="small"
-          style="width: 220px"
+          class="admin-date-picker"
           v-model="searchTime"
           type="daterange"
           range-separator="to"
-          start-placeholder="Registration Start"
-          end-placeholder="Registration End"
+          start-placeholder="Registered from"
+          end-placeholder="Registered to"
         >
         </el-date-picker>
         <el-input
@@ -27,110 +28,203 @@
           ></el-button>
         </el-input>
         <div class="admin-page__toolbar-actions">
-          <el-button type="primary" size="small"
-            @click="add()"
-            ><i class="el-icon-plus"></i>Add User</el-button
-          >
+          <el-tooltip content="Add user" placement="bottom">
+            <button
+              type="button"
+              class="admin-toolbar-btn admin-toolbar-btn--primary"
+              aria-label="Add user"
+              @click="add()"
+            >
+              <i class="el-icon-plus" aria-hidden="true" />
+              <span>Add user</span>
+            </button>
+          </el-tooltip>
         </div>
       </div>
-    </div>
-
-    <div class="admin-page__body">
-      <el-table
+      </template>
+<el-table
+        stripe
         @selection-change="handleSelectionChange"
         :data="tableData"
-        style="width: 100%"
+        class="admin-table-full"
+        empty-text="No users match your filters."
       >
-        <el-table-column prop="userAvatar" width="68" label="Avatar">
+        <el-table-column prop="userAvatar" width="76" label="Avatar">
           <template slot-scope="scope">
             <el-avatar
-              :size="25"
+              :size="36"
+              class="admin-user-avatar"
               :src="scope.row.userAvatar"
-              style="margin-top: 10px"
-            ></el-avatar>
+            >
+              <i class="el-icon-user-solid" />
+            </el-avatar>
           </template>
         </el-table-column>
-        <el-table-column prop="userName" label="Name"></el-table-column>
-        <el-table-column
-          prop="userAccount"
-          width="128"
-          label="Account"
-        ></el-table-column>
+        <el-table-column prop="userName" min-width="120" label="Name">
+          <template slot-scope="scope">
+            <span class="admin-user-cell-name">{{ scope.row.userName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="userAccount" width="120" label="Account">
+          <template slot-scope="scope">
+            <span class="admin-user-cell-account">{{
+              scope.row.userAccount
+            }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="userEmail"
-          width="168"
+          min-width="200"
           label="Email"
-        ></el-table-column>
-        <el-table-column prop="userRole" width="68" label="Role">
+          show-overflow-tooltip
+        >
           <template slot-scope="scope">
-            <span>{{ scope.row.userRole === 1 ? "Admin" : "User" }}</span>
+            <span>{{ scope.row.userEmail || "—" }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="isLogin" width="108" label="Suspension">
+        <el-table-column
+          prop="userRole"
+          width="88"
+          label="Role"
+          align="center"
+          header-align="center"
+          class-name="admin-col-center"
+        >
           <template slot-scope="scope">
-            <i
-              v-if="scope.row.isLogin"
-              class="el-icon-warning admin-status-ic"
-            ></i>
-            <i
-              v-else
-              class="el-icon-success admin-status-ic admin-status-ic--ok"
-            ></i>
-            <el-tooltip
-              v-if="scope.row.isLogin"
-              class="item"
-              effect="dark"
-              content="Once suspended, the user cannot log in. Only an admin can restore access."
-              placement="bottom-end"
+            <span
+              class="admin-badge"
+              :class="
+                scope.row.userRole === 1
+                  ? 'admin-badge--role-admin'
+                  : 'admin-badge--role-user'
+              "
             >
-              <span class="admin-status-link">Suspended</span
-              >
-            </el-tooltip>
-            <span v-else>Active</span>
+              {{ scope.row.userRole === 1 ? "Admin" : "User" }}
+            </span>
           </template>
         </el-table-column>
-        <el-table-column prop="isWord" width="108" label="Mute">
+        <el-table-column
+          prop="isLogin"
+          width="118"
+          label="Login"
+          align="center"
+          header-align="center"
+          class-name="admin-col-center"
+        >
           <template slot-scope="scope">
-            <i
-              v-if="scope.row.isWord"
-              class="el-icon-warning admin-status-ic"
-            ></i>
-            <i
-              v-else
-              class="el-icon-success admin-status-ic admin-status-ic--ok"
-            ></i>
+            <el-tooltip
+              v-if="scope.row.isLogin"
+              effect="dark"
+              content="Suspended — user cannot sign in until an admin restores access."
+              placement="top"
+            >
+              <span class="admin-badge admin-badge--warn">
+                <i class="el-icon-lock" aria-hidden="true" />
+                Suspended
+              </span>
+            </el-tooltip>
+            <span v-else class="admin-badge admin-badge--ok">
+              <i class="el-icon-circle-check" aria-hidden="true" />
+              Active
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="isWord"
+          width="118"
+          label="Posting"
+          align="center"
+          header-align="center"
+          class-name="admin-col-center"
+        >
+          <template slot-scope="scope">
             <el-tooltip
               v-if="scope.row.isWord"
-              class="item"
               effect="dark"
-              content="Once muted, the user cannot comment. Only an admin can unmute them."
-              placement="bottom-end"
+              content="Muted — user cannot post comments until an admin unmute them."
+              placement="top"
             >
-              <span class="admin-status-link">Muted</span
-              >
+              <span class="admin-badge admin-badge--warn">
+                <i class="el-icon-microphone" aria-hidden="true" />
+                Muted
+              </span>
             </el-tooltip>
-            <span v-else>Active</span>
+            <span v-else class="admin-badge admin-badge--ok">
+              <i class="el-icon-chat-dot-round" aria-hidden="true" />
+              Allowed
+            </span>
           </template>
         </el-table-column>
         <el-table-column
           :sortable="true"
           prop="createTime"
-          width="168"
-          label="Registered On"
-        ></el-table-column>
-        <el-table-column label="Actions" width="170">
+          width="128"
+          label="Registered"
+        >
           <template slot-scope="scope">
-            <span class="text-button" @click="handleStatus(scope.row)"
-              >Account Status</span
+            <el-tooltip
+              :content="formatDateTimeFull(scope.row.createTime)"
+              placement="top"
+              :disabled="!scope.row.createTime"
             >
-            <span class="text-button" @click="handleEdit(scope.row)">Edit</span>
-            <span class="text-button" @click="handleDelete(scope.row)"
-              >Delete</span
-            >
+              <div class="admin-cell-datetime">
+                <span class="admin-cell-datetime__date">{{
+                  formatDateShort(scope.row.createTime)
+                }}</span>
+                <span
+                  v-if="formatTimeShort(scope.row.createTime)"
+                  class="admin-cell-datetime__time"
+                  >{{ formatTimeShort(scope.row.createTime) }}</span
+                >
+              </div>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="Actions"
+          width="172"
+          align="center"
+          header-align="center"
+          class-name="admin-col-actions"
+        >
+          <template slot-scope="scope">
+            <div class="admin-row-actions">
+              <el-tooltip content="Account status" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon"
+                  aria-label="Account status"
+                  @click="handleStatus(scope.row)"
+                >
+                  <i class="el-icon-s-operation" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Edit user" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--primary"
+                  aria-label="Edit user"
+                  @click="handleEdit(scope.row)"
+                >
+                  <i class="el-icon-edit" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Delete user" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--danger"
+                  aria-label="Delete user"
+                  @click="handleDelete(scope.row)"
+                >
+                  <i class="el-icon-delete" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination class="admin-pagination"
+      <el-pagination
+        class="admin-pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="currentPage"
@@ -139,7 +233,8 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       ></el-pagination>
-    </div>
+    </AdminPageShell>
+
     <el-dialog
       custom-class="hp-dialog admin-dialog-wide"
       :show-close="true"
@@ -162,34 +257,85 @@
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
           >
-            <img v-if="userAvatar" :src="userAvatar" class="hp-dialog__avatar" />
+            <img
+              v-if="userAvatar"
+              :src="userAvatar"
+              class="hp-dialog__avatar"
+            />
             <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
         </label>
         <label class="hp-field">
           <span class="hp-field__label">Username</span>
-          <input v-model="data.userName" class="hp-field__input" type="text" placeholder="Display name" />
+          <input
+            v-model="data.userName"
+            class="hp-field__input"
+            type="text"
+            placeholder="Display name"
+          />
         </label>
         <label class="hp-field">
           <span class="hp-field__label">Account</span>
-          <input v-model="data.userAccount" class="hp-field__input" type="text" placeholder="Login account" :disabled="isOperation" />
+          <input
+            v-model="data.userAccount"
+            class="hp-field__input"
+            type="text"
+            placeholder="Login account"
+            :disabled="isOperation"
+          />
         </label>
         <label class="hp-field">
           <span class="hp-field__label">Email</span>
-          <input v-model="data.userEmail" class="hp-field__input" type="email" placeholder="Email address" />
+          <input
+            v-model="data.userEmail"
+            class="hp-field__input"
+            type="email"
+            placeholder="Email address"
+          />
         </label>
         <label v-if="!isOperation" class="hp-field">
           <span class="hp-field__label">Password</span>
-          <input v-model="userPwd" class="hp-field__input" type="password" placeholder="At least 6 characters" />
+          <input
+            v-model="userPwd"
+            class="hp-field__input"
+            type="password"
+            placeholder="At least 6 characters"
+          />
         </label>
       </div>
       <div slot="footer" class="hp-dialog__footer">
-        <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="cancel">Cancel</button>
-        <button v-if="!isOperation" type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="addOperation()">Add user</button>
-        <button v-else type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="updateOperation()">Save</button>
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--ghost"
+          @click="cancel"
+        >
+          Cancel
+        </button>
+        <button
+          v-if="!isOperation"
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
+          @click="addOperation()"
+        >
+          Add user
+        </button>
+        <button
+          v-else
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
+          @click="updateOperation()"
+        >
+          Save
+        </button>
       </div>
     </el-dialog>
-    <el-dialog custom-class="hp-dialog" :show-close="true" append-to-body :visible.sync="dialogStatusOperation" width="440px">
+    <el-dialog
+      custom-class="hp-dialog"
+      :show-close="true"
+      append-to-body
+      :visible.sync="dialogStatusOperation"
+      width="440px"
+    >
       <div slot="title" class="hp-dialog__head">
         <span class="hp-dialog__eyebrow">Users</span>
         <h2 class="hp-dialog__title">Account status</h2>
@@ -197,27 +343,66 @@
       <div class="hp-dialog__body admin-form-stack">
         <div class="admin-switch-row">
           <span class="admin-switch-row__label">Suspend login</span>
-          <el-switch v-model="data.isLogin" active-color="#2a9d6f" inactive-color="#e0e0e0" active-text="Yes" inactive-text="No" />
+          <el-switch
+            v-model="data.isLogin"
+            active-color="#2a9d6f"
+            inactive-color="#e0e0e0"
+            active-text="Yes"
+            inactive-text="No"
+          />
         </div>
         <div class="admin-switch-row">
           <span class="admin-switch-row__label">Mute comments</span>
-          <el-switch v-model="data.isWord" active-color="#2a9d6f" inactive-color="#e0e0e0" active-text="Yes" inactive-text="No" />
+          <el-switch
+            v-model="data.isWord"
+            active-color="#2a9d6f"
+            inactive-color="#e0e0e0"
+            active-text="Yes"
+            inactive-text="No"
+          />
         </div>
         <div class="admin-switch-row">
           <span class="admin-switch-row__label">Administrator role</span>
-          <el-switch v-model="roleStatus" active-color="#2a9d6f" inactive-color="#e0e0e0" active-text="Admin" inactive-text="User" />
+          <el-switch
+            v-model="roleStatus"
+            active-color="#2a9d6f"
+            inactive-color="#e0e0e0"
+            active-text="Admin"
+            inactive-text="User"
+          />
         </div>
       </div>
       <div slot="footer" class="hp-dialog__footer">
-        <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="cancel">Cancel</button>
-        <button type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="confirmStatus">Confirm</button>
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--ghost"
+          @click="cancel"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="hp-dialog__btn hp-dialog__btn--primary"
+          @click="confirmStatus"
+        >
+          Confirm
+        </button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import AdminPageShell from "@/components/admin/AdminPageShell.vue";
+
+import {
+  formatDateShort,
+  formatTimeShort,
+  formatDateTimeFull,
+} from "@/utils/data";
+
 export default {
+  components: { AdminPageShell },
   data() {
     return {
       roleStatus: false,
@@ -229,13 +414,13 @@ export default {
       pageSize: 10,
       totalItems: 0,
       dialogStatusOperation: false,
-      dialogUserOperation: false, // Toggle switch
-      isOperation: false, // Toggle switch to identify add or update
+      dialogUserOperation: false,
+      isOperation: false,
       tableData: [],
       searchTime: [],
       selectedRows: [],
       status: null,
-      userQueryDto: {}, // Search conditions
+      userQueryDto: {},
       messageContent: "",
     };
   },
@@ -243,6 +428,9 @@ export default {
     this.fetchFreshData();
   },
   methods: {
+    formatDateShort,
+    formatTimeShort,
+    formatDateTimeFull,
     confirmStatus() {
       const userUpdateDto = {
         id: this.data.id,
@@ -297,11 +485,9 @@ export default {
     async handleSwitchChange(id, status, operation) {
       try {
         let param = { id: id };
-        // Login status
         if (operation) {
           param.isLogin = status;
         } else {
-          // Comment status
           param.isWord = status;
         }
         const response = await this.$axios.put(`/user/backUpdate`, param);
@@ -318,11 +504,9 @@ export default {
         console.error(`Error updating user status: ${e}`);
       }
     },
-    // Selection in multi-select checkbox
     handleSelectionChange(selection) {
       this.selectedRows = selection;
     },
-    // Batch delete data
     async batchDelete() {
       if (!this.selectedRows.length) {
         this.$message(`No data selected`);
@@ -360,7 +544,6 @@ export default {
       this.searchTime = [];
       this.fetchFreshData();
     },
-    // Update information
     async updateOperation() {
       if (this.userPwd !== "") {
         const pwd = this.$md5(this.$md5(this.userPwd));
@@ -386,7 +569,6 @@ export default {
         this.$message.error("Submission failed. Please try again later.");
       }
     },
-    // Add information
     async addOperation() {
       if (this.userPwd !== "") {
         this.data.userPwd = this.$md5(this.$md5(this.userPwd));
@@ -434,7 +616,6 @@ export default {
           startTime = `${startDate.split("T")[0]}T00:00:00`;
           endTime = `${endDate.split("T")[0]}T23:59:59`;
         }
-        // Request parameters
         const params = {
           current: this.currentPage,
           size: this.pageSize,

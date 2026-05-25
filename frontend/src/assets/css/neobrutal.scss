@@ -18,7 +18,7 @@
   --nb-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji";
-  /* 标题 / 品牌：柔和衬线 + 可变 opsz，偏杂志感 */
+  /* Headings / brand: soft serif + variable opsz, editorial feel */
   --nb-font-display: "Fraunces", Georgia, "Times New Roman", serif;
 }
 
@@ -45,7 +45,7 @@ body {
   font-feature-settings: "kern" 1, "liga" 1;
 }
 
-/* 浏览器默认不给表单控件继承页面字体，全局改为继承（Login/Register 等） */
+/* Form controls do not inherit font by default; inherit globally (login, etc.) */
 button,
 input,
 textarea,

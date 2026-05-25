@@ -25,10 +25,10 @@
       </button>
       <el-dropdown-menu slot="dropdown">
         <el-dropdown-item
-          icon="el-icon-user"
+          icon="el-icon-setting"
           @click.native="userCenterPanel"
         >
-          Personal center
+          Settings
         </el-dropdown-item>
         <el-dropdown-item icon="el-icon-switch-button" divided @click.native="loginOut">
           Log out

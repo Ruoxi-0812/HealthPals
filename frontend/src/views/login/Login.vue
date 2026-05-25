@@ -37,9 +37,7 @@
           <div class="oauth-divider" role="separator">
             <span class="oauth-divider__text">or</span>
           </div>
-          <button class="google-btn" @click="signInWithGoogle">
-            Continue with Google
-          </button>
+          <GoogleSignInButton mode="login" />
         </div>
         <div class="tip">
           <p>
@@ -58,28 +56,38 @@
 const ADMIN_ROLE = 1;
 const USER_ROLE = 2;
 const DELAY_TIME = 1300;
-const GOOGLE_CLIENT_ID = process.env.VUE_APP_GOOGLE_CLIENT_ID;
 
 import request from "@/utils/request.js";
 import { setToken } from "@/utils/storage.js";
 import md5 from "js-md5";
+import GoogleSignInButton from "@/components/GoogleSignInButton.vue";
 import Logo from "@/components/Logo.vue";
 
 export default {
   name: "Login",
-  components: { Logo },
+  components: { Logo, GoogleSignInButton },
   data() {
     return {
       act: "", // Account
       pwd: "", // Password
       colorLogo: "#2f4a40",
-      googleScriptLoading: null,
     };
   },
   methods: {
+    safePush(target) {
+      const resolved = this.$router.resolve(target).route;
+      if (resolved.fullPath === this.$route.fullPath) {
+        return;
+      }
+      this.$router.push(target).catch((error) => {
+        if (error && error.name !== "NavigationDuplicated") {
+          throw error;
+        }
+      });
+    },
     // Redirect to Registration Page
     toDoRegister() {
-      this.$router.push("/register");
+      this.safePush("/register");
     },
     async login() {
       if (!this.act || !this.pwd) {
@@ -121,65 +129,15 @@ export default {
     navigateToRole(role) {
       switch (role) {
         case ADMIN_ROLE:
-          this.$router.push("/admin");
+          this.safePush("/admin");
           break;
         case USER_ROLE:
-          this.$router.push("/user");
+          this.safePush("/user");
           break;
         default:
           console.warn("Unknown role type:", role);
           break;
       }
-    },
-    async signInWithGoogle() {
-      if (!GOOGLE_CLIENT_ID) {
-        this.$message.error("Missing VUE_APP_GOOGLE_CLIENT_ID configuration");
-        return;
-      }
-      await this.ensureGoogleScript();
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: this.handleGoogleCredential,
-      });
-      window.google.accounts.id.prompt();
-    },
-    async handleGoogleCredential(response) {
-      if (!response || !response.credential) {
-        this.$message.error("Google authentication failed");
-        return;
-      }
-      try {
-        const { data } = await request.post("user/google-login", {
-          idToken: response.credential,
-        });
-        if (data.code !== 200) {
-          this.$message.error(data.msg || "Google login failed");
-          return;
-        }
-        setToken(data.data.token);
-        this.navigateToRole(data.data.role);
-      } catch (error) {
-        console.error("Google login request error:", error);
-        this.$message.error("Google login request failed");
-      }
-    },
-    ensureGoogleScript() {
-      if (window.google && window.google.accounts && window.google.accounts.id) {
-        return Promise.resolve();
-      }
-      if (this.googleScriptLoading) {
-        return this.googleScriptLoading;
-      }
-      this.googleScriptLoading = new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "https://accounts.google.com/gsi/client";
-        script.async = true;
-        script.defer = true;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-      return this.googleScriptLoading;
     },
   },
 };
@@ -442,6 +400,7 @@ export default {
     background: #f4faf6;
     transform: translateY(-1px);
   }
+
 }
 
 @media (max-width: 880px) {

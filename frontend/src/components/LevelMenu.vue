@@ -67,14 +67,8 @@
             <i class="el-icon-arrow-down el-icon--right" aria-hidden="true" />
           </button>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item icon="el-icon-user" @click.native="userCenterPanel">
-              Personal Center
-            </el-dropdown-item>
-            <el-dropdown-item
-              icon="el-icon-warning-outline"
-              @click.native="resetPwd"
-            >
-              Change Password
+            <el-dropdown-item icon="el-icon-setting" @click.native="openSettings">
+              Settings
             </el-dropdown-item>
             <el-dropdown-item icon="el-icon-back" @click.native="loginOut" divided>
               Log out
@@ -124,13 +118,26 @@ export default {
     const savedKw = sessionStorage.getItem("keyWord");
     if (typeof savedKw === "string") this.filterText = savedKw;
     this.$root.$on("app:search-sync-input", this.onSearchSyncInput);
+    this.$root.$on("app:user-profile-updated", this.onProfileUpdated);
   },
   beforeDestroy() {
     this.$root.$off("app:search-sync-input", this.onSearchSyncInput);
+    this.$root.$off("app:user-profile-updated", this.onProfileUpdated);
   },
   methods: {
     onSearchSyncInput(kw) {
       if (typeof kw === "string") this.filterText = kw;
+    },
+    onProfileUpdated(payload) {
+      if (!payload || !this.userInfo) {
+        return;
+      }
+      if (payload.name != null) {
+        this.userInfo.name = payload.name;
+      }
+      if (payload.url != null) {
+        this.userInfo.url = payload.url;
+      }
     },
     search() {
       sessionStorage.setItem("keyWord", this.filterText);
@@ -140,11 +147,10 @@ export default {
       }
       this.$emit("eventListener", "search-detail");
     },
-    userCenterPanel() {
-      this.$emit("eventListener", "center");
-    },
-    resetPwd() {
-      this.$emit("eventListener", "resetPwd");
+    openSettings() {
+      if (this.$route.path !== "/settings") {
+        this.$router.push("/settings");
+      }
     },
     loginOut() {
       this.$emit("eventListener", "loginOut");
@@ -214,7 +220,7 @@ $accent: #2a9d6f;
 $accent-dark: #248760;
 $text: #1a1a1a;
 $text-muted: #5c6560;
-/* 不透明：避免 body 绿色渐变透过顶栏边缘看起来像「没铺满」 */
+/* Opaque bar so body gradient does not show through top edge */
 $bar-bg: #ffffff;
 
 .top-bar {
@@ -224,12 +230,12 @@ $bar-bg: #ffffff;
   padding: 0;
   box-sizing: border-box;
   background: $bar-bg;
-  /* 底边由 .menus-container 统一画，避免双层线段 */
+  /* Bottom border drawn on .menus-container only — avoids double line */
   border-bottom: none;
   box-shadow: none;
 }
 
-/* 顶栏铺满视口宽，避免 max-width + margin:auto 在宽屏左侧空一大截 */
+/* Full viewport width; avoids large left gap from max-width + margin auto */
 .top-bar__inner {
   width: 100%;
   max-width: none;
@@ -242,7 +248,7 @@ $bar-bg: #ffffff;
   box-sizing: border-box;
 }
 
-/* 仅占所需宽度，不要用 flex:1 撑满半行 */
+/* Shrink to content; do not use flex:1 to fill half the row */
 .top-bar__start {
   display: flex;
   align-items: center;
@@ -313,12 +319,12 @@ $bar-bg: #ffffff;
 .top-bar__search {
   display: flex;
   align-items: stretch;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(126, 197, 160, 0.38);
   border-radius: 999px;
   overflow: hidden;
-  background: #f8faf9;
+  background: #f3faf6;
   min-width: 0;
-  max-width: min(280px, 28vw);
+  max-width: min(300px, 32vw);
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
@@ -344,8 +350,8 @@ $bar-bg: #ffffff;
 .top-bar__search-icon {
   align-self: center;
   margin-left: 12px;
-  color: #889089;
-  font-size: 14px;
+  color: #4d8b73;
+  font-size: 15px;
 }
 
 .top-bar__search-input {
@@ -359,7 +365,7 @@ $bar-bg: #ffffff;
   color: $text;
 
   &::placeholder {
-    color: #9aa49a;
+    color: rgba(53, 82, 71, 0.42);
   }
 }
 

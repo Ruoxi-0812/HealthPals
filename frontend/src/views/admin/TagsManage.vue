@@ -1,34 +1,82 @@
 <template>
-  <div class="admin-page">
-    <div class="admin-page__toolbar">
-      <el-input
-        size="small"
-        class="admin-filter-input"
-        v-model="tagsQueryDto.name"
-        placeholder="Tag name"
-        clearable
-        @clear="handleFilterClear"
-      >
-        <el-button
-          slot="append"
-          icon="el-icon-search"
-          @click="handleFilter"
-        />
-      </el-input>
-      <div class="admin-page__toolbar-actions">
-        <el-button type="primary" size="small" @click="add()">
-          <i class="el-icon-plus" /> Add tag
-        </el-button>
+  <div>
+    <AdminPageShell page-class="admin-page--tags">
+      <template #toolbar>
+        <div class="admin-toolbar-row">
+        <el-input
+          size="small"
+          class="admin-filter-input"
+          v-model="tagsQueryDto.name"
+          placeholder="Tag name"
+          clearable
+          @clear="handleFilterClear"
+        >
+          <el-button
+            slot="append"
+            icon="el-icon-search"
+            @click="handleFilter"
+          />
+        </el-input>
+        <div class="admin-page__toolbar-actions">
+          <el-tooltip content="Add tag" placement="bottom">
+            <button
+              type="button"
+              class="admin-toolbar-btn admin-toolbar-btn--primary"
+              aria-label="Add tag"
+              @click="add()"
+            >
+              <i class="el-icon-plus" aria-hidden="true" />
+              <span>Add tag</span>
+            </button>
+          </el-tooltip>
+        </div>
       </div>
-    </div>
-
-    <div class="admin-page__body">
-      <el-table row-key="id" :data="tableData" style="width: 100%">
-        <el-table-column prop="name" label="Tag name" />
-        <el-table-column label="Actions" width="140">
+      </template>
+      <el-table
+        stripe
+        row-key="id"
+        :data="tableData"
+        class="admin-table-full"
+        empty-text="No tags match your search."
+      >
+        <el-table-column prop="name" min-width="240" label="Tag name">
           <template slot-scope="scope">
-            <span class="text-button" @click="handleEdit(scope.row)">Edit</span>
-            <span class="text-button" @click="handleDelete(scope.row)">Delete</span>
+            <span class="admin-tag-cell">
+              <i class="el-icon-collection-tag admin-tag-cell__icon" aria-hidden="true" />
+              <span class="admin-tag-cell__name">{{ scope.row.name }}</span>
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="Actions"
+          width="118"
+          align="center"
+          header-align="center"
+          class-name="admin-col-actions"
+        >
+          <template slot-scope="scope">
+            <div class="admin-row-actions">
+              <el-tooltip content="Edit tag" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--primary"
+                  aria-label="Edit tag"
+                  @click="handleEdit(scope.row)"
+                >
+                  <i class="el-icon-edit" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+              <el-tooltip content="Delete tag" placement="top">
+                <button
+                  type="button"
+                  class="admin-row-actions__btn admin-row-actions__btn--icon admin-row-actions__btn--danger"
+                  aria-label="Delete tag"
+                  @click="handleDelete(scope.row)"
+                >
+                  <i class="el-icon-delete" aria-hidden="true" />
+                </button>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -42,7 +90,7 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalItems"
       />
-    </div>
+    </AdminPageShell>
 
     <el-dialog
       custom-class="hp-dialog"
@@ -97,7 +145,10 @@
 </template>
 
 <script>
+import AdminPageShell from "@/components/admin/AdminPageShell.vue";
+
 export default {
+  components: { AdminPageShell },
   data() {
     return {
       data: {},
@@ -238,10 +289,3 @@ export default {
   },
 };
 </script>
-
-<style scoped lang="scss">
-.admin-filter-input {
-  width: 220px;
-  max-width: 100%;
-}
-</style>

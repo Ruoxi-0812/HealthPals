@@ -5,8 +5,6 @@
         <i class="el-icon-arrow-left" aria-hidden="true" />
         Back
       </button>
-      <h1 class="record-page__title">Health Records</h1>
-      <span class="record-page__header-spacer" aria-hidden="true" />
     </header>
 
     <div class="record-page__layout">
@@ -53,10 +51,17 @@
             :class="{ 'is-selected': isModelPicked(model) }"
             @click="modelSelected(model)"
           >
-            <img class="record-page__model-cover" :src="model.cover" :alt="''" />
+            <img
+              class="record-page__model-cover"
+              :src="modelCoverSrc(model)"
+              :alt="model.name || ''"
+            />
             <div class="record-page__model-body">
               <span class="record-page__model-name">{{ model.name }}</span>
               <span class="record-page__model-hint">{{ modelHint(model) }}</span>
+              <span v-if="isModelPicked(model)" class="record-page__model-badge"
+                >In form</span
+              >
               <div v-if="!model.isGlobal" class="record-page__model-actions">
                 <button
                   type="button"
@@ -80,7 +85,13 @@
 
       <main class="record-page__main nb-surface">
         <div class="record-page__main-head">
-          <h2 class="record-page__panel-title">Data entry</h2>
+          <div class="record-page__main-head-text">
+            <h2 class="record-page__panel-title">Data entry</h2>
+            <p v-if="selectedModel.length" class="record-page__panel-meta">
+              {{ selectedModel.length }}
+              {{ selectedModel.length === 1 ? "metric" : "metrics" }} selected
+            </p>
+          </div>
           <button
             v-if="selectedModel.length"
             type="button"
@@ -92,23 +103,98 @@
         </div>
 
         <div v-if="selectedModel.length === 0" class="record-page__empty">
-          <el-empty description="">
-            <template slot="image">
-              <div class="record-page__empty-icon" aria-hidden="true">
-                <i class="el-icon-notebook-2" />
+          <div class="record-page__empty-intro">
+            <div class="record-page__empty-icon" aria-hidden="true">
+              <i class="el-icon-notebook-2" />
+            </div>
+            <p class="record-page__empty-title">Pick something to log</p>
+            <p class="record-page__empty-text">
+              Choose metrics from the left to start logging.
+            </p>
+          </div>
+
+          <div v-if="recentModels.length || suggestedBundles.length" class="record-page__empty-side">
+            <section class="record-page__section-card">
+              <div class="record-page__section-head">
+                <p class="record-page__quick-label">Start faster</p>
+                <span class="record-page__section-copy">Compact suggestions</span>
               </div>
-            </template>
-            <template slot="description">
-              <p class="record-page__empty-title">Pick something to log</p>
-              <p class="record-page__empty-text">
-                Choose one or more models on the left. Your inputs stay here until
-                you save.
-              </p>
-            </template>
-          </el-empty>
+
+              <div v-if="recentModels.length" class="record-page__compact-group">
+                <p class="record-page__compact-label">Recently used</p>
+                <div class="record-page__compact-list">
+                  <button
+                    v-for="model in recentModels"
+                    :key="'recent-' + model.id"
+                    type="button"
+                    class="record-page__compact-pill"
+                    @click="modelSelected(model)"
+                  >
+                    {{ model.name }}
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="suggestedBundles.length" class="record-page__compact-group">
+                <p class="record-page__compact-label">Suggested sets</p>
+                <div class="record-page__bundle-list">
+                  <button
+                    v-for="bundle in suggestedBundles"
+                    :key="bundle.id"
+                    type="button"
+                    class="record-page__bundle"
+                    @click="selectBundle(bundle)"
+                  >
+                    <div class="record-page__bundle-top">
+                      <span class="record-page__bundle-name">{{ bundle.label }}</span>
+                      <span class="record-page__bundle-count">
+                        {{ bundle.models.length }}
+                      </span>
+                    </div>
+                    <p class="record-page__bundle-preview">
+                      {{ bundle.models.map((model) => model.name).join(" · ") }}
+                    </p>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+          <p
+            v-else
+            class="record-page__empty-fallback"
+          >
+            No models in this tab yet. Switch tabs or add your own metric.
+          </p>
         </div>
 
-        <div v-else class="record-page__fields">
+        <div v-else class="record-page__selected">
+          <div class="record-page__selected-head">
+            <p class="record-page__selected-label">Selected</p>
+            <p class="record-page__selected-copy">
+              Tap any chip to remove it.
+            </p>
+          </div>
+          <div class="record-page__selected-chips">
+            <button
+              v-for="model in selectedModel"
+              :key="'selected-' + model.id"
+              type="button"
+              class="record-page__selected-chip"
+              @click="modelSelected(model)"
+            >
+              <span class="record-page__selected-chip-name">{{ model.name }}</span>
+              <span
+                v-if="displayUnit(model.unit)"
+                class="record-page__selected-chip-unit"
+              >
+                {{ displayUnit(model.unit) }}
+              </span>
+              <i class="el-icon-close" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        <div v-if="selectedModel.length" class="record-page__fields">
           <div
             v-for="(model, index) in selectedModel"
             :key="model.id || index"
@@ -223,6 +309,8 @@
 </template>
 
 <script>
+import { healthModelCoverSrc } from "@/utils/coverImage";
+
 export default {
   name: "HealthRecordPage",
   data() {
@@ -230,6 +318,7 @@ export default {
       data: { cover: "" },
       userInfo: {},
       modelList: [],
+      recentRecords: [],
       activeName: "first",
       userHealthModel: { isGlobal: true },
       dialogUserOperaion: false,
@@ -240,27 +329,127 @@ export default {
   },
   created() {
     this.getUserInfo();
-    this.getAllModelConfig();
     this.getUser();
+    this.getAllModelConfig();
+    this.loadRecentRecords();
+  },
+  computed: {
+    quickPickModels() {
+      return (this.modelList || []).slice(0, 6);
+    },
+    recentModels() {
+      if (!this.recentRecords.length || !this.modelList.length) {
+        return [];
+      }
+      const byId = new Map(this.modelList.map((model) => [model.id, model]));
+      const seen = new Set();
+      const recent = [];
+      this.recentRecords.forEach((record) => {
+        const id = record.healthModelConfigId;
+        if (!id || seen.has(id) || !byId.has(id)) {
+          return;
+        }
+        seen.add(id);
+        recent.push(byId.get(id));
+      });
+      return recent.slice(0, 4);
+    },
+    suggestedBundles() {
+      const definitions = [
+        {
+          id: "daily-basics",
+          label: "Daily basics",
+          description: "Core everyday wellness checks.",
+          keywords: ["weight", "blood pressure", "heart rate"],
+        },
+        {
+          id: "activity-check",
+          label: "Activity check-in",
+          description: "Useful after walking or workouts.",
+          keywords: ["step", "run", "exercise", "heart rate"],
+        },
+        {
+          id: "lab-follow-up",
+          label: "Lab follow-up",
+          description: "Track numbers you want to keep an eye on.",
+          keywords: ["alanine", "alt", "sugar", "glucose", "cholesterol"],
+        },
+      ];
+      const used = new Set();
+      const bundles = definitions
+        .map((bundle) => {
+          const models = this.modelList.filter((model) => {
+            const haystack = `${model.name || ""} ${model.symbol || ""}`.toLowerCase();
+            return (
+              !used.has(model.id) &&
+              bundle.keywords.some((keyword) => haystack.includes(keyword))
+            );
+          });
+          const picked = models.slice(0, 3);
+          picked.forEach((model) => used.add(model.id));
+          if (picked.length < 2) {
+            return null;
+          }
+          return {
+            ...bundle,
+            models: picked,
+          };
+        })
+        .filter(Boolean);
+      if (!bundles.length && this.quickPickModels.length >= 3) {
+        return [
+          {
+            id: "starter-set",
+            label: "Starter set",
+            description: "A simple place to start logging today.",
+            models: this.quickPickModels.slice(0, 3),
+          },
+        ];
+      }
+      return bundles;
+    },
   },
   methods: {
+    modelCoverSrc(model) {
+      return healthModelCoverSrc(model);
+    },
+    displayUnit(unit) {
+      const raw = (unit || "").trim();
+      if (!raw || /^none$/i.test(raw)) {
+        return "";
+      }
+      return raw;
+    },
     modelHint(model) {
       const u = (model.unit || "").trim();
       const s = (model.symbol || "").trim();
-      const symNone = !s || s.toLowerCase() === "none";
+      const symNone = !s || /^none$/i.test(s);
       if (!u && symNone) {
-        return "Tap to add to today’s form";
+        return "Tap to add to form";
       }
       if (u && symNone) {
-        return `Measured in ${u} — add a number you’re happy with`;
+        return `Measured in ${u}`;
       }
-      if (u && s) {
+      if (u && s && s.toLowerCase() !== u.toLowerCase()) {
         return `${u} · ${s}`;
+      }
+      if (u) {
+        return u;
       }
       return s || "Custom tracking";
     },
     isModelPicked(model) {
       return this.selectedModel.some((m) => m.id === model.id);
+    },
+    addModels(models) {
+      (models || []).forEach((model) => {
+        if (!this.isModelPicked(model)) {
+          this.selectedModel.push({ ...model, value: model.value || "" });
+        }
+      });
+    },
+    selectBundle(bundle) {
+      this.addModels(bundle.models);
     },
     async clearData() {
       const confirmed = await this.$swalConfirm({
@@ -360,8 +549,10 @@ export default {
       });
     },
     modelSelected(model) {
-      const saveFlag = this.selectedModel.find((entity) => entity.id === model.id);
-      if (!saveFlag) {
+      const idx = this.selectedModel.findIndex((entity) => entity.id === model.id);
+      if (idx >= 0) {
+        this.selectedModel.splice(idx, 1);
+      } else {
         this.selectedModel.push({ ...model, value: model.value || "" });
       }
     },
@@ -384,6 +575,27 @@ export default {
       const userInfo = sessionStorage.getItem("userInfo");
       const entity = JSON.parse(userInfo);
       this.userId = entity.id;
+    },
+    loadRecentRecords() {
+      if (this.userId == null) {
+        return;
+      }
+      this.$axios
+        .post("/user-health/query", {
+          userId: this.userId,
+          current: 1,
+          size: 24,
+        })
+        .then((response) => {
+          const { data } = response;
+          if (data.code === 200) {
+            this.recentRecords = data.data || [];
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading recent health records:", error);
+          this.recentRecords = [];
+        });
     },
     async addOperation() {
       try {
@@ -448,8 +660,9 @@ export default {
 }
 
 .record-page__header {
-  max-width: 1200px;
-  margin: 0 auto 16px;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -496,16 +709,23 @@ export default {
 }
 
 .record-page__layout {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   display: grid;
-  grid-template-columns: minmax(260px, 320px) 1fr;
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+  min-height: calc(100vh - 100px);
 }
 
 @media (max-width: 900px) {
   .record-page__layout {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .record-page__empty {
     grid-template-columns: 1fr;
   }
 
@@ -524,6 +744,20 @@ export default {
   padding: clamp(16px, 2vw, 22px);
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(126, 197, 160, 0.22);
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(53, 92, 75, 0.08);
+}
+
+.record-page__sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.record-page__main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .record-page__tabs {
@@ -612,7 +846,8 @@ export default {
 }
 
 .record-page__list {
-  max-height: min(520px, calc(100vh - 340px));
+  flex: 1;
+  max-height: min(560px, calc(100vh - 320px));
   overflow-y: auto;
   padding-right: 4px;
   margin-right: -4px;
@@ -675,6 +910,19 @@ export default {
   color: rgba(53, 82, 71, 0.72);
 }
 
+.record-page__model-badge {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2a9d6f;
+  background: rgba(42, 157, 111, 0.12);
+  border-radius: 999px;
+}
+
 .record-page__model-actions {
   display: flex;
   gap: 10px;
@@ -699,12 +947,17 @@ export default {
 
 .record-page__main-head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(126, 197, 160, 0.22);
+  flex-shrink: 0;
+}
+
+.record-page__main-head-text {
+  min-width: 0;
 }
 
 .record-page__panel-title {
@@ -713,6 +966,13 @@ export default {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--nb-ink, #24332b);
+}
+
+.record-page__panel-meta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(36, 51, 43, 0.52);
 }
 
 .record-page__reset {
@@ -733,47 +993,342 @@ export default {
 }
 
 .record-page__empty {
-  padding: 32px 16px 48px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.2fr);
+  gap: clamp(20px, 4vw, 40px);
+  align-items: start;
+  padding: 8px 0 16px;
+  min-height: 320px;
+}
 
-  :deep(.el-empty__description) {
-    margin-top: 8px;
-  }
+.record-page__empty-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .record-page__empty-icon {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 12px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
   border-radius: 18px;
   background: rgba(126, 197, 160, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
+  font-size: 30px;
   color: #5a8f7a;
 }
 
 .record-page__empty-title {
   margin: 0 0 8px;
-  font-size: 17px;
+  font-size: 1.2rem;
   font-weight: 650;
   color: var(--nb-ink, #24332b);
 }
 
 .record-page__empty-text {
-  margin: 0;
+  margin: 0 0 16px;
   font-size: 14px;
   line-height: 1.55;
   color: var(--nb-muted, rgba(36, 51, 43, 0.6));
-  max-width: 36ch;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 34ch;
+}
+
+.record-page__quick {
+  min-width: 0;
+}
+
+.record-page__empty-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.record-page__section-card {
+  padding: 14px;
+  background: rgba(247, 251, 248, 0.7);
+  border: 1px solid rgba(126, 197, 160, 0.24);
+  border-radius: 14px;
+}
+
+.record-page__section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  margin-bottom: 12px;
+}
+
+.record-page__quick-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(36, 51, 43, 0.45);
+}
+
+.record-page__section-copy {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(53, 82, 71, 0.52);
+}
+
+.record-page__compact-group + .record-page__compact-group {
+  margin-top: 14px;
+}
+
+.record-page__compact-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #355247;
+}
+
+.record-page__compact-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.record-page__compact-pill {
+  appearance: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  color: #355247;
+  background: #fff;
+  border: 1px solid rgba(126, 197, 160, 0.32);
+  border-radius: 999px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(231, 246, 238, 0.8);
+    border-color: rgba(42, 157, 111, 0.45);
+  }
+}
+
+.record-page__quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.record-page__quick-card {
+  appearance: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px;
+  text-align: left;
+  font: inherit;
+  background: rgba(247, 251, 248, 0.9);
+  border: 1px solid rgba(126, 197, 160, 0.28);
+  border-radius: 14px;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.12s ease;
+
+  &:hover {
+    border-color: rgba(42, 157, 111, 0.45);
+    background: #fff;
+    transform: translateY(-2px);
+  }
+}
+
+.record-page__quick-cover {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.record-page__quick-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--nb-ink, #24332b);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.record-page__quick-hint {
+  font-size: 11px;
+  line-height: 1.35;
+  color: rgba(53, 82, 71, 0.65);
+}
+
+.record-page__bundle-list {
+  display: grid;
+  gap: 10px;
+}
+
+.record-page__bundle {
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  font: inherit;
+  background: #fff;
+  border: 1px solid rgba(126, 197, 160, 0.28);
+  border-radius: 12px;
+  transition:
+    border-color 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: rgba(42, 157, 111, 0.42);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(53, 92, 75, 0.08);
+  }
+}
+
+.record-page__bundle-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.record-page__bundle-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--nb-ink, #24332b);
+}
+
+.record-page__bundle-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2a9d6f;
+  background: rgba(42, 157, 111, 0.12);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.record-page__bundle-text {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(53, 82, 71, 0.66);
+}
+
+.record-page__bundle-preview {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(36, 51, 43, 0.72);
+}
+
+.record-page__empty-fallback {
+  margin: 0;
+  padding: 24px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(36, 51, 43, 0.55);
+  background: rgba(231, 246, 238, 0.5);
+  border-radius: 12px;
+  border: 1px dashed rgba(126, 197, 160, 0.35);
+}
+
+.record-page__selected {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: rgba(247, 251, 248, 0.82);
+  border: 1px solid rgba(126, 197, 160, 0.22);
+  border-radius: 14px;
+}
+
+.record-page__selected-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.record-page__selected-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(53, 82, 71, 0.52);
+}
+
+.record-page__selected-copy {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: rgba(53, 82, 71, 0.68);
+}
+
+.record-page__selected-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.record-page__selected-chip {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  background: #fff;
+  color: #355247;
+  border: 1px solid rgba(126, 197, 160, 0.35);
+  border-radius: 999px;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    background: rgba(231, 246, 238, 0.8);
+    border-color: rgba(42, 157, 111, 0.45);
+  }
+
+  i {
+    font-size: 12px;
+    color: rgba(53, 82, 71, 0.6);
+  }
+}
+
+.record-page__selected-chip-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.record-page__selected-chip-unit {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(53, 82, 71, 0.55);
 }
 
 .record-page__fields {
+  flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+  align-content: start;
 }
 
 .record-page__field {
@@ -823,7 +1378,8 @@ export default {
 }
 
 .record-page__footer {
-  margin-top: 28px;
+  flex-shrink: 0;
+  margin-top: auto;
   padding-top: 20px;
   border-top: 1px solid rgba(126, 197, 160, 0.22);
 }
