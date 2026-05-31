@@ -25,6 +25,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                         API + "/user/login",
                         API + "/user/google-login",
                         API + "/user/register",
+                        API + "/health",
                         API + "/file/upload",
                         API + "/file/getFile"
                 );

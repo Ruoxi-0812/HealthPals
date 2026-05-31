@@ -43,6 +43,7 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (
                 requestURI.contains("/login")
                         || requestURI.contains("/google-login")
+                        || requestURI.contains("/health")
                         || requestURI.contains("/error")
                         || requestURI.contains("/file")
                         || requestURI.contains("/register")

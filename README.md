@@ -24,6 +24,24 @@ docker compose up --build
 - API: http://localhost:21090/api/personal-heath/v1.0  
 - MySQL on host: `localhost:3307` (schema from `sql/personal_health.sql` on first run)
 
+Useful Docker checks:
+
+```bash
+docker compose ps
+docker compose logs -f backend
+docker compose down
+```
+
+Build images individually:
+
+```bash
+docker build -t healthpals-backend ./backend
+docker build \
+  --build-arg VUE_APP_API_BASE_URL=/api/personal-heath/v1.0 \
+  --build-arg VUE_APP_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com \
+  -t healthpals-frontend ./frontend
+```
+
 ## Local dev
 
 **Prerequisites:** Node, JDK, Maven, MySQL with DB imported:

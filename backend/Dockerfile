@@ -6,9 +6,13 @@ COPY src ./src
 RUN mvn -B -q package -DskipTests
 
 # Run (needs SPRING_DATASOURCE_PASSWORD etc. at runtime)
-FROM eclipse-temurin:8-jre-alpine
+FROM eclipse-temurin:8-jre-jammy
 WORKDIR /app
-RUN addgroup -S app && adduser -S app -G app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system app \
+    && useradd --system --gid app app
 COPY --from=build /app/target/personal-health-api-1.0-SNAPSHOT.jar app.jar
 USER app
 EXPOSE 21090

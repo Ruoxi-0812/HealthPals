@@ -6,6 +6,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+ARG VUE_APP_API_BASE_URL=/api/personal-heath/v1.0
+ARG VUE_APP_GOOGLE_CLIENT_ID=
+ENV VUE_APP_API_BASE_URL=$VUE_APP_API_BASE_URL
+ENV VUE_APP_GOOGLE_CLIENT_ID=$VUE_APP_GOOGLE_CLIENT_ID
 RUN npm run build
 
 # Serve static files + reverse-proxy API to backend (see nginx/default.conf)

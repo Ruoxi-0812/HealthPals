@@ -1,0 +1,69 @@
+name: Publish Docker Images to ECR
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  BACKEND_REPOSITORY: ${{ vars.ECR_BACKEND_REPOSITORY || 'healthpals-backend' }}
+  FRONTEND_REPOSITORY: ${{ vars.ECR_FRONTEND_REPOSITORY || 'healthpals-frontend' }}
+  FRONTEND_API_BASE_URL: /api/personal-heath/v1.0
+
+jobs:
+  publish:
+    name: Build and push ECR images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Prepare image tags
+        id: meta
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          echo "backend_image=${{ steps.login-ecr.outputs.registry }}/${BACKEND_REPOSITORY}" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=${{ steps.login-ecr.outputs.registry }}/${FRONTEND_REPOSITORY}" >> "$GITHUB_OUTPUT"
+          echo "version=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.backend_image }}:${{ steps.meta.outputs.version }}
+            ${{ steps.meta.outputs.backend_image }}:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.frontend_image }}:${{ steps.meta.outputs.version }}
+            ${{ steps.meta.outputs.frontend_image }}:latest
+          build-args: |
+            VUE_APP_API_BASE_URL=${{ env.FRONTEND_API_BASE_URL }}
+            VUE_APP_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max

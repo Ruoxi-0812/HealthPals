@@ -11,6 +11,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: ph-mysql
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
       MYSQL_DATABASE: personal_health
@@ -30,12 +31,20 @@ services:
       timeout: 5s
       retries: 18
       start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
+        reservations:
+          memory: 384M
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: ph-backend
+    restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
@@ -48,16 +57,48 @@ services:
       APP_AI_API_KEY: ${APP_AI_API_KEY:-}
       APP_AI_MODEL: ${APP_AI_MODEL:-gpt-4o-mini}
       APP_AI_BASE_URL: ${APP_AI_BASE_URL:-https://api.openai.com/v1}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:21090/api/personal-heath/v1.0/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
+        reservations:
+          memory: 384M
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VUE_APP_API_BASE_URL: /api/personal-heath/v1.0
+        VUE_APP_GOOGLE_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
     container_name: ph-frontend
+    restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "8080:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          memory: 128M
 
 volumes:
   mysql_data:

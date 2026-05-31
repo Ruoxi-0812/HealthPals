@@ -12,6 +12,7 @@
         <router-view class="route-container" />
       </keep-alive>
     </div>
+    <AskPalFloating />
   </div>
 </template>
 
@@ -19,11 +20,13 @@
 import { clearToken } from "@/utils/storage.js";
 import router from "@/router";
 import UserMenu from "@/components/LevelMenu.vue";
+import AskPalFloating from "@/components/AskPalFloating.vue";
 
 export default {
   name: "UserMain",
   components: {
     UserMenu,
+    AskPalFloating,
   },
   data() {
     return {

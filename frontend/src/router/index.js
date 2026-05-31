@@ -143,6 +143,7 @@ const routes = [
         meta: {
           requireAuth: true,
         },
+        isHidden: true,
       },
       {
         name: "Settings",
@@ -180,7 +181,7 @@ const routes = [
 ];
 const router = new VueRouter({
   routes,
-  mode: "history",
+  mode: "hash",
 });
 router.beforeEach((to, from, next) => {
   if (to.meta.requireAuth) {
