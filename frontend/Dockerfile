@@ -15,6 +15,7 @@ RUN npm run build
 # Serve static files + reverse-proxy API to backend (see nginx/default.conf)
 FROM nginx:1.25-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+ENV BACKEND_UPSTREAM=backend:21090
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
