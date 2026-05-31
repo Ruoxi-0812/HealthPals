@@ -51,13 +51,11 @@
       >
         <el-table-column prop="userAvatar" width="76" label="Avatar">
           <template slot-scope="scope">
-            <el-avatar
+            <UserAvatar
               :size="36"
               class="admin-user-avatar"
               :src="scope.row.userAvatar"
-            >
-              <i class="el-icon-user-solid" />
-            </el-avatar>
+            />
           </template>
         </el-table-column>
         <el-table-column prop="userName" min-width="120" label="Name">
@@ -394,6 +392,7 @@
 
 <script>
 import AdminPageShell from "@/components/admin/AdminPageShell.vue";
+import UserAvatar from "@/components/UserAvatar.vue";
 
 import {
   formatDateShort,
@@ -402,7 +401,7 @@ import {
 } from "@/utils/data";
 
 export default {
-  components: { AdminPageShell },
+  components: { AdminPageShell, UserAvatar },
   data() {
     return {
       roleStatus: false,

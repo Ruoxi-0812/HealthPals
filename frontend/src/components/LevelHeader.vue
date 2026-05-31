@@ -19,7 +19,7 @@
 
     <el-dropdown class="admin-header__user" trigger="click" placement="bottom-end">
       <button type="button" class="admin-header__user-trigger">
-        <el-avatar :size="32" :src="userInfo.url" />
+        <UserAvatar :size="32" :src="userInfo.url" />
         <span class="admin-header__user-name">{{ userInfo.name }}</span>
         <i class="el-icon-arrow-down el-icon--right" />
       </button>
@@ -39,8 +39,11 @@
 </template>
 
 <script>
+import UserAvatar from "@/components/UserAvatar.vue";
+
 export default {
   name: "LevelHeader",
+  components: { UserAvatar },
   data() {
     return {
       showFlag: sessionStorage.getItem("flag") === "true",

@@ -221,7 +221,7 @@
 
           <div class="admin-settings-panel__account-card">
             <div class="admin-settings-panel__account-user">
-              <el-avatar :size="48" :src="profile.url" />
+              <UserAvatar :size="48" :src="profile.url" />
               <div>
                 <p class="admin-settings-panel__account-name">
                   {{ profile.name || "Administrator" }}
@@ -249,8 +249,10 @@
 <script>
 import { clearToken } from "@/utils/storage.js";
 import { formatDateShort } from "@/utils/data";
+import UserAvatar from "@/components/UserAvatar.vue";
 
 export default {
+  components: { UserAvatar },
   name: "AdminSettingsPage",
   data() {
     return {

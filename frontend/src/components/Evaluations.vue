@@ -14,7 +14,7 @@
     </header>
 
     <div class="ev-comments__composer">
-      <el-avatar class="ev-comments__avatar" :src="userData.userAvatar" />
+      <UserAvatar class="ev-comments__avatar" :src="userData.userAvatar" />
       <div class="ev-panel" :class="{ 'is-focused': isFocused }">
         <div class="ev-panel__top">
           <span class="ev-panel__label">Add a comment</span>
@@ -57,7 +57,7 @@
         class="ev-comment"
       >
         <div class="ev-comment__row">
-          <el-avatar class="ev-comment__avatar" size="large" :src="comment.userAvatar" />
+          <UserAvatar class="ev-comment__avatar" size="large" :src="comment.userAvatar" />
           <div class="ev-comment__main">
             <div class="ev-comment__headline">
               <span class="ev-comment__name">{{ comment.userName }}</span>
@@ -137,7 +137,7 @@
               <div class="ev-nested__bar" aria-hidden="true" />
               <div class="ev-nested__inner">
                 <div class="ev-comment__headline ev-comment__headline--compact">
-                  <el-avatar
+                  <UserAvatar
                     class="ev-comment__avatar-sm"
                     size="small"
                     :src="commentChild.userAvatar"
@@ -149,7 +149,7 @@
                   <template v-if="commentChild.replierName != null">
                     <span class="ev-reply-pill">
                       <span class="ev-reply-pill__to">to</span>
-                      <el-avatar
+                      <UserAvatar
                         class="ev-comment__avatar-xs"
                         size="small"
                         :src="commentChild.replierAvatar"
@@ -294,7 +294,9 @@
 
 <script>
 import { timeAgo } from "@/utils/data";
+import UserAvatar from "@/components/UserAvatar.vue";
 export default {
+  components: { UserAvatar },
   props: {
     contentId: {
       type: Number,

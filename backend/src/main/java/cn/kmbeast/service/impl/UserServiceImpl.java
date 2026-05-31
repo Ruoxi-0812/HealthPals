@@ -148,6 +148,21 @@ public class UserServiceImpl implements UserService {
                         .build();
                 userMapper.insert(newUser);
                 user = userMapper.getByActive(User.builder().userAccount(account).build());
+            } else if (StringUtils.isNotBlank(picture)
+                    || StringUtils.isNotBlank(name)
+                    || StringUtils.isNotBlank(email)) {
+                User updateEntity = User.builder().id(user.getId()).build();
+                if (StringUtils.isNotBlank(picture)) {
+                    updateEntity.setUserAvatar(picture);
+                }
+                if (StringUtils.isNotBlank(name)) {
+                    updateEntity.setUserName(name);
+                }
+                if (StringUtils.isNotBlank(email)) {
+                    updateEntity.setUserEmail(email);
+                }
+                userMapper.update(updateEntity);
+                user = userMapper.getByActive(User.builder().userAccount(account).build());
             }
             String token = JwtUtil.toToken(user.getId(), user.getUserRole());
             Map<String, Object> map = new HashMap<>();

@@ -62,7 +62,7 @@
 
         <el-dropdown class="top-bar__user" trigger="click" placement="bottom-end">
           <button type="button" class="top-bar__user-trigger">
-            <el-avatar :size="30" :src="userInfo.url" />
+            <UserAvatar :size="30" :src="userInfo.url" />
             <span class="top-bar__user-name">{{ userInfo.name }}</span>
             <i class="el-icon-arrow-down el-icon--right" aria-hidden="true" />
           </button>
@@ -83,10 +83,11 @@
 <script>
 import { clearToken } from "@/utils/storage.js";
 import Logo from "@/components/Logo.vue";
+import UserAvatar from "@/components/UserAvatar.vue";
 
 export default {
   name: "UserMenu",
-  components: { Logo },
+  components: { Logo, UserAvatar },
   props: {
     menus: { type: Array, required: true },
     userInfo: { type: Object, required: true },

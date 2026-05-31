@@ -4,7 +4,7 @@
       <div class="messages-page__top-inner">
         <Logo sysName="HealthPals" :bag="'#2f4a40'" :size="32" />
         <div class="messages-page__user">
-          <el-avatar :size="32" :src="userInfo.userAvatar" />
+          <UserAvatar :size="32" :src="userInfo.userAvatar" />
           <span class="messages-page__user-name">{{ userInfo.userName }}</span>
         </div>
       </div>
@@ -183,11 +183,12 @@
 
 <script>
 import Logo from "@/components/Logo";
+import UserAvatar from "@/components/UserAvatar.vue";
 import { timeAgo } from "@/utils/data";
 
 export default {
   name: "MessageCenter",
-  components: { Logo },
+  components: { Logo, UserAvatar },
   data() {
     return {
       userInfo: {},

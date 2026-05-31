@@ -47,6 +47,7 @@
                   v-if="profile.url"
                   :src="profile.url"
                   class="settings-profile__avatar"
+                  referrerpolicy="no-referrer"
                   alt=""
                 />
                 <span v-else class="settings-profile__avatar-placeholder">
@@ -247,7 +248,7 @@
 
           <div class="settings-panel__account-card">
             <div class="settings-panel__account-user">
-              <el-avatar :size="48" :src="profile.url" />
+              <UserAvatar :size="48" :src="profile.url" />
               <div>
                 <p class="settings-panel__account-name">
                   {{ profile.name || "Your account" }}
@@ -275,8 +276,10 @@
 <script>
 import { clearToken } from "@/utils/storage.js";
 import { formatDateShort } from "@/utils/data";
+import UserAvatar from "@/components/UserAvatar.vue";
 
 export default {
+  components: { UserAvatar },
   name: "UserSettings",
   data() {
     return {
