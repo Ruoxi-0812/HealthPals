@@ -35,48 +35,103 @@
             </p>
           </header>
 
-          <div class="settings-profile__summary">
-            <div class="settings-profile__summary-media">
-              <el-upload
-                class="hp-dialog__avatar-uploader avatar-uploader settings-profile__uploader"
-                action="/api/personal-heath/v1.0/file/upload"
-                :show-file-list="false"
-                :on-success="handleAvatarSuccess"
-              >
-                <img
-                  v-if="profile.url"
-                  :src="profile.url"
-                  class="settings-profile__avatar"
-                  referrerpolicy="no-referrer"
-                  alt=""
-                />
-                <span v-else class="settings-profile__avatar-placeholder">
-                  <i class="el-icon-plus" aria-hidden="true" />
-                </span>
-              </el-upload>
-              <span class="settings-profile__photo-hint">Change photo</span>
-            </div>
-            <div class="settings-profile__summary-body">
-              <p class="settings-profile__display-name">
-                {{ profile.name || "Your display name" }}
-              </p>
-              <p class="settings-profile__display-email">
-                {{ profile.email || "Add an email address" }}
-              </p>
-              <div class="settings-profile__badges">
-                <span class="settings-profile__role-pill">{{ roleLabel }}</span>
-                <span v-if="memberSince" class="settings-profile__since">
-                  Member since {{ memberSince }}
-                </span>
+          <div class="settings-profile__overview">
+            <section class="settings-profile__identity">
+              <div class="settings-profile__identity-top">
+                <div class="settings-profile__summary-media">
+                  <el-upload
+                    class="hp-dialog__avatar-uploader avatar-uploader settings-profile__uploader"
+                    action="/api/personal-heath/v1.0/file/upload"
+                    :show-file-list="false"
+                    :on-success="handleAvatarSuccess"
+                  >
+                    <img
+                      v-if="profile.url"
+                      :src="profile.url"
+                      class="settings-profile__avatar"
+                      referrerpolicy="no-referrer"
+                      alt=""
+                    />
+                    <span v-else class="settings-profile__avatar-placeholder">
+                      <i class="el-icon-plus" aria-hidden="true" />
+                    </span>
+                  </el-upload>
+                  <span class="settings-profile__photo-hint">Change photo</span>
+                </div>
+                <div class="settings-profile__summary-body">
+                  <p class="settings-profile__display-name">
+                    {{ profile.name || "Your display name" }}
+                  </p>
+                  <p class="settings-profile__display-email">
+                    {{ profile.email || "Add an email address" }}
+                  </p>
+                  <div class="settings-profile__badges">
+                    <span class="settings-profile__role-pill">{{ roleLabel }}</span>
+                    <span v-if="memberSince" class="settings-profile__since">
+                      Member since {{ memberSince }}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
+
+              <dl class="settings-profile__meta">
+                <div class="settings-profile__meta-row">
+                  <dt>Sign-in ID</dt>
+                  <dd>{{ profile.account || "—" }}</dd>
+                </div>
+                <div class="settings-profile__meta-row">
+                  <dt>User ID</dt>
+                  <dd>{{ profile.id != null ? profile.id : "—" }}</dd>
+                </div>
+                <div class="settings-profile__meta-row">
+                  <dt>Joined</dt>
+                  <dd>{{ memberSince || "—" }}</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="settings-profile__edit">
+              <h3 class="settings-profile__section-title">Edit profile</h3>
+              <div class="settings-panel__fields settings-panel__fields--profile">
+                <label class="hp-field settings-panel__field">
+                  <span class="hp-field__label">Display name</span>
+                  <input
+                    v-model="profile.name"
+                    class="hp-field__input"
+                    type="text"
+                    placeholder="How others see you in comments and messages"
+                    autocomplete="username"
+                  />
+                </label>
+
+                <label class="hp-field settings-panel__field">
+                  <span class="hp-field__label">Email</span>
+                  <input
+                    v-model="profile.email"
+                    class="hp-field__input"
+                    type="email"
+                    placeholder="For account recovery and updates"
+                    autocomplete="email"
+                  />
+                </label>
+              </div>
+
+              <div class="settings-panel__actions settings-panel__actions--profile">
+                <button
+                  type="button"
+                  class="settings-btn settings-btn--primary"
+                  :disabled="profileSaving"
+                  @click="updateUserInfo"
+                >
+                  {{ profileSaving ? "Saving…" : "Save profile" }}
+                </button>
+              </div>
+            </section>
           </div>
 
+          <h3 class="settings-profile__section-title">Activity</h3>
           <div class="settings-profile__stats" :class="{ 'is-loading': statsLoading }">
-            <router-link
-              class="settings-profile__stat"
-              to="/user-health-model"
-            >
+            <router-link class="settings-profile__stat" to="/user-health-model">
               <span class="settings-profile__stat-value">{{
                 statValue(stats.readings)
               }}</span>
@@ -96,53 +151,6 @@
             </router-link>
           </div>
 
-          <h3 class="settings-profile__section-title">Account details</h3>
-          <dl class="settings-profile__meta">
-            <div class="settings-profile__meta-row">
-              <dt>Sign-in ID</dt>
-              <dd>{{ profile.account || "—" }}</dd>
-            </div>
-            <div class="settings-profile__meta-row">
-              <dt>User ID</dt>
-              <dd>{{ profile.id != null ? profile.id : "—" }}</dd>
-            </div>
-            <div class="settings-profile__meta-row">
-              <dt>Account type</dt>
-              <dd>{{ roleLabel }}</dd>
-            </div>
-            <div v-if="memberSince" class="settings-profile__meta-row">
-              <dt>Joined</dt>
-              <dd>{{ memberSince }}</dd>
-            </div>
-          </dl>
-
-          <h3 class="settings-profile__section-title">Edit profile</h3>
-          <div
-            class="settings-panel__fields settings-panel__fields--profile"
-          >
-            <label class="hp-field settings-panel__field">
-              <span class="hp-field__label">Display name</span>
-              <input
-                v-model="profile.name"
-                class="hp-field__input"
-                type="text"
-                placeholder="How others see you in comments and messages"
-                autocomplete="username"
-              />
-            </label>
-
-            <label class="hp-field settings-panel__field">
-              <span class="hp-field__label">Email</span>
-              <input
-                v-model="profile.email"
-                class="hp-field__input"
-                type="email"
-                placeholder="For account recovery and updates"
-                autocomplete="email"
-              />
-            </label>
-          </div>
-
           <h3 class="settings-profile__section-title">Shortcuts</h3>
           <div class="settings-profile__links">
             <router-link class="settings-profile__link" to="/user-health-model">
@@ -157,17 +165,6 @@
               <i class="el-icon-edit-outline" aria-hidden="true" />
               Log a reading
             </router-link>
-          </div>
-
-          <div class="settings-panel__actions">
-            <button
-              type="button"
-              class="settings-btn settings-btn--primary"
-              :disabled="profileSaving"
-              @click="updateUserInfo"
-            >
-              {{ profileSaving ? "Saving…" : "Save profile" }}
-            </button>
           </div>
         </div>
 
@@ -694,13 +691,17 @@ $accent: #2a9d6f;
   color: rgba(36, 51, 43, 0.58);
 }
 
-.settings-profile__summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px 28px;
-  align-items: center;
+.settings-profile__overview {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(320px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+.settings-profile__identity,
+.settings-profile__edit {
   padding: 20px;
-  margin-bottom: 22px;
   background: linear-gradient(
     135deg,
     rgba(231, 246, 238, 0.85) 0%,
@@ -708,6 +709,17 @@ $accent: #2a9d6f;
   );
   border: 1px solid rgba(126, 197, 160, 0.28);
   border-radius: 16px;
+}
+
+.settings-profile__edit {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.settings-profile__identity-top {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .settings-profile__summary-media {
@@ -854,11 +866,13 @@ $accent: #2a9d6f;
 }
 
 .settings-profile__meta {
-  margin: 0 0 28px;
+  margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px 24px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  border-top: 1px solid rgba(126, 197, 160, 0.2);
+  padding-top: 16px;
 }
 
 .settings-profile__meta-row {
@@ -928,8 +942,8 @@ $accent: #2a9d6f;
   }
 
   &--profile {
-    max-width: 480px;
-    margin-bottom: 24px;
+    max-width: none;
+    margin-bottom: 0;
   }
 }
 
@@ -944,6 +958,12 @@ $accent: #2a9d6f;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.settings-panel__actions--profile {
+  margin-top: 18px;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .settings-panel__actions--tight {
@@ -1090,7 +1110,11 @@ $accent: #2a9d6f;
     justify-content: center;
   }
 
-  .settings-profile__summary {
+  .settings-profile__overview {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-profile__identity-top {
     flex-direction: column;
     text-align: center;
   }
