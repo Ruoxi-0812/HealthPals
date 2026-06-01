@@ -40,10 +40,12 @@
             <button
               type="button"
               class="news-detail__save"
-              :class="{ 'is-saved': saveFlag }"
+              :class="{ 'is-saved': saveFlag, 'is-loading': saveFlag === null }"
+              :disabled="saveFlag === null"
+              :aria-label="saveFlag === null ? 'Checking save status' : saveButtonLabel"
               @click="saveNewsOperation"
             >
-              {{ !saveFlag ? "Save article" : "Saved" }}
+              {{ saveButtonLabel }}
             </button>
           </div>
 
@@ -121,11 +123,17 @@ export default {
     return {
       newsInfo: {},
       newsTopList: [],
-      saveFlag: false,
+      saveFlag: null,
       newsSaveList: [],
     };
   },
   computed: {
+    saveButtonLabel() {
+      if (this.saveFlag === null) {
+        return "";
+      }
+      return this.saveFlag ? "Saved" : "Save article";
+    },
     articleHasContent() {
       const html = (this.newsInfo && this.newsInfo.content) || "";
       const text = html.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim();
@@ -173,6 +181,7 @@ export default {
       if (this.newsInfo == null || this.newsInfo.id == null) {
         return;
       }
+      this.saveFlag = null;
       const newsSaveQueryDto = {
         newsId: this.newsInfo.id,
       };
@@ -183,9 +192,15 @@ export default {
           if (data.code === 200) {
             this.saveFlag = data.data.length !== 0;
           }
+        })
+        .catch(() => {
+          this.saveFlag = false;
         });
     },
     saveNewsOperation() {
+      if (this.saveFlag === null) {
+        return;
+      }
       this.$axios
         .post("/news-save/operation", { newsId: this.newsInfo.id })
         .then((response) => {
@@ -230,6 +245,7 @@ export default {
     },
     fetchArticleById(id) {
       if (!id || Number.isNaN(id)) return;
+      this.saveFlag = null;
       this.$axios
         .post("/news/query", { id })
         .then((response) => {
@@ -422,6 +438,8 @@ export default {
   appearance: none;
   cursor: pointer;
   align-self: flex-start;
+  min-width: 104px;
+  min-height: 42px;
   padding: 10px 18px;
   font-family: var(--nb-font);
   font-size: 13px;
@@ -452,6 +470,20 @@ export default {
 
   &.is-saved:hover {
     background: rgba(42, 157, 111, 0.2);
+  }
+
+  &.is-loading,
+  &.is-loading:hover {
+    cursor: default;
+    color: transparent;
+    background: linear-gradient(
+      90deg,
+      rgba(42, 157, 111, 0.1) 0%,
+      rgba(42, 157, 111, 0.18) 50%,
+      rgba(42, 157, 111, 0.1) 100%
+    );
+    border-color: rgba(42, 157, 111, 0.24);
+    box-shadow: none;
   }
 }
 
