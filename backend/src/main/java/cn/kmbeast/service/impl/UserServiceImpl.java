@@ -148,11 +148,11 @@ public class UserServiceImpl implements UserService {
                         .build();
                 userMapper.insert(newUser);
                 user = userMapper.getByActive(User.builder().userAccount(account).build());
-            } else if (StringUtils.isNotBlank(picture)
+            } else if ((StringUtils.isNotBlank(picture) && StringUtils.isBlank(user.getUserAvatar()))
                     || StringUtils.isNotBlank(name)
                     || StringUtils.isNotBlank(email)) {
                 User updateEntity = User.builder().id(user.getId()).build();
-                if (StringUtils.isNotBlank(picture)) {
+                if (StringUtils.isNotBlank(picture) && StringUtils.isBlank(user.getUserAvatar())) {
                     updateEntity.setUserAvatar(picture);
                 }
                 if (StringUtils.isNotBlank(name)) {

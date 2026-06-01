@@ -356,13 +356,25 @@ export default {
         role: payload.userRole,
       });
     },
-    handleAvatarSuccess(res) {
+    async handleAvatarSuccess(res) {
       if (res.code !== 200) {
         this.$message.error("Avatar upload failed");
         return;
       }
-      this.$message.success("Avatar uploaded");
       this.profile.url = res.data;
+      try {
+        const response = await this.$axios.put("/user/update", {
+          userAvatar: this.profile.url,
+        });
+        if (response.data.code === 200) {
+          this.syncUserInfoToApp();
+          this.$message.success("Avatar updated");
+          return;
+        }
+        this.$message.error(response.data.msg || "Avatar update failed");
+      } catch (e) {
+        this.$message.error("Avatar update failed");
+      }
     },
     async updateUserInfo() {
       this.profileSaving = true;
