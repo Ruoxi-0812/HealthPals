@@ -675,7 +675,7 @@ $ev-border: rgba(126, 197, 160, 0.22);
 }
 
 .ev-comments__head {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .ev-comments__heading {
@@ -698,9 +698,9 @@ $ev-border: rgba(126, 197, 160, 0.22);
 
 .ev-comments__composer {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: flex-start;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
 
 .ev-comments__avatar {
@@ -711,12 +711,12 @@ $ev-border: rgba(126, 197, 160, 0.22);
 .ev-panel {
   flex: 1;
   min-width: 0;
-  background: linear-gradient(180deg, rgba(248, 252, 250, 0.98) 0%, rgba(242, 248, 244, 0.95) 100%);
-  border: 1px solid rgba(126, 197, 160, 0.3);
-  border-radius: 20px;
-  padding: 12px 16px 50px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(126, 197, 160, 0.34);
+  border-radius: 16px;
+  padding: 10px 14px 46px;
   position: relative;
-  box-shadow: 0 14px 30px rgba(53, 92, 75, 0.08);
+  box-shadow: none;
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
@@ -726,9 +726,7 @@ $ev-border: rgba(126, 197, 160, 0.22);
   &.is-open {
     border-color: rgba(42, 157, 111, 0.5);
     background: #fff;
-    box-shadow:
-      0 0 0 4px rgba(42, 157, 111, 0.12),
-      0 18px 36px rgba(53, 92, 75, 0.12);
+    box-shadow: 0 0 0 3px rgba(42, 157, 111, 0.1);
   }
 
   &.is-nested {
@@ -747,6 +745,7 @@ $ev-border: rgba(126, 197, 160, 0.22);
 }
 
 .ev-panel__label {
+  display: none;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -757,7 +756,7 @@ $ev-border: rgba(126, 197, 160, 0.22);
 .ev-panel__input {
   display: block;
   width: 100%;
-  min-height: 92px;
+  min-height: 68px;
   margin: 0;
   padding: 4px 2px;
   border: none;
@@ -776,17 +775,40 @@ $ev-border: rgba(126, 197, 160, 0.22);
 }
 
 .ev-comments__composer .ev-panel__input {
-  min-height: 40px;
-  font-size: 14px;
+  min-height: 34px;
+  font-size: 15px;
 }
 
 .ev-comments__composer .ev-panel {
-  border-radius: 18px;
-  padding: 10px 14px 44px;
+  border-radius: 999px;
+  padding: 0 110px 0 18px;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
 }
 
 .ev-comments__composer .ev-panel__top {
-  margin-bottom: 6px;
+  display: none;
+}
+
+.ev-comments__composer .ev-panel__foot {
+  left: auto;
+  right: 6px;
+  bottom: 6px;
+  top: 6px;
+  padding: 0;
+  border: 0;
+}
+
+.ev-comments__composer .ev-panel__counter {
+  display: none;
+}
+
+.ev-comments__composer .ev-panel__submit.el-button {
+  min-width: 82px;
+  height: 34px;
+  padding: 0 16px;
+  box-shadow: none;
 }
 
 .ev-panel__foot {
@@ -857,7 +879,7 @@ $ev-border: rgba(126, 197, 160, 0.22);
 .ev-thread {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
 }
 
 .ev-comment {
@@ -866,7 +888,7 @@ $ev-border: rgba(126, 197, 160, 0.22);
 
 .ev-comment__row {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: flex-start;
 }
 
@@ -877,11 +899,11 @@ $ev-border: rgba(126, 197, 160, 0.22);
 .ev-comment__main {
   flex: 1;
   min-width: 0;
-  padding: 16px 18px 14px;
-  border: 1px solid $ev-border;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.76);
-  box-shadow: 0 10px 24px rgba(53, 92, 75, 0.05);
+  padding: 2px 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .ev-comment__headline {
@@ -952,7 +974,7 @@ $ev-border: rgba(126, 197, 160, 0.22);
 }
 
 .ev-comment__body {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   font-size: 15px;
   line-height: 1.65;
   color: rgba(36, 51, 43, 0.94);
@@ -969,8 +991,8 @@ $ev-border: rgba(126, 197, 160, 0.22);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 16px;
-  padding-top: 2px;
+  gap: 6px 12px;
+  padding-top: 0;
 }
 
 .ev-muted {
@@ -992,7 +1014,7 @@ $ev-border: rgba(126, 197, 160, 0.22);
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 10px;
+  padding: 4px 6px;
   border-radius: 999px;
   transition:
     color 0.15s ease,
@@ -1043,10 +1065,10 @@ $ev-border: rgba(126, 197, 160, 0.22);
 .ev-nested__inner {
   flex: 1;
   min-width: 0;
-  padding: 12px 14px 8px;
-  border-radius: 16px;
-  background: rgba(244, 249, 246, 0.88);
-  border: 1px solid rgba(126, 197, 160, 0.18);
+  padding: 2px 0 4px;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
 }
 
 .ev-report-dialog {
@@ -1120,8 +1142,23 @@ $ev-border: rgba(126, 197, 160, 0.22);
     border-top: 1px solid rgba(126, 197, 160, 0.16);
   }
 
+  .ev-comments__composer .ev-panel__foot {
+    position: absolute;
+    left: auto;
+    right: 6px;
+    top: 6px;
+    bottom: 6px;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
   .ev-panel {
     padding-bottom: 14px;
+  }
+
+  .ev-comments__composer .ev-panel {
+    padding: 0 96px 0 16px;
   }
 
   .ev-comments__composer .ev-panel__input {
