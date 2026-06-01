@@ -48,7 +48,7 @@
         @selection-change="handleSelectionChange"
         :data="tableData"
         class="admin-table-full"
-        empty-text="No users match your filters."
+        :empty-text="tableLoading ? ' ' : 'No users match your filters.'"
       >
         <el-table-column prop="userAvatar" width="76" label="Avatar">
           <template slot-scope="scope">
@@ -417,7 +417,7 @@ export default {
       dialogUserOperation: false,
       isOperation: false,
       tableData: [],
-      tableLoading: false,
+      tableLoading: true,
       searchTime: [],
       selectedRows: [],
       status: null,

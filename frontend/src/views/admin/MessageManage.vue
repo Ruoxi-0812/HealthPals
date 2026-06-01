@@ -48,7 +48,7 @@
         :row-class-name="rowClassName"
         :data="tableData"
         class="admin-table-full"
-        empty-text="No messages match your filters."
+        :empty-text="tableLoading ? ' ' : 'No messages match your filters.'"
       >
         <el-table-column
           width="170"
@@ -218,7 +218,7 @@ export default {
       pageSize: 10,
       totalItems: 0,
       tableData: [],
-      tableLoading: false,
+      tableLoading: true,
       searchTime: [],
       selectedRows: [],
       messageQueryDto: {},

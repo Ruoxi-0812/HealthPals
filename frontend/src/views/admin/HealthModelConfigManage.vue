@@ -39,7 +39,7 @@
         @selection-change="handleSelectionChange"
         :data="tableData"
         class="admin-table-full"
-        empty-text="No models match your search."
+        :empty-text="tableLoading ? ' ' : 'No models match your search.'"
       >
         <el-table-column prop="cover" width="72" label="Icon">
           <template slot-scope="scope">
@@ -250,7 +250,7 @@ export default {
       dialogUserOperaion: false,
       isOperation: false,
       tableData: [],
-      tableLoading: false,
+      tableLoading: true,
       searchTime: [],
       selectedRows: [],
       status: null,

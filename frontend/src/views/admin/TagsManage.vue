@@ -38,7 +38,7 @@
         row-key="id"
         :data="tableData"
         class="admin-table-full"
-        empty-text="No tags match your search."
+        :empty-text="tableLoading ? ' ' : 'No tags match your search.'"
       >
         <el-table-column prop="name" min-width="240" label="Tag name">
           <template slot-scope="scope">
@@ -160,7 +160,7 @@ export default {
       dialogOperaion: false,
       isOperation: false,
       tableData: [],
-      tableLoading: false,
+      tableLoading: true,
       searchTime: [],
       selectedRows: [],
       tagsQueryDto: {},

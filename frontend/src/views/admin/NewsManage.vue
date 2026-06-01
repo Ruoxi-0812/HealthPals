@@ -64,7 +64,7 @@
         @selection-change="handleSelectionChange"
         :data="tableData"
         class="admin-table-full"
-        empty-text="No articles match your filters."
+        :empty-text="tableLoading ? ' ' : 'No articles match your filters.'"
       >
         <el-table-column min-width="280" label="Article">
           <template slot-scope="scope">
@@ -233,7 +233,7 @@ export default {
       dialogUserOperaion: false, // Dialog visibility control
       isOperation: false, // Flag to identify add or edit operation
       tableData: [],
-      tableLoading: false,
+      tableLoading: true,
       searchTime: [],
       selectedRows: [],
       status: null,

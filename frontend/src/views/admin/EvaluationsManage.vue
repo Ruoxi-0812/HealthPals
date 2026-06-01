@@ -36,7 +36,7 @@
         @selection-change="handleSelectionChange"
         :data="tableData"
         class="admin-table-full"
-        empty-text="No comments match your filters."
+        :empty-text="tableLoading ? ' ' : 'No comments match your filters.'"
       >
         <el-table-column
           prop="content"
@@ -240,7 +240,7 @@ export default {
     return {
       reportsDate: [],
       tableData: [],
-      tableLoading: false,
+      tableLoading: true,
       currentPage: 1,
       pageSize: 10,
       totalItems: 0,

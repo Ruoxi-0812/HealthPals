@@ -50,7 +50,7 @@
         @selection-change="handleSelectionChange"
         :data="tableData"
         class="admin-table-full"
-        empty-text="No health records match your filters."
+        :empty-text="tableLoading ? ' ' : 'No health records match your filters.'"
       >
         <el-table-column
           prop="value"
@@ -240,7 +240,7 @@ export default {
       dialogUserOperaion: false, // Toggle
       isOperation: false, // Toggle - Indicates whether adding or modifying
       tableData: [],
-      tableLoading: false,
+      tableLoading: true,
       searchTime: [],
       selectedRows: [],
       status: null,
