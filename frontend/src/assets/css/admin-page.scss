@@ -814,27 +814,27 @@
 }
 
 .admin-badge--type-comment {
-  color: #2a5f8a;
-  background: rgba(91, 159, 212, 0.14);
-  border-color: rgba(91, 159, 212, 0.32);
+  color: #1f6b4f;
+  background: rgba(42, 157, 111, 0.12);
+  border-color: rgba(42, 157, 111, 0.28);
 }
 
 .admin-badge--type-like {
-  color: #7a4d9b;
-  background: rgba(155, 142, 212, 0.14);
-  border-color: rgba(155, 142, 212, 0.32);
+  color: #1f6b4f;
+  background: rgba(42, 157, 111, 0.12);
+  border-color: rgba(42, 157, 111, 0.28);
 }
 
 .admin-badge--type-metric {
-  color: #8a5a1a;
-  background: rgba(229, 155, 46, 0.14);
-  border-color: rgba(201, 124, 58, 0.35);
+  color: #1f6b4f;
+  background: rgba(42, 157, 111, 0.12);
+  border-color: rgba(42, 157, 111, 0.28);
 }
 
 .admin-badge--type-system {
-  color: #355247;
-  background: rgba(126, 197, 160, 0.16);
-  border-color: rgba(126, 197, 160, 0.35);
+  color: #1f6b4f;
+  background: rgba(42, 157, 111, 0.12);
+  border-color: rgba(42, 157, 111, 0.28);
 }
 
 .admin-cell-datetime {
@@ -1344,6 +1344,18 @@
   }
 }
 
+.admin-page--comments,
+.admin-page--messages,
+.admin-page--health-records {
+  .el-table__body tr > td {
+    background: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  .el-table__body tr:hover > td {
+    background: rgba(42, 157, 111, 0.06) !important;
+  }
+}
+
 .admin-page--comments {
   .el-table .cell {
     padding-top: 12px;
@@ -1363,16 +1375,6 @@
     text-align: left !important;
   }
 
-  .el-table__body tr.admin-comment-row--reply > td {
-    background: rgba(247, 251, 248, 0.65) !important;
-  }
-
-  .el-table--striped
-    .el-table__body
-    tr.admin-comment-row--reply.el-table__row--striped
-    > td {
-    background: rgba(247, 251, 248, 0.85) !important;
-  }
 }
 
 .admin-page--messages {
@@ -1398,23 +1400,8 @@
     text-align: left !important;
   }
 
-  .el-table__body tr.admin-msg-row--unread > td {
-    background: rgba(231, 246, 238, 0.55) !important;
-  }
-
-  .el-table--striped
-    .el-table__body
-    tr.admin-msg-row--unread.el-table__row--striped
-    > td {
-    background: rgba(231, 246, 238, 0.65) !important;
-  }
-
   .el-table__body tr.admin-msg-row--alert > td:first-child {
-    box-shadow: inset 3px 0 0 rgba(229, 155, 46, 0.5);
-  }
-
-  .el-table__body tr.admin-msg-row--unread.admin-msg-row--alert > td {
-    background: rgba(255, 251, 245, 0.9) !important;
+    box-shadow: none;
   }
 }
 
@@ -1432,17 +1419,6 @@
     vertical-align: middle;
   }
 
-  .el-table__body tr.admin-health-row--abnormal > td {
-    background: rgba(229, 155, 46, 0.07) !important;
-  }
-
-  .el-table--striped .el-table__body tr.admin-health-row--abnormal.el-table__row--striped > td {
-    background: rgba(229, 155, 46, 0.09) !important;
-  }
-
-  .el-table__body tr.admin-health-row--abnormal:hover > td {
-    background: rgba(229, 155, 46, 0.12) !important;
-  }
 }
 
 .admin-page--users {
