@@ -44,6 +44,7 @@
       </template>
 <el-table
         stripe
+        v-loading="tableLoading"
         @selection-change="handleSelectionChange"
         :data="tableData"
         class="admin-table-full"
@@ -416,6 +417,7 @@ export default {
       dialogUserOperation: false,
       isOperation: false,
       tableData: [],
+      tableLoading: false,
       searchTime: [],
       selectedRows: [],
       status: null,
@@ -604,8 +606,8 @@ export default {
       this.dialogUserOperation = false;
     },
     async fetchFreshData() {
+      this.tableLoading = true;
       try {
-        this.tableData = [];
         let startTime = null;
         let endTime = null;
         if (this.searchTime != null && this.searchTime.length === 2) {
@@ -629,6 +631,8 @@ export default {
         this.totalItems = data.total;
       } catch (error) {
         console.error("Error fetching user data:", error);
+      } finally {
+        this.tableLoading = false;
       }
     },
     add() {

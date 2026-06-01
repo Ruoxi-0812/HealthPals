@@ -34,6 +34,7 @@
       </template>
       <el-table
         stripe
+        v-loading="tableLoading"
         row-key="id"
         :data="tableData"
         class="admin-table-full"
@@ -159,6 +160,7 @@ export default {
       dialogOperaion: false,
       isOperation: false,
       tableData: [],
+      tableLoading: false,
       searchTime: [],
       selectedRows: [],
       tagsQueryDto: {},
@@ -243,6 +245,7 @@ export default {
       }
     },
     async fetchFreshData() {
+      this.tableLoading = true;
       try {
         const params = {
           current: this.currentPage,
@@ -255,6 +258,8 @@ export default {
         this.totalItems = data.total;
       } catch (error) {
         console.error("Error fetching tag data:", error);
+      } finally {
+        this.tableLoading = false;
       }
     },
     add() {

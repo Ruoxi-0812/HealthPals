@@ -59,6 +59,7 @@
       </template>
       <el-table
         stripe
+        v-loading="tableLoading"
         row-key="id"
         @selection-change="handleSelectionChange"
         :data="tableData"
@@ -232,6 +233,7 @@ export default {
       dialogUserOperaion: false, // Dialog visibility control
       isOperation: false, // Flag to identify add or edit operation
       tableData: [],
+      tableLoading: false,
       searchTime: [],
       selectedRows: [],
       status: null,
@@ -367,6 +369,7 @@ export default {
       this.data = {};
     },
     async fetchFreshData() {
+      this.tableLoading = true;
       try {
         let startTime = null;
         let endTime = null;
@@ -391,6 +394,8 @@ export default {
         this.totalItems = data.total;
       } catch (error) {
         console.error("Error fetching news data:", error);
+      } finally {
+        this.tableLoading = false;
       }
     },
     add() {
