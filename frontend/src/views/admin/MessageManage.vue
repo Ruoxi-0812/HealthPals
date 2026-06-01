@@ -43,6 +43,7 @@
       </template>
 <el-table
         stripe
+        v-loading="tableLoading"
         row-key="id"
         :row-class-name="rowClassName"
         :data="tableData"
@@ -217,6 +218,7 @@ export default {
       pageSize: 10,
       totalItems: 0,
       tableData: [],
+      tableLoading: false,
       searchTime: [],
       selectedRows: [],
       messageQueryDto: {},
@@ -361,6 +363,7 @@ export default {
       }
     },
     async fetchFreshData() {
+      this.tableLoading = true;
       try {
         let startTime = null;
         let endTime = null;
@@ -384,6 +387,8 @@ export default {
         this.totalItems = data.total;
       } catch (error) {
         console.error("Error fetching message data:", error);
+      } finally {
+        this.tableLoading = false;
       }
     },
     handleFilter() {

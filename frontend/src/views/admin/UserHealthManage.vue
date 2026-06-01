@@ -44,6 +44,7 @@
       </template>
 <el-table
         stripe
+        v-loading="tableLoading"
         row-key="id"
         :row-class-name="rowClassName"
         @selection-change="handleSelectionChange"
@@ -239,6 +240,7 @@ export default {
       dialogUserOperaion: false, // Toggle
       isOperation: false, // Toggle - Indicates whether adding or modifying
       tableData: [],
+      tableLoading: false,
       searchTime: [],
       selectedRows: [],
       status: null,
@@ -398,6 +400,7 @@ const response = await this.$axios.post("/user-health/save", this.data);
       this.data = {};
     },
     async fetchFreshData() {
+      this.tableLoading = true;
       try {
         let startTime = null;
         let endTime = null;
@@ -422,6 +425,8 @@ const response = await this.$axios.post("/user-health/save", this.data);
         this.totalItems = data.total;
       } catch (error) {
         console.error("Error fetching user health records:", error);
+      } finally {
+        this.tableLoading = false;
       }
     },
     add() {

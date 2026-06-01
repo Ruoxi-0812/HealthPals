@@ -30,6 +30,7 @@
       </template>
       <el-table
         stripe
+        v-loading="tableLoading"
         row-key="id"
         :row-class-name="rowClassName"
         @selection-change="handleSelectionChange"
@@ -239,6 +240,7 @@ export default {
     return {
       reportsDate: [],
       tableData: [],
+      tableLoading: false,
       currentPage: 1,
       pageSize: 10,
       totalItems: 0,
@@ -358,6 +360,7 @@ export default {
       return escaped;
     },
     async fetchFreshData() {
+      this.tableLoading = true;
       try {
         let startTime = "";
         let endTime = "";
@@ -383,6 +386,8 @@ export default {
         this.totalItems = data.total;
       } catch (error) {
         console.error("Fetch data failed:", error);
+      } finally {
+        this.tableLoading = false;
       }
     },
     handleFilter() {
