@@ -28,9 +28,6 @@
         <div v-show="activeSection === 'profile'" class="admin-settings-panel">
           <header class="admin-settings-panel__head">
             <h2 class="admin-settings-panel__title">Profile</h2>
-            <p class="admin-settings-panel__lede">
-              Manage your admin identity, account details, and quick shortcuts.
-            </p>
           </header>
 
           <div class="admin-settings-profile__summary">
@@ -150,16 +147,12 @@
         <div v-show="activeSection === 'password'" class="admin-settings-panel">
           <header class="admin-settings-panel__head">
             <h2 class="admin-settings-panel__title">Password</h2>
-            <p class="admin-settings-panel__lede">Change your admin password.</p>
           </header>
 
           <div class="admin-settings-password">
             <section class="admin-settings-password__card">
               <div class="admin-settings-password__card-head">
                 <h3 class="admin-settings-password__card-title">Update password</h3>
-                <p class="admin-settings-password__card-text">
-                  You will sign in again after saving.
-                </p>
               </div>
 
               <div class="admin-settings-panel__fields admin-settings-panel__fields--narrow">
@@ -180,7 +173,7 @@
                     v-model="pwdEntity.newPwd"
                     class="hp-field__input"
                     type="password"
-                    placeholder="At least 6 characters"
+                    placeholder="Set new password"
                     autocomplete="new-password"
                   />
                 </label>
@@ -214,9 +207,6 @@
         <div v-show="activeSection === 'account'" class="admin-settings-panel">
           <header class="admin-settings-panel__head">
             <h2 class="admin-settings-panel__title">Account</h2>
-            <p class="admin-settings-panel__lede">
-              Sign out on this device. Your admin access remains tied to your account.
-            </p>
           </header>
 
           <div class="admin-settings-panel__account-card">
