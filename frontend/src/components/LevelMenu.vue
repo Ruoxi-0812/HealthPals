@@ -19,15 +19,6 @@
         </nav>
       </div>
 
-      <div class="top-bar__today" aria-label="Today wellness status">
-        <span class="top-bar__today-dot" aria-hidden="true" />
-        <span class="top-bar__today-text">
-          <strong>Today</strong>
-          <span>{{ todayLabel }}</span>
-        </span>
-        <span class="top-bar__today-action">Balanced</span>
-      </div>
-
       <div class="top-bar__actions">
         <div class="top-bar__search" role="search">
           <i class="el-icon-search top-bar__search-icon" aria-hidden="true" />
@@ -117,12 +108,6 @@ export default {
       return this.menus
         .map((item, index) => ({ item, index }))
         .filter(({ item }) => !item.isHidden);
-    },
-    todayLabel() {
-      return new Intl.DateTimeFormat("en", {
-        month: "short",
-        day: "numeric",
-      }).format(new Date());
     },
   },
   data() {
@@ -349,75 +334,6 @@ $bar-bg: #ffffff;
   justify-content: flex-end;
   gap: 8px;
   margin-left: clamp(18px, 4vw, 72px);
-}
-
-.top-bar__today {
-  border: 1px solid rgba(126, 197, 160, 0.26);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.92),
-    rgba(244, 250, 247, 0.88)
-  );
-  color: #2f4a40;
-  border-radius: 999px;
-  padding: 7px 10px 7px 9px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  max-width: 260px;
-  margin-left: clamp(8px, 2vw, 30px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 1px 3px rgba(42, 157, 111, 0.06);
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
-
-  @media (max-width: 1280px) {
-    display: none;
-  }
-}
-
-.top-bar__today-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #67c99a;
-  box-shadow:
-    0 0 0 4px rgba(103, 201, 154, 0.16),
-    0 0 16px rgba(103, 201, 154, 0.35);
-}
-
-.top-bar__today-text {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  font-size: 12px;
-  line-height: 1;
-  white-space: nowrap;
-
-  strong {
-    font-weight: 800;
-    color: #24332b;
-  }
-
-  span {
-    color: rgba(36, 51, 43, 0.52);
-    font-weight: 650;
-  }
-}
-
-.top-bar__today-action {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(42, 157, 111, 0.07);
-  color: rgba(36, 135, 96, 0.78);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1;
-  white-space: nowrap;
-  border: 1px solid rgba(42, 157, 111, 0.08);
 }
 
 .top-bar__search {
