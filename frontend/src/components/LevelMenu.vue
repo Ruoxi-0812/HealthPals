@@ -19,6 +19,8 @@
         </nav>
       </div>
 
+      <div class="top-bar__today-space" aria-hidden="true"></div>
+
       <div class="top-bar__actions">
         <div class="top-bar__search" role="search">
           <i class="el-icon-search top-bar__search-icon" aria-hidden="true" />
@@ -334,6 +336,16 @@ $bar-bg: #ffffff;
   justify-content: flex-end;
   gap: 8px;
   margin-left: clamp(18px, 4vw, 72px);
+}
+
+.top-bar__today-space {
+  flex: 0 0 clamp(168px, 15vw, 260px);
+  min-width: 0;
+  margin-left: clamp(8px, 2vw, 30px);
+
+  @media (max-width: 1280px) {
+    display: none;
+  }
 }
 
 .top-bar__search {
