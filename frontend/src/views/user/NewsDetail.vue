@@ -16,7 +16,7 @@
           <div class="news-detail__hero">
             <img
               class="news-detail__hero-img"
-              :src="newsHeroCoverSrc(newsInfo)"
+              :src="newsCoverSrc(newsInfo.cover, newsInfo.id)"
               :alt="newsInfo.name || 'Article cover'"
               referrerpolicy="no-referrer"
               @error="onCoverImgError"
@@ -113,7 +113,6 @@ import { timeAgo } from "@/utils/data";
 import Evaluations from "@/components/Evaluations.vue";
 import {
   newsCoverSrc,
-  newsHeroCoverSrc,
   onCoverImgError,
   pickUniqueCoverNews,
 } from "@/utils/coverImage";
@@ -170,7 +169,6 @@ export default {
   },
   methods: {
     newsCoverSrc,
-    newsHeroCoverSrc,
     onCoverImgError,
     goBack() {
       if (window.history.length > 1) {
