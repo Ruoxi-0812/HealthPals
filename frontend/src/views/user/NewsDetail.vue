@@ -109,6 +109,7 @@
 
 <script>
 import { timeAgo } from "@/utils/data";
+import { scrollPageToTop } from "@/utils/scroll";
 import Evaluations from "@/components/Evaluations.vue";
 import {
   newsCoverSrc,
@@ -157,6 +158,7 @@ export default {
   watch: {
     "$route.query.id"(id) {
       if (id != null && id !== "") {
+        this.scrollToTop();
         this.fetchArticleById(Number(id));
       }
     },
@@ -164,6 +166,9 @@ export default {
   created() {
     this.bootstrapArticle();
     this.loadAllTopNews();
+  },
+  mounted() {
+    this.$nextTick(() => this.scrollToTop());
   },
   methods: {
     newsCoverSrc,
@@ -217,6 +222,7 @@ export default {
       if (news == null || news.id == null) return;
       const nextId = String(news.id);
       if (this.$route.query.id === nextId) {
+        this.scrollToTop();
         this.fetchArticleById(Number(news.id));
         return;
       }
@@ -263,9 +269,7 @@ export default {
         .catch(() => {});
     },
     scrollToTop() {
-      const el = document.querySelector(".content-container");
-      if (el) el.scrollTo({ top: 0, behavior: "smooth" });
-      else window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollPageToTop();
     },
     parseTime(time) {
       return timeAgo(time);

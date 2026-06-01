@@ -18,6 +18,7 @@
 
 <script>
 import { clearToken } from "@/utils/storage.js";
+import { scrollPageToTop } from "@/utils/scroll";
 import router from "@/router";
 import UserMenu from "@/components/LevelMenu.vue";
 import AskPalFloating from "@/components/AskPalFloating.vue";
@@ -38,10 +39,21 @@ export default {
     this.tokenCheckLoad();
     this.$root.$on("app:user-profile-updated", this.onProfileUpdated);
   },
+  mounted() {
+    this.$nextTick(() => this.scrollContentToTop());
+  },
   beforeDestroy() {
     this.$root.$off("app:user-profile-updated", this.onProfileUpdated);
   },
+  watch: {
+    "$route.fullPath"() {
+      this.$nextTick(() => this.scrollContentToTop());
+    },
+  },
   methods: {
+    scrollContentToTop() {
+      scrollPageToTop();
+    },
     onProfileUpdated(payload) {
       if (!payload) {
         return;
