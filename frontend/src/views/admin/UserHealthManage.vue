@@ -53,14 +53,14 @@
       >
         <el-table-column
           prop="value"
-          width="300"
-          label="Reading"
+          min-width="380"
+          label="Record"
           sortable
           class-name="admin-col-reading"
         >
           <template slot-scope="scope">
-            <div class="admin-health-reading">
-              <div class="admin-health-reading__main">
+            <div class="admin-health-record-cell">
+              <div class="admin-health-record-cell__top">
                 <el-tooltip
                   v-if="!statusCheck(scope.row)"
                   effect="dark"
@@ -88,9 +88,16 @@
                   >
                 </span>
               </div>
+              <span class="admin-tag-cell admin-tag-cell--subtle">
+                <i
+                  class="el-icon-data-line admin-tag-cell__icon"
+                  aria-hidden="true"
+                />
+                <span class="admin-tag-cell__name">{{ scope.row.name }}</span>
+              </span>
               <p
                 v-if="scope.row.valueRange"
-                class="admin-health-reading__threshold"
+                class="admin-health-record-cell__threshold"
               >
                 Range {{ scope.row.valueRange }}
               </p>
@@ -116,25 +123,8 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="name"
-          min-width="260"
-          label="Metric"
-          show-overflow-tooltip
-          class-name="admin-col-nowrap"
-        >
-          <template slot-scope="scope">
-            <span class="admin-tag-cell">
-              <i
-                class="el-icon-data-line admin-tag-cell__icon"
-                aria-hidden="true"
-              />
-              <span class="admin-tag-cell__name">{{ scope.row.name }}</span>
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column
           prop="createTime"
-          width="190"
+          width="128"
           label="Recorded"
           sortable
           show-overflow-tooltip
@@ -146,9 +136,16 @@
               placement="top"
               :disabled="!scope.row.createTime"
             >
-              <span class="admin-health-recorded">{{
-                formatRecordedLine(scope.row.createTime)
-              }}</span>
+              <div class="admin-cell-datetime">
+                <span class="admin-cell-datetime__date">{{
+                  formatDateShort(scope.row.createTime)
+                }}</span>
+                <span
+                  v-if="formatTimeShort(scope.row.createTime)"
+                  class="admin-cell-datetime__time"
+                  >{{ formatTimeShort(scope.row.createTime) }}</span
+                >
+              </div>
             </el-tooltip>
           </template>
         </el-table-column>

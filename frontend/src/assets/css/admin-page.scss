@@ -1030,6 +1030,23 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+
+  &--subtle {
+    gap: 8px;
+    color: rgba(53, 82, 71, 0.72);
+
+    .admin-tag-cell__icon {
+      font-size: 15px;
+      color: rgba(77, 139, 115, 0.78);
+    }
+
+    .admin-tag-cell__name {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(53, 82, 71, 0.76);
+    }
+  }
 }
 
 .admin-tag-cell__icon {
@@ -1039,6 +1056,9 @@
 }
 
 .admin-tag-cell__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 14px;
   font-weight: 650;
   color: var(--nb-ink, #24332b);
@@ -1132,21 +1152,21 @@
   color: rgba(53, 82, 71, 0.55);
 }
 
-.admin-health-reading {
+.admin-health-record-cell {
   display: flex;
   flex-direction: column;
   gap: 7px;
   min-width: 0;
 }
 
-.admin-health-reading__main {
+.admin-health-record-cell__top {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   gap: 12px;
 }
 
-.admin-health-reading__threshold {
+.admin-health-record-cell__threshold {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
@@ -1188,6 +1208,15 @@
 }
 
 .admin-msg-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.admin-msg-cell,
+.admin-comment-cell {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1255,6 +1284,13 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
+}
+
+.admin-comment-cell__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .admin-comment-author__name {
@@ -1393,7 +1429,7 @@
   }
 
   .el-table td {
-    vertical-align: top;
+    vertical-align: middle;
   }
 
   .el-table__body tr.admin-health-row--abnormal > td {

@@ -39,35 +39,23 @@
       >
         <el-table-column
           prop="content"
-          min-width="420"
+          min-width="560"
           label="Comment"
           class-name="admin-col-comment-body"
         >
           <template slot-scope="scope">
-            <el-tooltip
-              :content="scope.row.content"
-              placement="top"
-              :disabled="!scope.row.content"
-            >
-              <p
-                class="admin-comment-body"
-                v-html="highlightKeyword(scope.row.content)"
-              />
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <el-table-column
-          width="280"
-          label="Author"
-          class-name="admin-col-comment-author"
-        >
-          <template slot-scope="scope">
-            <div class="admin-comment-author">
-              <span
-                class="admin-comment-author__name"
-                v-html="highlightKeyword(scope.row.userName)"
-              />
-              <div class="admin-comment-author__meta">
+            <div class="admin-comment-cell">
+              <el-tooltip
+                :content="scope.row.content"
+                placement="top"
+                :disabled="!scope.row.content"
+              >
+                <p
+                  class="admin-comment-body"
+                  v-html="highlightKeyword(scope.row.content)"
+                />
+              </el-tooltip>
+              <div class="admin-comment-cell__meta">
                 <span
                   v-if="scope.row.parentId != null && scope.row.replierName"
                   class="admin-comment-author__reply"
@@ -107,8 +95,22 @@
           </template>
         </el-table-column>
         <el-table-column
+          width="180"
+          label="Author"
+          class-name="admin-col-comment-author"
+        >
+          <template slot-scope="scope">
+            <div class="admin-comment-author">
+              <span
+                class="admin-comment-author__name"
+                v-html="highlightKeyword(scope.row.userName)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column
           prop="createTime"
-          width="190"
+          width="128"
           label="Posted"
           class-name="admin-col-recorded"
         >
@@ -118,9 +120,16 @@
               placement="top"
               :disabled="!scope.row.createTime"
             >
-              <span class="admin-health-recorded">{{
-                formatRecordedLine(scope.row.createTime)
-              }}</span>
+              <div class="admin-cell-datetime">
+                <span class="admin-cell-datetime__date">{{
+                  formatDateShort(scope.row.createTime)
+                }}</span>
+                <span
+                  v-if="formatTimeShort(scope.row.createTime)"
+                  class="admin-cell-datetime__time"
+                  >{{ formatTimeShort(scope.row.createTime) }}</span
+                >
+              </div>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -219,8 +228,9 @@ import AdminPageShell from "@/components/admin/AdminPageShell.vue";
 
 import PieChart from "@/components/PieChart";
 import {
+  formatDateShort,
   formatDateTimeFull,
-  formatRecordedLine,
+  formatTimeShort,
 } from "@/utils/data";
 
 export default {
@@ -244,8 +254,9 @@ export default {
     this.fetchFreshData();
   },
   methods: {
+    formatDateShort,
     formatDateTimeFull,
-    formatRecordedLine,
+    formatTimeShort,
     likeCount(row) {
       if (!row.upvoteList) {
         return 0;

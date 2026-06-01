@@ -50,55 +50,55 @@
         empty-text="No messages match your filters."
       >
         <el-table-column
-          width="190"
+          width="170"
           label="Delivery"
           class-name="admin-col-msg-meta"
         >
           <template slot-scope="scope">
             <div class="admin-msg-meta">
-              <div class="admin-msg-meta__tags">
-                <span
-                  v-if="!scope.row.isRead"
-                  class="admin-badge admin-badge--nowrap admin-badge--ok"
-                >
-                  Unread
-                </span>
-                <span
-                  class="admin-badge admin-badge--nowrap"
-                  :class="typeBadgeClass(scope.row.messageType)"
-                >
-                  {{ typeLabel(scope.row.messageType) }}
-                </span>
-              </div>
               <span class="admin-msg-meta__receiver">{{
                 scope.row.receiverName || "—"
               }}</span>
+              <span
+                v-if="!scope.row.isRead"
+                class="admin-badge admin-badge--nowrap admin-badge--ok"
+              >
+                Unread
+              </span>
             </div>
           </template>
         </el-table-column>
         <el-table-column
           prop="content"
-          min-width="520"
+          min-width="560"
           label="Message"
           class-name="admin-col-msg-body"
         >
           <template slot-scope="scope">
-            <p
-              v-if="healthAlertParts(scope.row)"
-              class="admin-msg-content admin-msg-content--alert"
-            >
-              <span>{{ healthAlertParts(scope.row).lead }} </span>
-              <strong class="admin-msg-content__metric">{{
-                healthAlertParts(scope.row).metric
-              }}</strong>
-              <span> {{ healthAlertParts(scope.row).tail }}</span>
-            </p>
-            <p v-else class="admin-msg-content">{{ scope.row.content }}</p>
+            <div class="admin-msg-cell">
+              <span
+                class="admin-badge admin-badge--nowrap"
+                :class="typeBadgeClass(scope.row.messageType)"
+              >
+                {{ typeLabel(scope.row.messageType) }}
+              </span>
+              <p
+                v-if="healthAlertParts(scope.row)"
+                class="admin-msg-content admin-msg-content--alert"
+              >
+                <span>{{ healthAlertParts(scope.row).lead }} </span>
+                <strong class="admin-msg-content__metric">{{
+                  healthAlertParts(scope.row).metric
+                }}</strong>
+                <span> {{ healthAlertParts(scope.row).tail }}</span>
+              </p>
+              <p v-else class="admin-msg-content">{{ scope.row.content }}</p>
+            </div>
           </template>
         </el-table-column>
         <el-table-column
           prop="createTime"
-          width="180"
+          width="128"
           label="Sent"
           class-name="admin-col-recorded"
         >
@@ -108,9 +108,16 @@
               placement="top"
               :disabled="!scope.row.createTime"
             >
-              <span class="admin-health-recorded">{{
-                formatRecordedLine(scope.row.createTime)
-              }}</span>
+              <div class="admin-cell-datetime">
+                <span class="admin-cell-datetime__date">{{
+                  formatDateShort(scope.row.createTime)
+                }}</span>
+                <span
+                  v-if="formatTimeShort(scope.row.createTime)"
+                  class="admin-cell-datetime__time"
+                  >{{ formatTimeShort(scope.row.createTime) }}</span
+                >
+              </div>
             </el-tooltip>
           </template>
         </el-table-column>
