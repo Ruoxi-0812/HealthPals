@@ -194,7 +194,7 @@
                     v-model="pwdEntity.newPwd"
                     class="hp-field__input"
                     type="password"
-                    placeholder="At least 6"
+                    placeholder="Set new password"
                     autocomplete="new-password"
                   />
                 </label>

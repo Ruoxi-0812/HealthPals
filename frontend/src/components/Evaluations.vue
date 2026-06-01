@@ -4,7 +4,6 @@
       <div class="ev-comments__heading">
         <h2 class="ev-comments__title">
           Comments
-          <span class="ev-comments__count">{{ evaluationsCount }}</span>
         </h2>
       </div>
     </header>
@@ -695,21 +694,6 @@ $ev-border: rgba(126, 197, 160, 0.22);
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.ev-comments__count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.6rem;
-  padding: 2px 10px;
-  font-family: var(--nb-font, system-ui, sans-serif);
-  font-size: 13px;
-  font-weight: 600;
-  color: #1a5c4a;
-  background: rgba(42, 157, 111, 0.14);
-  border: 1px solid rgba(42, 157, 111, 0.28);
-  border-radius: 999px;
 }
 
 .ev-comments__composer {
