@@ -22,7 +22,6 @@
               @error="onCoverImgError"
             />
             <div class="news-detail__hero-overlay"></div>
-            <span class="news-detail__hero-badge">Editor pick</span>
           </div>
 
           <div class="news-detail__header">
@@ -369,24 +368,6 @@ export default {
     linear-gradient(120deg, rgba(42, 157, 111, 0.18) 0%, rgba(255, 255, 255, 0) 55%);
 }
 
-.news-detail__hero-badge {
-  position: absolute;
-  left: 24px;
-  bottom: 20px;
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #fff;
-  background: rgba(18, 52, 39, 0.56);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
-  backdrop-filter: blur(10px);
-}
-
 .news-detail__header {
   display: flex;
   align-items: flex-end;
@@ -725,11 +706,6 @@ export default {
 
   .news-detail__hero {
     height: 190px;
-  }
-
-  .news-detail__hero-badge {
-    left: 16px;
-    bottom: 16px;
   }
 
   .news-detail__header,

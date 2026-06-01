@@ -8,9 +8,6 @@
         </h2>
         <span class="ev-comments__accent" aria-hidden="true" />
       </div>
-      <p class="ev-comments__hint">
-        Share what stood out, ask a quick follow-up, or leave a helpful note.
-      </p>
     </header>
 
     <div class="ev-comments__composer">
@@ -18,7 +15,6 @@
       <div class="ev-panel" :class="{ 'is-focused': isFocused }">
         <div class="ev-panel__top">
           <span class="ev-panel__label">Add a comment</span>
-          <span class="ev-panel__helper">Keep it kind and useful.</span>
         </div>
         <textarea
           v-model="content"
@@ -47,7 +43,6 @@
         <i class="el-icon-chat-dot-round" aria-hidden="true" />
       </div>
       <p class="ev-empty__title">No comments yet</p>
-      <p class="ev-empty__text">Be the first to start the conversation.</p>
     </div>
 
     <div v-else class="ev-thread">
@@ -726,14 +721,6 @@ $ev-border: rgba(126, 197, 160, 0.22);
   border-radius: 999px;
 }
 
-.ev-comments__hint {
-  margin: 6px 0 0;
-  font-size: 14px;
-  color: $ev-muted;
-  line-height: 1.45;
-  max-width: 54ch;
-}
-
 .ev-comments__composer {
   display: flex;
   gap: 14px;
@@ -790,11 +777,6 @@ $ev-border: rgba(126, 197, 160, 0.22);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(53, 82, 71, 0.55);
-}
-
-.ev-panel__helper {
-  font-size: 12px;
-  color: rgba(36, 51, 43, 0.44);
 }
 
 .ev-panel__input {
@@ -895,12 +877,6 @@ $ev-border: rgba(126, 197, 160, 0.22);
   font-size: 16px;
   font-weight: 650;
   color: #355247;
-}
-
-.ev-empty__text {
-  margin: 6px 0 0;
-  font-size: 14px;
-  color: $ev-muted;
 }
 
 .ev-thread {
