@@ -606,6 +606,17 @@ $shadow-hover: 0 20px 40px rgba(30, 47, 40, 0.12);
 
 .feed-head {
   align-items: flex-end;
+
+  .lede {
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 720px) {
+    .lede {
+      white-space: normal;
+    }
+  }
 }
 
 .feed-empty {

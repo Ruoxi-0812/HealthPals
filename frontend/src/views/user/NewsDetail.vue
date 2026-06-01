@@ -35,9 +35,6 @@
               </div>
 
               <h1 class="news-detail__title">{{ newsInfo.name }}</h1>
-              <p v-if="articleSummary" class="news-detail__summary">
-                {{ articleSummary }}
-              </p>
             </div>
 
             <button
@@ -140,13 +137,6 @@ export default {
         .replace(/&nbsp;/gi, " ")
         .replace(/\s+/g, " ")
         .trim();
-    },
-    articleSummary() {
-      if (!this.articlePlainText) {
-        return "";
-      }
-      const snippet = this.articlePlainText.slice(0, 160).trim();
-      return this.articlePlainText.length > 160 ? `${snippet}...` : snippet;
     },
     estimatedReadMinutes() {
       if (!this.articlePlainText) {

@@ -30,9 +30,6 @@
         <div v-show="activeSection === 'profile'" class="settings-panel">
           <header class="settings-panel__head">
             <h2 class="settings-panel__title">Profile</h2>
-            <p class="settings-panel__lede">
-              Your public identity, account details, and activity on HealthPals.
-            </p>
           </header>
 
           <div class="settings-profile__overview">
@@ -171,18 +168,12 @@
         <div v-show="activeSection === 'password'" class="settings-panel">
           <header class="settings-panel__head">
             <h2 class="settings-panel__title">Password</h2>
-            <p class="settings-panel__lede">
-              Change your password.
-            </p>
           </header>
 
           <div class="settings-password">
             <section class="settings-password__card">
               <div class="settings-password__card-head">
                 <h3 class="settings-password__card-title">Update password</h3>
-                <p class="settings-password__card-text">
-                  You’ll sign in again after saving.
-                </p>
               </div>
 
               <div class="settings-panel__fields settings-panel__fields--narrow">
@@ -203,7 +194,7 @@
                     v-model="pwdEntity.newPwd"
                     class="hp-field__input"
                     type="password"
-                    placeholder="At least 6 characters"
+                    placeholder="At least 6"
                     autocomplete="new-password"
                   />
                 </label>
@@ -237,10 +228,6 @@
         <div v-show="activeSection === 'account'" class="settings-panel">
           <header class="settings-panel__head">
             <h2 class="settings-panel__title">Account</h2>
-            <p class="settings-panel__lede">
-              Sign out on this device. Your saved health data stays in your
-              account.
-            </p>
           </header>
 
           <div class="settings-panel__account-card">

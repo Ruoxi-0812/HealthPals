@@ -6,7 +6,6 @@
           Comments
           <span class="ev-comments__count">{{ evaluationsCount }}</span>
         </h2>
-        <span class="ev-comments__accent" aria-hidden="true" />
       </div>
     </header>
 
@@ -696,14 +695,6 @@ $ev-border: rgba(126, 197, 160, 0.22);
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.ev-comments__accent {
-  width: 68px;
-  height: 8px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(42, 157, 111, 0.1), rgba(42, 157, 111, 0.26));
-  border: 1px solid rgba(42, 157, 111, 0.16);
 }
 
 .ev-comments__count {

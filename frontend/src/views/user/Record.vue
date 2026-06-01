@@ -117,7 +117,6 @@
             <section class="record-page__section-card">
               <div class="record-page__section-head">
                 <p class="record-page__quick-label">Start faster</p>
-                <span class="record-page__section-copy">Compact suggestions</span>
               </div>
 
               <div v-if="recentModels.length" class="record-page__compact-group">

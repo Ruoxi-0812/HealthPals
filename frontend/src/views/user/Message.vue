@@ -88,10 +88,6 @@
                 <i class="el-icon-message" />
               </div>
               <p class="messages-page__empty-title">All quiet here</p>
-              <p class="messages-page__empty-text">
-                When someone comments, likes your post, or the app has a health
-                tip, it’ll show up in this inbox.
-              </p>
             </div>
 
             <ul v-else class="messages-page__list">
