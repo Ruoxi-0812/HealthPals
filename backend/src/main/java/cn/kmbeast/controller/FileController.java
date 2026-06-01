@@ -1,7 +1,6 @@
 package cn.kmbeast.controller;
 
 import cn.kmbeast.utils.IdFactoryUtil;
-import cn.kmbeast.utils.PathUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +23,9 @@ public class FileController {
 
     @Value("${my-server.api-context-path}")
     private String API;
+
+    @Value("${app.upload-dir:./uploads}")
+    private String uploadDir;
 
     /**
      * File upload
@@ -86,7 +89,7 @@ public class FileController {
      * @throws IOException Exception
      */
     public boolean uploadFile(MultipartFile multipartFile, String fileName) throws IOException {
-        return fileName(multipartFile, fileName);
+        return storeFile(multipartFile, fileName);
     }
 
     /**
@@ -143,8 +146,8 @@ public class FileController {
         return slug;
     }
 
-    public static boolean fileName(MultipartFile multipartFile, String fileName) throws IOException {
-        File fileDir = new File(PathUtils.getClassLoadRootPath() + "/pic");
+    public boolean storeFile(MultipartFile multipartFile, String fileName) throws IOException {
+        File fileDir = new File(uploadDir).getAbsoluteFile();
         if (!fileDir.exists()) {
             if (!fileDir.mkdirs()) {
                 return false;
@@ -173,17 +176,22 @@ public class FileController {
     @GetMapping("/getFile")
     public void getImage(@RequestParam("fileName") String imageName,
                          HttpServletResponse response) throws IOException {
-        File fileDir = new File(PathUtils.getClassLoadRootPath() + "/pic");
-        File image = new File(fileDir.getAbsolutePath() + "/" + imageName);
+        String safeName = new File(imageName).getName();
+        File fileDir = new File(uploadDir).getAbsoluteFile();
+        File image = new File(fileDir.getAbsolutePath() + "/" + safeName);
         if (image.exists()) {
-            FileInputStream fileInputStream = new FileInputStream(image);
-            byte[] bytes = new byte[fileInputStream.available()];
-            if (fileInputStream.read(bytes) > 0) {
-                OutputStream outputStream = response.getOutputStream();
-                outputStream.write(bytes);
-                outputStream.close();
+            String contentType = Files.probeContentType(image.toPath());
+            if (contentType != null) {
+                response.setContentType(contentType);
             }
-            fileInputStream.close();
+            try (FileInputStream fileInputStream = new FileInputStream(image);
+                 OutputStream outputStream = response.getOutputStream()) {
+                byte[] bytes = new byte[fileInputStream.available()];
+                fileInputStream.read(bytes);
+                outputStream.write(bytes);
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
