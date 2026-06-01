@@ -62,6 +62,7 @@
               <img
                 :src="newsCoverSrc(news.cover, news.newsId)"
                 :alt="news.name"
+                :data-news-id="news.newsId"
                 class="feed-card__img"
                 loading="lazy"
                 referrerpolicy="no-referrer"

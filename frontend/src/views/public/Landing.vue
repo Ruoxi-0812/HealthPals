@@ -50,7 +50,7 @@ export default {
   background:
     linear-gradient(90deg, rgba(232, 247, 239, 0.88), rgba(247, 252, 249, 0)),
     linear-gradient(180deg, #f8fcfa 0%, #edf8f2 54%, #e7f6ee 100%);
-  padding: 44px 24px;
+  padding: clamp(20px, 4vh, 44px) 24px;
   box-sizing: border-box;
 }
 
@@ -59,7 +59,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 34px;
+  gap: clamp(18px, 4vh, 34px);
 }
 
 .landing-page__brand {
@@ -67,9 +67,9 @@ export default {
   color: var(--nb-ink, #24332b);
 
   h1 {
-    margin: 18px 0 8px;
+    margin: 14px 0 6px;
     font-family: var(--nb-font-display, Georgia, serif);
-    font-size: 38px;
+    font-size: clamp(32px, 5vh, 38px);
     line-height: 1.12;
     letter-spacing: 0;
   }
@@ -84,8 +84,8 @@ export default {
 }
 
 .landing-page__mark {
-  width: 88px;
-  height: 88px;
+  width: clamp(70px, 12vh, 88px);
+  height: clamp(70px, 12vh, 88px);
   margin: 0 auto;
   display: grid;
   place-items: center;
@@ -98,7 +98,7 @@ export default {
 }
 
 .landing-card {
-  padding: 42px 48px 38px;
+  padding: clamp(30px, 5vh, 42px) 48px clamp(28px, 4vh, 38px);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(126, 197, 160, 0.24);
@@ -112,7 +112,7 @@ export default {
   h2 {
     margin: 0 0 14px;
     font-family: var(--nb-font-display, Georgia, serif);
-    font-size: 34px;
+    font-size: clamp(30px, 5vh, 34px);
     line-height: 1.25;
     color: #24332b;
   }
@@ -120,7 +120,7 @@ export default {
   p {
     margin: 0;
     max-width: 100%;
-    font-size: 22px;
+    font-size: clamp(18px, 3vh, 22px);
     line-height: 1.5;
     color: rgba(53, 82, 71, 0.68);
   }
@@ -128,8 +128,8 @@ export default {
 
 .landing-card__primary-action {
   width: 100%;
-  min-height: 70px;
-  margin-top: 42px;
+  min-height: clamp(56px, 8vh, 70px);
+  margin-top: clamp(26px, 5vh, 42px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -159,7 +159,7 @@ export default {
 }
 
 .landing-card__support {
-  margin: 32px 0 0;
+  margin: clamp(22px, 4vh, 32px) 0 0;
   text-align: center;
   font-size: 18px;
   line-height: 1.6;
@@ -169,6 +169,20 @@ export default {
     color: #2a9d6f;
     font-weight: 700;
     text-decoration: none;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 761px) {
+  .landing-page__brand p {
+    font-size: 15px;
+  }
+
+  .landing-card__primary-action {
+    font-size: 19px;
+  }
+
+  .landing-card__support {
+    font-size: 16px;
   }
 }
 

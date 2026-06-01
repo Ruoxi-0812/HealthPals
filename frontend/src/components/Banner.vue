@@ -3,6 +3,8 @@
     <img
       class="banner-image"
       :src="bannerCoverSrc"
+      :alt="activeData.name || 'Article cover'"
+      :data-news-id="activeData.id"
       style="min-height: 218px; max-height: 308px"
       :style="{ width: width, borderRadius: borderRadius }"
       referrerpolicy="no-referrer"

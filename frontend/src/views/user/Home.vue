@@ -43,6 +43,7 @@
                 <img
                   :src="newsCoverSrc(news.cover, news.id)"
                   :alt="news.name"
+                  :data-news-id="news.id"
                   class="featured-card__img"
                   loading="lazy"
                   referrerpolicy="no-referrer"
@@ -113,6 +114,7 @@
               <img
                 :src="newsCoverSrc(news.cover, news.id)"
                 :alt="news.name"
+                :data-news-id="news.id"
                 class="feed-card__img"
                 loading="lazy"
                 referrerpolicy="no-referrer"

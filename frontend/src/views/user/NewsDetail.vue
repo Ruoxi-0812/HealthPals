@@ -18,6 +18,7 @@
               class="news-detail__hero-img"
               :src="newsCoverSrc(newsInfo.cover, newsInfo.id)"
               :alt="newsInfo.name || 'Article cover'"
+              :data-news-id="newsInfo.id"
               referrerpolicy="no-referrer"
               @error="onCoverImgError"
             />
@@ -85,6 +86,7 @@
                   class="news-detail__rec-img"
                   :src="newsCoverSrc(news.cover, news.id)"
                   :alt="news.name"
+                  :data-news-id="news.id"
                   loading="lazy"
                   referrerpolicy="no-referrer"
                   @error="onCoverImgError"

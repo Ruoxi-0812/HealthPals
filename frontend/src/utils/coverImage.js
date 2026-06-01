@@ -32,10 +32,10 @@ export function newsCoverSrc(cover, newsId) {
     return toAbsoluteAsset(LOCAL_BY_NEWS_ID[newsId]);
   }
   if (cover == null || typeof cover !== "string") {
-    return DEFAULT_NEWS_COVER;
+    return generatedNewsCoverSrc(newsId);
   }
   const trimmed = cover.trim();
-  if (!trimmed) return DEFAULT_NEWS_COVER;
+  if (!trimmed) return generatedNewsCoverSrc(newsId);
   for (const [legacy, local] of LEGACY_COVER_REWRITES) {
     if (trimmed.includes(legacy)) return toAbsoluteAsset(local);
   }
@@ -43,7 +43,7 @@ export function newsCoverSrc(cover, newsId) {
     return toAbsoluteAsset(trimmed);
   }
   if (!trimmed.startsWith("http")) {
-    return DEFAULT_NEWS_COVER;
+    return generatedNewsCoverSrc(newsId || trimmed);
   }
   return trimmed;
 }
@@ -71,7 +71,7 @@ export function onCoverImgError(event) {
   const el = event && event.target;
   if (!el || el.dataset.fallbackApplied === "1") return;
   el.dataset.fallbackApplied = "1";
-  el.src = DEFAULT_NEWS_COVER;
+  el.src = generatedNewsCoverSrc(el.dataset.newsId || el.alt || el.src);
 }
 
 function svgDataUri(svg) {
@@ -85,6 +85,47 @@ function hashString(input) {
     hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
   }
   return hash;
+}
+
+function generatedNewsCoverSrc(seedInput) {
+  const seed = hashString(seedInput || "article");
+  const palettes = [
+    ["#eef8f2", "#cfe9da", "#2a9d6f", "#f3b562"],
+    ["#eef3ff", "#d7defd", "#667eea", "#8fd3ff"],
+    ["#fff8ef", "#ffe1c4", "#d98b4a", "#f2bf63"],
+    ["#eefbff", "#d5f4ff", "#299fbd", "#7ed6ea"],
+    ["#f5f1ff", "#ded5ff", "#7c6bd6", "#9ed5bc"],
+  ];
+  const [bg, bgSoft, accent, accentSoft] = palettes[seed % palettes.length];
+  const circleX = 770 + (seed % 180);
+  const circleY = 150 + (seed % 90);
+  const waveY = 330 + (seed % 48);
+  const code = String(seedInput || "HP")
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(-3)
+    .toUpperCase() || "HP";
+
+  return svgDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" fill="none">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="900" y2="560" gradientUnits="userSpaceOnUse">
+          <stop stop-color="${bgSoft}"/>
+          <stop offset="1" stop-color="${bg}"/>
+        </linearGradient>
+        <linearGradient id="wave" x1="0" y1="${waveY}" x2="900" y2="560" gradientUnits="userSpaceOnUse">
+          <stop stop-color="${accent}" stop-opacity=".2"/>
+          <stop offset="1" stop-color="${accentSoft}" stop-opacity=".34"/>
+        </linearGradient>
+      </defs>
+      <rect width="900" height="560" fill="url(#bg)"/>
+      <circle cx="${circleX}" cy="${circleY}" r="138" fill="rgba(255,255,255,.36)"/>
+      <circle cx="${circleX}" cy="${circleY}" r="82" fill="rgba(255,255,255,.22)"/>
+      <path d="M0 ${waveY}C132 ${waveY - 48} 248 ${waveY - 72} 394 ${waveY - 42}C568 ${waveY - 6} 690 ${waveY + 38} 900 ${waveY - 18}V560H0V${waveY}Z" fill="url(#wave)"/>
+      <path d="M176 332c0-40 29-70 67-70 24 0 42 11 54 28 12-17 30-28 54-28 38 0 67 30 67 70 0 61-64 98-121 150-57-52-121-89-121-150Z" fill="${accent}" fill-opacity=".16"/>
+      <path d="M130 366h88l26-52 38 94 35-67h78" stroke="${accent}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".74"/>
+      <text x="64" y="96" fill="${accent}" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" letter-spacing="5">${code}</text>
+    </svg>`,
+  );
 }
 
 function newsHeroTheme(article) {
