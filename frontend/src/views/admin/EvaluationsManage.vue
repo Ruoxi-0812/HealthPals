@@ -39,7 +39,7 @@
       >
         <el-table-column
           prop="content"
-          min-width="240"
+          min-width="420"
           label="Comment"
           class-name="admin-col-comment-body"
         >
@@ -57,7 +57,7 @@
           </template>
         </el-table-column>
         <el-table-column
-          width="200"
+          width="280"
           label="Author"
           class-name="admin-col-comment-author"
         >
@@ -108,7 +108,7 @@
         </el-table-column>
         <el-table-column
           prop="createTime"
-          width="148"
+          width="190"
           label="Posted"
           class-name="admin-col-recorded"
         >
@@ -126,7 +126,7 @@
         </el-table-column>
         <el-table-column
           label="Actions"
-          width="96"
+          width="112"
           align="center"
           header-align="center"
           class-name="admin-col-actions"

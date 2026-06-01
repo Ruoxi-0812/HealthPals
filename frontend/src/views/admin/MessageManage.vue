@@ -50,7 +50,7 @@
         empty-text="No messages match your filters."
       >
         <el-table-column
-          width="132"
+          width="190"
           label="Delivery"
           class-name="admin-col-msg-meta"
         >
@@ -78,7 +78,7 @@
         </el-table-column>
         <el-table-column
           prop="content"
-          min-width="280"
+          min-width="520"
           label="Message"
           class-name="admin-col-msg-body"
         >
@@ -98,7 +98,7 @@
         </el-table-column>
         <el-table-column
           prop="createTime"
-          width="128"
+          width="180"
           label="Sent"
           class-name="admin-col-recorded"
         >
@@ -116,7 +116,7 @@
         </el-table-column>
         <el-table-column
           label="Actions"
-          width="72"
+          width="92"
           align="center"
           header-align="center"
           class-name="admin-col-actions"

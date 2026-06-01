@@ -1135,15 +1135,15 @@
 .admin-health-reading {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
   min-width: 0;
 }
 
 .admin-health-reading__main {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .admin-health-reading__threshold {
@@ -1163,6 +1163,10 @@
 }
 
 .admin-health-user__name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 14px;
   font-weight: 650;
   color: var(--nb-ink, #24332b);
@@ -1187,7 +1191,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -1207,14 +1211,16 @@
 
 .admin-msg-content {
   margin: 0;
-  font-size: 13px;
+  max-width: 860px;
+  font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.5;
   color: rgba(53, 82, 71, 0.82);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
 }
 
 .admin-msg-content--alert .admin-msg-content__metric {
@@ -1224,12 +1230,13 @@
 
 .admin-comment-body {
   margin: 0;
-  font-size: 13px;
+  max-width: 640px;
+  font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.5;
   color: rgba(53, 82, 71, 0.88);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -1239,7 +1246,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -1251,6 +1258,11 @@
 }
 
 .admin-comment-author__name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 13px;
   font-weight: 650;
   color: var(--nb-ink, #24332b);
@@ -1297,6 +1309,15 @@
 }
 
 .admin-page--comments {
+  .el-table .cell {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .el-table td {
+    vertical-align: top;
+  }
+
   th.admin-col-comment-body > .cell,
   td.admin-col-comment-body > .cell,
   th.admin-col-comment-author > .cell,
@@ -1321,6 +1342,15 @@
 .admin-page--messages {
   .admin-table-full {
     width: 100% !important;
+  }
+
+  .el-table .cell {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .el-table td {
+    vertical-align: top;
   }
 
   th.admin-col-msg-meta > .cell,
@@ -1355,6 +1385,15 @@
 .admin-page--health-records {
   .admin-table-full {
     width: 100% !important;
+  }
+
+  .el-table .cell {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .el-table td {
+    vertical-align: top;
   }
 
   .el-table__body tr.admin-health-row--abnormal > td {

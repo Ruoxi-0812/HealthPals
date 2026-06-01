@@ -53,7 +53,7 @@
       >
         <el-table-column
           prop="value"
-          min-width="200"
+          width="300"
           label="Reading"
           sortable
           class-name="admin-col-reading"
@@ -99,7 +99,7 @@
         </el-table-column>
         <el-table-column
           prop="userName"
-          width="120"
+          width="170"
           label="User"
           show-overflow-tooltip
           class-name="admin-col-user-cell"
@@ -117,7 +117,7 @@
         </el-table-column>
         <el-table-column
           prop="name"
-          width="220"
+          min-width="260"
           label="Metric"
           show-overflow-tooltip
           class-name="admin-col-nowrap"
@@ -134,7 +134,7 @@
         </el-table-column>
         <el-table-column
           prop="createTime"
-          width="148"
+          width="190"
           label="Recorded"
           sortable
           show-overflow-tooltip
@@ -154,7 +154,7 @@
         </el-table-column>
         <el-table-column
           label="Actions"
-          width="118"
+          width="112"
           align="center"
           header-align="center"
           class-name="admin-col-actions"
