@@ -15,57 +15,50 @@ flowchart TB
   User((User))
   Admin((Admin))
   Frontend["frontend\nVue"]
+  Backend["backend REST API\nSpring Boot"]
+  Auth["Identity\nGoogle OAuth + password login"]
+  Health["Health Data\nrecords + model config + charts"]
+  Articles["Health News\narticles + categories + saved articles"]
+  Community["Community\ncomments + likes + messages"]
+  AdminPanel["Admin Console\nusers + content + records"]
+  Assistant["AI Assistant\nhealth chat"]
+  Uploads["Media Uploads\nimages + files"]
   DB[("database\nAWS RDS MySQL")]
   OAuth["Google OAuth"]
   AI["AI API"]
   Media["ECS task storage"]
   Secrets["AWS Secrets Manager"]
 
-  subgraph Backend["backend REST API\nSpring Boot"]
-    Auth["auth"]
-    Records["health records"]
-    Models["health model config"]
-    News["news + categories"]
-    Saves["saved articles"]
-    Comments["comments + likes"]
-    Messages["messages"]
-    Assistant["AI assistant"]
-    AdminPanel["admin management"]
-    Uploads["media uploads"]
-  end
-
   User -->|HTTP| Frontend
   Admin -->|HTTP| Frontend
-  Frontend --> Auth
-  Frontend --> Records
-  Frontend --> Models
-  Frontend --> News
-  Frontend --> Saves
-  Frontend --> Comments
-  Frontend --> Messages
-  Frontend --> Assistant
-  Frontend --> AdminPanel
-  Frontend --> Uploads
+  Frontend -->|REST API| Backend
 
-  Auth --> OAuth
+  Backend --> Auth
+  Backend --> Health
+  Backend --> Articles
+  Backend --> Community
+  Backend --> AdminPanel
+  Backend --> Assistant
+  Backend --> Uploads
+
   Auth --> DB
-  Records --> DB
-  Models --> DB
-  News --> DB
-  Saves --> DB
-  Comments --> DB
-  Messages --> DB
+  Auth --> OAuth
+  Health --> DB
+  Articles --> DB
+  Community --> DB
   AdminPanel --> DB
-  Uploads --> Media
   Assistant --> AI
+  Uploads --> Media
   Auth --> Secrets
   Assistant --> Secrets
 
   classDef frontend fill:#eadfe4,stroke:#b9b9b9,color:#111,font-weight:bold;
+  classDef backend fill:#f7f0d8,stroke:#b9b9b9,color:#111,font-weight:bold;
   classDef service fill:#ffffff,stroke:#b9b9b9,color:#444;
   classDef datastore fill:#ffffff,stroke:#999,color:#444;
   class Frontend frontend;
-  class Auth,Records,Models,News,Saves,Comments,Messages,Assistant,AdminPanel,Uploads,OAuth,AI,Media,Secrets service;
+  class Backend backend;
+  class Auth,Health,Articles,Community,AdminPanel,Assistant,Uploads,OAuth,AI,Media,Secrets service;
   class DB datastore;
 ```
 
