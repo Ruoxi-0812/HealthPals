@@ -64,13 +64,13 @@ flowchart TB
   class DB datastore;
 ```
 
-| Service | Technology | Description |
+| Service | Language / Platform | Description |
 | --- | --- | --- |
-| frontend | Vue 2, Element UI, ECharts, WangEditor | Serves the user and admin web interfaces for health records, charts, news, comments, notifications, and settings. |
-| backend | Spring Boot, MyBatis, JWT | Exposes the REST API for authentication, health records, news, comments, messages, admin operations, uploads, and the AI assistant. |
-| database | AWS RDS MySQL | Persists users, health records, articles, tags, favorites, comments, messages, and configuration data. |
-| auth & media | Google OAuth, username/password login, ECS task filesystem | Supports Google sign-in and traditional login. Uploaded media is stored on the ECS task filesystem for the current demo deployment. |
-| cloud deployment | Vercel, AWS ECS Fargate, AWS ECR, AWS Secrets Manager, GitHub Actions | Hosts the frontend on Vercel, runs the backend on ECS Fargate, stores Docker images in ECR, manages secrets, and runs CI/CD. |
+| frontend | JavaScript / Vue | Serves the user and admin web interfaces for health records, charts, news, comments, notifications, and settings. |
+| backend | Java / Spring Boot | Exposes the REST API for authentication, health records, news, comments, messages, admin operations, uploads, and the AI assistant. |
+| database | MySQL | Persists users, health records, articles, tags, favorites, comments, messages, and configuration data. |
+| auth & media | Google OAuth / ECS task storage | Supports Google sign-in and traditional login. Uploaded media is stored on the ECS task filesystem for the current demo deployment. |
+| cloud deployment | Vercel + AWS | Hosts the frontend on Vercel, runs the backend on ECS Fargate, stores Docker images in ECR, manages secrets, and runs CI/CD. |
 
 ## Screenshots
 
