@@ -8,32 +8,64 @@ Live demo: [https://health-pals.vercel.app](https://health-pals.vercel.app)
 
 ## Architecture
 
+HealthPals is organized around a Vue frontend and a Spring Boot REST API with feature modules for user health data, article reading, comments, notifications, admin management, uploads, and AI assistance.
+
 ```mermaid
 flowchart TB
   User((User))
   Admin((Admin))
   Frontend["frontend\nVue"]
-  Backend["backend\nSpring Boot"]
   DB[("database\nAWS RDS MySQL")]
   OAuth["Google OAuth"]
   AI["AI API"]
-  Media["media uploads\nECS task storage"]
+  Media["ECS task storage"]
   Secrets["AWS Secrets Manager"]
+
+  subgraph Backend["backend REST API\nSpring Boot"]
+    Auth["auth"]
+    Records["health records"]
+    Models["health model config"]
+    News["news + categories"]
+    Saves["saved articles"]
+    Comments["comments + likes"]
+    Messages["messages"]
+    Assistant["AI assistant"]
+    AdminPanel["admin management"]
+    Uploads["media uploads"]
+  end
 
   User -->|HTTP| Frontend
   Admin -->|HTTP| Frontend
-  Frontend -->|REST API| Backend
-  Backend --> DB
-  Backend --> OAuth
-  Backend --> AI
-  Backend --> Media
-  Backend --> Secrets
+  Frontend --> Auth
+  Frontend --> Records
+  Frontend --> Models
+  Frontend --> News
+  Frontend --> Saves
+  Frontend --> Comments
+  Frontend --> Messages
+  Frontend --> Assistant
+  Frontend --> AdminPanel
+  Frontend --> Uploads
+
+  Auth --> OAuth
+  Auth --> DB
+  Records --> DB
+  Models --> DB
+  News --> DB
+  Saves --> DB
+  Comments --> DB
+  Messages --> DB
+  AdminPanel --> DB
+  Uploads --> Media
+  Assistant --> AI
+  Auth --> Secrets
+  Assistant --> Secrets
 
   classDef frontend fill:#eadfe4,stroke:#b9b9b9,color:#111,font-weight:bold;
   classDef service fill:#ffffff,stroke:#b9b9b9,color:#444;
   classDef datastore fill:#ffffff,stroke:#999,color:#444;
   class Frontend frontend;
-  class Backend,OAuth,AI,Media,Secrets service;
+  class Auth,Records,Models,News,Saves,Comments,Messages,Assistant,AdminPanel,Uploads,OAuth,AI,Media,Secrets service;
   class DB datastore;
 ```
 
