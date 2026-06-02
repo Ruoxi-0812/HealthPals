@@ -2,9 +2,9 @@
 
 ![CI](https://github.com/Ruoxi-0812/HealthPals/actions/workflows/ci.yml/badge.svg)
 
-HealthPals is a Vue + Spring Boot personal health app for health records, curated articles, comments, notifications, admin management, and an AI health assistant.
+HealthPals is a full-stack personal health management application. Users can track health records, view health trends, read curated health articles, save favorites, join discussions, receive notifications, and use an AI health assistant. Admin users can manage users, articles, categories, comments, messages, health metric models, and health records.
 
-Live demo: [https://health-pals.vercel.app](https://health-pals.vercel.app)
+Application: [https://health-pals.vercel.app](https://health-pals.vercel.app)
 
 ## Architecture
 
