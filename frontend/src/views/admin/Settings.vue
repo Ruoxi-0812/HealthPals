@@ -211,7 +211,7 @@
 
           <div class="admin-settings-panel__account-card">
             <div class="admin-settings-panel__account-user">
-              <UserAvatar :size="48" :src="profile.url" />
+              <UserAvatar :size="48" :src="profile.url" :name="profile.name" />
               <div>
                 <p class="admin-settings-panel__account-name">
                   {{ profile.name || "Administrator" }}

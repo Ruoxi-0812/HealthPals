@@ -232,7 +232,7 @@
 
           <div class="settings-panel__account-card">
             <div class="settings-panel__account-user">
-              <UserAvatar :size="48" :src="profile.url" />
+              <UserAvatar :size="48" :src="profile.url" :name="profile.name" />
               <div>
                 <p class="settings-panel__account-name">
                   {{ profile.name || "Your account" }}

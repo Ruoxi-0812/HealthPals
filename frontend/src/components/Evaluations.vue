@@ -9,7 +9,11 @@
     </header>
 
     <div class="ev-comments__composer">
-      <UserAvatar class="ev-comments__avatar" :src="userData.userAvatar" />
+      <UserAvatar
+        class="ev-comments__avatar"
+        :src="userData.userAvatar"
+        :name="userData.userName"
+      />
       <div class="ev-panel" :class="{ 'is-focused': isFocused }">
         <div class="ev-panel__top">
           <span class="ev-panel__label">Add a comment</span>
@@ -50,7 +54,12 @@
         class="ev-comment"
       >
         <div class="ev-comment__row">
-          <UserAvatar class="ev-comment__avatar" size="large" :src="comment.userAvatar" />
+          <UserAvatar
+            class="ev-comment__avatar"
+            size="large"
+            :src="comment.userAvatar"
+            :name="comment.userName"
+          />
           <div class="ev-comment__main">
             <div class="ev-comment__headline">
               <span class="ev-comment__name">{{ comment.userName }}</span>
@@ -134,6 +143,7 @@
                     class="ev-comment__avatar-sm"
                     size="small"
                     :src="commentChild.userAvatar"
+                    :name="commentChild.userName"
                   />
                   <span class="ev-comment__name">{{ commentChild.userName }}</span>
                   <span v-if="commentChild.userId == userId" class="ev-badge"
@@ -146,6 +156,7 @@
                         class="ev-comment__avatar-xs"
                         size="small"
                         :src="commentChild.replierAvatar"
+                        :name="commentChild.replierName"
                       />
                       <span class="ev-comment__name ev-comment__name--dim">{{
                         commentChild.replierName

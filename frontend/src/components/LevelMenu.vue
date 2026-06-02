@@ -68,7 +68,11 @@
           placement="bottom-end"
         >
           <button type="button" class="top-bar__user-trigger">
-            <UserAvatar :size="30" :src="localUserInfo.url" />
+            <UserAvatar
+              :size="30"
+              :src="localUserInfo.url"
+              :name="localUserInfo.name"
+            />
             <span class="top-bar__user-name">{{ localUserInfo.name }}</span>
             <i class="el-icon-arrow-down el-icon--right" aria-hidden="true" />
           </button>

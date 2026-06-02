@@ -70,10 +70,12 @@
           <template slot-scope="scope">
             <div class="admin-article-cell">
               <img
-                v-if="scope.row.cover"
-                :src="scope.row.cover"
+                :src="newsCoverSrc(scope.row.cover, scope.row.id)"
+                :data-news-id="scope.row.id"
                 class="admin-table-thumb admin-table-thumb--article"
-                alt=""
+                :alt="scope.row.name || 'Article cover'"
+                referrerpolicy="no-referrer"
+                @error="onCoverImgError"
               />
               <div class="admin-article-cell__body">
                 <span class="admin-article-title">{{ scope.row.name }}</span>
@@ -182,7 +184,15 @@
         <label class="hp-field">
           <span class="hp-field__label">Cover</span>
           <el-upload class="hp-dialog__avatar-uploader avatar-uploader" action="/api/personal-heath/v1.0/file/upload" :show-file-list="false" :on-success="handleAvatarSuccess">
-            <img v-if="data.cover" :src="data.cover" class="admin-cover-preview" />
+            <img
+              v-if="data.cover"
+              :src="newsCoverSrc(data.cover, data.id)"
+              :data-news-id="data.id"
+              class="admin-cover-preview"
+              alt=""
+              referrerpolicy="no-referrer"
+              @error="onCoverImgError"
+            />
             <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
         </label>
@@ -219,6 +229,7 @@ import {
   formatDateTimeFull,
   formatRecordedLine,
 } from "@/utils/data";
+import { newsCoverSrc, onCoverImgError } from "@/utils/coverImage";
 
 export default {
   components: { AdminPageShell, Editor },
@@ -247,6 +258,8 @@ export default {
     this.loadAllTags();
   },
   methods: {
+    newsCoverSrc,
+    onCoverImgError,
     formatDateTimeFull,
     formatRecordedLine,
     changeNewsTag(tagId) {

@@ -19,7 +19,7 @@
 
     <el-dropdown class="admin-header__user" trigger="click" placement="bottom-end">
       <button type="button" class="admin-header__user-trigger">
-        <UserAvatar :size="32" :src="userInfo.url" />
+        <UserAvatar :size="32" :src="userInfo.url" :name="userInfo.name" />
         <span class="admin-header__user-name">{{ userInfo.name }}</span>
         <i class="el-icon-arrow-down el-icon--right" />
       </button>

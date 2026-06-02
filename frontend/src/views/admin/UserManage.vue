@@ -56,6 +56,7 @@
               :size="36"
               class="admin-user-avatar"
               :src="scope.row.userAvatar"
+              :name="scope.row.userName || scope.row.userAccount"
             />
           </template>
         </el-table-column>

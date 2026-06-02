@@ -4,7 +4,11 @@
       <div class="messages-page__top-inner">
         <Logo sysName="HealthPals" :bag="'#2f4a40'" :size="32" />
         <div class="messages-page__user">
-          <UserAvatar :size="32" :src="userInfo.userAvatar" />
+          <UserAvatar
+            :size="32"
+            :src="userInfo.userAvatar"
+            :name="userInfo.userName"
+          />
           <span class="messages-page__user-name">{{ userInfo.userName }}</span>
         </div>
       </div>
