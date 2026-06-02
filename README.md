@@ -16,41 +16,38 @@ flowchart TB
   Admin((Admin))
   Frontend["frontend\nVue"]
   Backend["backend REST API\nSpring Boot"]
-  Auth["Identity\nGoogle OAuth + password login"]
-  Health["Health Data\nrecords + model config + charts"]
-  Articles["Health News\narticles + categories + saved articles"]
-  Community["Community\ncomments + likes + messages"]
-  AdminPanel["Admin Console\nusers + content + records"]
-  Assistant["AI Assistant\nhealth chat"]
-  Uploads["Media Uploads\nimages + files"]
-  DB[("database\nAWS RDS MySQL")]
-  OAuth["Google OAuth"]
-  AI["AI API"]
-  Media["ECS task storage"]
-  Secrets["AWS Secrets Manager"]
+
+  subgraph Features["Feature Modules"]
+    direction TB
+    UserFeatures["User Features\nhealth records + charts\nhealth news + saved articles\ncomments + messages\nAI health assistant"]
+    AdminFeatures["Admin Features\nuser management\nnews + category management\nhealth model + record management\ncomment + message management"]
+    PlatformServices["Platform Services\nGoogle OAuth + password login\nmedia uploads\nsecrets"]
+  end
+
+  subgraph Services["Data & External Services"]
+    direction TB
+    DB[("database\nAWS RDS MySQL")]
+    AI["AI API"]
+    OAuth["Google OAuth"]
+    Media["ECS task storage"]
+    Secrets["AWS Secrets Manager"]
+  end
 
   User -->|HTTP| Frontend
   Admin -->|HTTP| Frontend
   Frontend -->|REST API| Backend
 
-  Backend --> Auth
-  Backend --> Health
-  Backend --> Articles
-  Backend --> Community
-  Backend --> AdminPanel
-  Backend --> Assistant
-  Backend --> Uploads
+  Backend --> UserFeatures
+  Backend --> AdminFeatures
+  Backend --> PlatformServices
 
-  Auth --> DB
-  Auth --> OAuth
-  Health --> DB
-  Articles --> DB
-  Community --> DB
-  AdminPanel --> DB
-  Assistant --> AI
-  Uploads --> Media
-  Auth --> Secrets
-  Assistant --> Secrets
+  UserFeatures --> DB
+  AdminFeatures --> DB
+  PlatformServices --> DB
+  UserFeatures --> AI
+  PlatformServices --> OAuth
+  PlatformServices --> Media
+  PlatformServices --> Secrets
 
   classDef frontend fill:#eadfe4,stroke:#b9b9b9,color:#111,font-weight:bold;
   classDef backend fill:#f7f0d8,stroke:#b9b9b9,color:#111,font-weight:bold;
@@ -58,7 +55,7 @@ flowchart TB
   classDef datastore fill:#ffffff,stroke:#999,color:#444;
   class Frontend frontend;
   class Backend backend;
-  class Auth,Health,Articles,Community,AdminPanel,Assistant,Uploads,OAuth,AI,Media,Secrets service;
+  class UserFeatures,AdminFeatures,PlatformServices,OAuth,AI,Media,Secrets service;
   class DB datastore;
 ```
 
