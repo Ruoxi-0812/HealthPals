@@ -16,47 +16,21 @@ flowchart TB
   Admin((Admin))
   Frontend["frontend\nVue"]
   Backend["backend REST API\nSpring Boot"]
-
-  subgraph Features["Feature Modules"]
-    direction TB
-    UserFeatures["User Features\nhealth records + charts\nhealth news + saved articles\ncomments + messages\nAI health assistant"]
-    AdminFeatures["Admin Features\nuser management\nnews + category management\nhealth model + record management\ncomment + message management"]
-    PlatformServices["Platform Services\nGoogle OAuth + password login\nmedia uploads\nsecrets"]
-  end
-
-  subgraph Services["Data & External Services"]
-    direction TB
-    DB[("database\nAWS RDS MySQL")]
-    AI["AI API"]
-    OAuth["Google OAuth"]
-    Media["ECS task storage"]
-    Secrets["AWS Secrets Manager"]
-  end
+  Features["feature modules\nidentity + Google login\nhealth records + charts\nhealth news + favorites\ncomments + messages\nadmin console\nAI health assistant\nmedia uploads"]
+  Services["data & integrations\nAWS RDS MySQL\nGoogle OAuth\nAI API\nECS task storage\nAWS Secrets Manager"]
 
   User -->|HTTP| Frontend
   Admin -->|HTTP| Frontend
   Frontend -->|REST API| Backend
-
-  Backend --> UserFeatures
-  Backend --> AdminFeatures
-  Backend --> PlatformServices
-
-  UserFeatures --> DB
-  AdminFeatures --> DB
-  PlatformServices --> DB
-  UserFeatures --> AI
-  PlatformServices --> OAuth
-  PlatformServices --> Media
-  PlatformServices --> Secrets
+  Backend --> Features
+  Features --> Services
 
   classDef frontend fill:#eadfe4,stroke:#b9b9b9,color:#111,font-weight:bold;
   classDef backend fill:#f7f0d8,stroke:#b9b9b9,color:#111,font-weight:bold;
   classDef service fill:#ffffff,stroke:#b9b9b9,color:#444;
-  classDef datastore fill:#ffffff,stroke:#999,color:#444;
   class Frontend frontend;
   class Backend backend;
-  class UserFeatures,AdminFeatures,PlatformServices,OAuth,AI,Media,Secrets service;
-  class DB datastore;
+  class Features,Services service;
 ```
 
 | Service | Technology | Description |
