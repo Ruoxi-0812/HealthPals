@@ -70,13 +70,9 @@ flowchart TB
 
 ## Screenshots
 
-### User Home Page
-
-![User home page](docs/screenshots/user-home.png)
-
-### Admin Home Page
-
-![Admin home page](docs/screenshots/admin-home.png)
+| User Home Page | Admin Home Page |
+| --- | --- |
+| ![User home page](docs/screenshots/user-home.png) | ![Admin home page](docs/screenshots/admin-home.png) |
 
 ## Quickstart
 
