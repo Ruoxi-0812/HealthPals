@@ -66,18 +66,11 @@ flowchart TB
 
 | Service | Technology | Description |
 | --- | --- | --- |
-| frontend | Vue 2, Element UI, ECharts, WangEditor | Serves the user and admin web interfaces, including health dashboards, article pages, comments, notifications, profile settings, and admin tables. |
-| backend-api | Spring Boot, MyBatis, JWT | Exposes the REST API under `/api/personal-heath/v1.0` and coordinates authentication, records, news, comments, messages, uploads, and admin operations. |
-| auth | Google OAuth, username/password login, JWT | Handles Google sign-in, traditional account login, token issuance, and role-based access for users and admins. |
-| health-records | Spring Boot, MyBatis, ECharts data | Stores health readings and returns metric data used by the dashboard charts and admin record management pages. |
-| news | Spring Boot, MyBatis, WangEditor content | Provides article, category, featured article, saved article, and article detail data for the health news experience. |
-| comments | Spring Boot, MyBatis | Stores article comments, replies, likes, and moderation data. |
-| messages | Spring Boot, MyBatis | Provides in-app notifications such as comment replies, system messages, and metric reminders. |
-| ai-assistant | Spring Boot, external AI API | Sends health assistant prompts to the configured AI provider and returns conversational responses. |
-| admin-management | Spring Boot, MyBatis | Manages users, article categories, articles, comments, messages, health metric models, and health records. |
-| media-upload | Spring Boot multipart upload | Accepts uploaded images and serves them from the ECS task filesystem for the current demo deployment. |
-| database | AWS RDS MySQL | Persists users, roles, health records, articles, tags, favorites, comments, messages, and configuration data. |
-| ci-cd | GitHub Actions, AWS ECR | Runs frontend/backend checks, validates Docker Compose, builds Docker images, and publishes production images to ECR. |
+| frontend | Vue 2, Element UI, ECharts, WangEditor | Serves the user and admin web interfaces for health records, charts, news, comments, notifications, and settings. |
+| backend | Spring Boot, MyBatis, JWT | Exposes the REST API for authentication, health records, news, comments, messages, admin operations, uploads, and the AI assistant. |
+| database | AWS RDS MySQL | Persists users, health records, articles, tags, favorites, comments, messages, and configuration data. |
+| auth & media | Google OAuth, username/password login, ECS task filesystem | Supports Google sign-in and traditional login. Uploaded media is stored on the ECS task filesystem for the current demo deployment. |
+| cloud deployment | Vercel, AWS ECS Fargate, AWS ECR, AWS Secrets Manager, GitHub Actions | Hosts the frontend on Vercel, runs the backend on ECS Fargate, stores Docker images in ECR, manages secrets, and runs CI/CD. |
 
 ## Screenshots
 
