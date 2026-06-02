@@ -64,16 +64,20 @@ flowchart TB
   class DB datastore;
 ```
 
-| Component | Technology | Description |
+| Service | Technology | Description |
 | --- | --- | --- |
-| Frontend | Vue 2, Element UI, ECharts, WangEditor | User and admin interfaces, article reading, health charts, comments, notifications, and settings. |
-| Backend | Spring Boot, MyBatis, JWT | REST API for authentication, users, health records, news, comments, messages, file uploads, and AI assistant integration. |
-| Database | MySQL / AWS RDS MySQL | Stores users, health data, articles, tags, saved articles, comments, messages, and model configuration. |
-| Authentication | Google OAuth + username/password login | Supports Google sign-in and traditional account login. |
-| Container registry | AWS ECR | Stores backend and frontend Docker images built by GitHub Actions. |
-| Runtime | AWS ECS Fargate | Runs the backend container in the cloud. |
-| Secrets | AWS Secrets Manager | Stores runtime secrets such as database credentials, Google OAuth client id, and AI API key. |
-| CI/CD | GitHub Actions | Runs frontend/backend checks and builds Docker images; a separate workflow publishes images to ECR. |
+| frontend | Vue 2, Element UI, ECharts, WangEditor | Serves the user and admin web interfaces, including health dashboards, article pages, comments, notifications, profile settings, and admin tables. |
+| backend-api | Spring Boot, MyBatis, JWT | Exposes the REST API under `/api/personal-heath/v1.0` and coordinates authentication, records, news, comments, messages, uploads, and admin operations. |
+| auth | Google OAuth, username/password login, JWT | Handles Google sign-in, traditional account login, token issuance, and role-based access for users and admins. |
+| health-records | Spring Boot, MyBatis, ECharts data | Stores health readings and returns metric data used by the dashboard charts and admin record management pages. |
+| news | Spring Boot, MyBatis, WangEditor content | Provides article, category, featured article, saved article, and article detail data for the health news experience. |
+| comments | Spring Boot, MyBatis | Stores article comments, replies, likes, and moderation data. |
+| messages | Spring Boot, MyBatis | Provides in-app notifications such as comment replies, system messages, and metric reminders. |
+| ai-assistant | Spring Boot, external AI API | Sends health assistant prompts to the configured AI provider and returns conversational responses. |
+| admin-management | Spring Boot, MyBatis | Manages users, article categories, articles, comments, messages, health metric models, and health records. |
+| media-upload | Spring Boot multipart upload | Accepts uploaded images and serves them from the ECS task filesystem for the current demo deployment. |
+| database | AWS RDS MySQL | Persists users, roles, health records, articles, tags, favorites, comments, messages, and configuration data. |
+| ci-cd | GitHub Actions, AWS ECR | Runs frontend/backend checks, validates Docker Compose, builds Docker images, and publishes production images to ECR. |
 
 ## Screenshots
 
