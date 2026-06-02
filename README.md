@@ -68,6 +68,16 @@ flowchart TB
 | database | AWS RDS MySQL | Stores users, health data, articles, comments, messages, and configuration data. |
 | cloud | Vercel + AWS | Vercel frontend, ECS Fargate backend, ECR images, Secrets Manager, and GitHub Actions CI/CD. |
 
+## Screenshots
+
+### User Home Page
+
+![User home page](docs/screenshots/user-home.png)
+
+### Admin Home Page
+
+![Admin home page](docs/screenshots/admin-home.png)
+
 ## Quickstart
 
 ```bash
