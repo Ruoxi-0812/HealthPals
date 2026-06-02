@@ -10,26 +10,58 @@ Live demo: [https://health-pals.vercel.app](https://health-pals.vercel.app)
 
 ## Architecture
 
-HealthPals is composed of a Vue frontend, a Spring Boot REST API, and a MySQL database. The frontend calls the backend through `/api/personal-heath/v1.0`, while the backend persists application data in MySQL and stores uploaded media on the running task filesystem for the current demo deployment.
+HealthPals is composed of a Vue frontend, a Spring Boot REST API, and domain modules for authentication, health data, articles, comments, notifications, admin management, uploads, and AI assistance. The frontend calls the backend through `/api/personal-heath/v1.0`, while the backend persists application data in MySQL and stores uploaded media on the running task filesystem for the current demo deployment.
 
 ```mermaid
-flowchart LR
-  Browser["Browser"]
-  Vercel["Vercel\nVue frontend"]
-  ECS["AWS ECS Fargate\nSpring Boot API"]
-  RDS["AWS RDS MySQL\npersonal_health"]
-  ECR["AWS ECR\nDocker images"]
-  Secrets["AWS Secrets Manager\nDB password, OAuth, AI key"]
-  Actions["GitHub Actions\nCI/CD"]
-  OAuth["Google OAuth\n+ password login"]
+flowchart TB
+  User((User))
+  Admin((Admin))
+  Frontend["frontend\nVue + Element UI"]
 
-  Browser --> Vercel
-  Vercel -->|/api/personal-heath/v1.0| ECS
-  ECS --> RDS
-  ECS --> Secrets
-  ECS --> OAuth
-  Actions --> ECR
-  ECR --> ECS
+  Auth["auth\nGoogle OAuth + password"]
+  Health["health records\nmetrics + charts"]
+  News["news\narticles + categories"]
+  Comments["comments\nthreads + likes"]
+  Messages["messages\nnotifications"]
+  Assistant["AI assistant\nhealth chat"]
+  AdminAPI["admin management\nusers, records, news"]
+  Uploads["media upload\nECS task filesystem"]
+
+  DB[("MySQL\nAWS RDS")]
+  OAuth["Google OAuth"]
+  AI["AI API"]
+  Secrets["AWS Secrets Manager"]
+
+  User -->|HTTP| Frontend
+  Admin -->|HTTP| Frontend
+
+  Frontend --> Auth
+  Frontend --> Health
+  Frontend --> News
+  Frontend --> Comments
+  Frontend --> Messages
+  Frontend --> Assistant
+  Frontend --> AdminAPI
+  Frontend --> Uploads
+
+  Auth --> DB
+  Auth --> OAuth
+  Health --> DB
+  News --> DB
+  Comments --> DB
+  Messages --> DB
+  AdminAPI --> DB
+  Uploads --> DB
+  Assistant --> AI
+  Auth --> Secrets
+  Assistant --> Secrets
+
+  classDef frontend fill:#eadfe4,stroke:#b9b9b9,color:#111,font-weight:bold;
+  classDef service fill:#ffffff,stroke:#b9b9b9,color:#444;
+  classDef datastore fill:#ffffff,stroke:#999,color:#444;
+  class Frontend frontend;
+  class Auth,Health,News,Comments,Messages,Assistant,AdminAPI,Uploads,OAuth,AI,Secrets service;
+  class DB datastore;
 ```
 
 | Component | Technology | Description |
