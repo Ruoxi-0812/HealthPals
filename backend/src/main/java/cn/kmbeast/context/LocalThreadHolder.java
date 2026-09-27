@@ -29,7 +29,7 @@ public class LocalThreadHolder {
      * @return Integer
      */
     public static Integer getUserId() {
-        return USER_HOLDER.get().get("userId");
+        return USER_HOLDER.get() == null ? null : USER_HOLDER.get().get("userId");
     }
 
     /**
@@ -38,7 +38,7 @@ public class LocalThreadHolder {
      * @return Integer
      */
     public static Integer getRoleId() {
-        return USER_HOLDER.get().get("userRole");
+        return USER_HOLDER.get() == null ? null : USER_HOLDER.get().get("userRole");
     }
 
     /**

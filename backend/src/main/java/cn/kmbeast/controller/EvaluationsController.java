@@ -2,6 +2,7 @@ package cn.kmbeast.controller;
 
 import cn.kmbeast.aop.Pager;
 import cn.kmbeast.aop.Protector;
+import cn.kmbeast.pojo.em.RoleEnum;
 import cn.kmbeast.pojo.api.Result;
 import cn.kmbeast.pojo.dto.query.extend.EvaluationsQueryDto;
 import cn.kmbeast.pojo.entity.Evaluations;
@@ -65,6 +66,7 @@ public class EvaluationsController {
      * @return Result<String>
      */
     @Pager
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/query")
     @ResponseBody
     public Result<Object> query(@RequestBody EvaluationsQueryDto evaluationsQueryDto) {
@@ -76,6 +78,7 @@ public class EvaluationsController {
      *
      * @return Result<String>
      */
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/batchDelete")
     @ResponseBody
     public Result<Object> batchDelete(@RequestBody List<Integer> ids) {

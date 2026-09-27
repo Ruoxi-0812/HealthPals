@@ -19,6 +19,10 @@ import cn.kmbeast.pojo.vo.CommentParentVO;
 import cn.kmbeast.pojo.vo.EvaluationsVO;
 import cn.kmbeast.service.EvaluationsService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import cn.kmbeast.security.AccessPolicy;
+import cn.kmbeast.security.OwnershipGuard;
+import cn.kmbeast.security.OwnershipGuard.ResourceType;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -29,6 +33,9 @@ import java.util.*;
  */
 @Service
 public class EvaluationsServiceImpl implements EvaluationsService {
+
+    @Resource
+    private OwnershipGuard ownershipGuard;
 
     @Resource
     private EvaluationsMapper evaluationsMapper;
@@ -43,6 +50,7 @@ public class EvaluationsServiceImpl implements EvaluationsService {
      * @param evaluations Comment data
      */
     private void saveEvaluations(Evaluations evaluations) {
+        evaluations.setUpvoteList(null);
         evaluations.setCommenterId(LocalThreadHolder.getUserId());
         evaluations.setCreateTime(LocalDateTime.now());
         evaluationsMapper.save(evaluations);
@@ -208,6 +216,7 @@ public class EvaluationsServiceImpl implements EvaluationsService {
      */
     private int countVotes(String voteStr) {
         return Optional.ofNullable(voteStr)
+                .filter(s -> !s.isEmpty())
                 .map(s -> s.split(",").length)
                 .orElse(0);
     }
@@ -230,7 +239,9 @@ public class EvaluationsServiceImpl implements EvaluationsService {
      * @return Result<String>
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Object> batchDelete(List<Integer> ids) {
+        ownershipGuard.requireOwned(ResourceType.COMMENT, ids);
         evaluationsMapper.batchDelete(ids);
         return ApiResult.success();
     }
@@ -241,7 +252,9 @@ public class EvaluationsServiceImpl implements EvaluationsService {
      * @return Result<String>
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<String> delete(Integer id) {
+        ownershipGuard.requireOwned(ResourceType.COMMENT, java.util.Collections.singletonList(id));
         ArrayList<Integer> ids = new ArrayList<>();
         ids.add(id);
         evaluationsMapper.batchDelete(ids);
@@ -254,7 +267,9 @@ public class EvaluationsServiceImpl implements EvaluationsService {
      * @return Result<Map < String, Object>>
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Map<String, Object>> update(Evaluations evaluations) {
+        ownershipGuard.lockCommentForVoting(evaluations.getId());
         EvaluationsQueryDto evaluationsQueryDto = new EvaluationsQueryDto();
         evaluationsQueryDto.setId(evaluations.getId());
         List<CommentChildVO> commentChildVOS = evaluationsMapper.query(evaluationsQueryDto);
@@ -267,14 +282,12 @@ public class EvaluationsServiceImpl implements EvaluationsService {
         upvoteList = (upvoteList == null || upvoteList.isEmpty()) ? userId : toggleUpvote(upvoteList, userId);
         Evaluations evaluationsUpdate = new Evaluations();
         evaluationsUpdate.setId(evaluations.getId());
-        if (upvoteList.contains(userId)){
-            evaluationsUpdate.setUpvoteList(upvoteList);
-        }
-        evaluationsMapper.update(evaluations);
-        upvoteMessageDeliver(commentChildVO);
+        evaluationsUpdate.setUpvoteList(upvoteList);
+        evaluationsMapper.update(evaluationsUpdate);
+        if (isUserUpvote(upvoteList, userId)) upvoteMessageDeliver(commentChildVO);
         Map<String, Object> result = new HashMap<>();
-        result.put("num", upvoteList.split(",").length);
-        result.put("flag", upvoteList.contains(userId));
+        result.put("num", countVotes(upvoteList));
+        result.put("flag", isUserUpvote(upvoteList, userId));
         return ApiResult.success(result);
     }
 

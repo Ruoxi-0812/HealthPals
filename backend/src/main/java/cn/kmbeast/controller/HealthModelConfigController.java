@@ -2,6 +2,7 @@ package cn.kmbeast.controller;
 
 import cn.kmbeast.aop.Pager;
 import cn.kmbeast.aop.Protector;
+import cn.kmbeast.pojo.em.RoleEnum;
 import cn.kmbeast.pojo.api.Result;
 import cn.kmbeast.pojo.dto.query.extend.HealthModelConfigQueryDto;
 import cn.kmbeast.pojo.entity.HealthModelConfig;
@@ -40,7 +41,7 @@ public class HealthModelConfigController {
      * @param healthModelConfig New model data
      * @return Result<Void> Generic response
      */
-    @Protector(role = "Admin")
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "config/save")
     public Result<Void> configSave(@RequestBody HealthModelConfig healthModelConfig) {
         healthModelConfig.setIsGlobal(true);

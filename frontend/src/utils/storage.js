@@ -27,3 +27,7 @@ export function getActivePath() {
 export function setActivePath(path) {
   sessionStorage.setItem(ACTIVE_PATH, path);
 }
+
+export function getUploadHeaders() {
+  return { token: getToken() || "" };
+}

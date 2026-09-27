@@ -1,5 +1,7 @@
 package cn.kmbeast.controller;
 
+import cn.kmbeast.aop.Protector;
+import cn.kmbeast.pojo.em.RoleEnum;
 import cn.kmbeast.pojo.api.Result;
 import cn.kmbeast.pojo.vo.ChartVO;
 import cn.kmbeast.service.ViewsService;
@@ -23,6 +25,7 @@ public class ViewsController {
     /**
      * Retrieve statistical data for system metrics
      */
+    @Protector(roles = RoleEnum.ADMIN)
     @GetMapping("/staticControls")
     public Result<List<ChartVO>> staticControls() {
         return viewsService.staticControls();

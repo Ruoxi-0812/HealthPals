@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-27",
+  "java": "Amazon Corretto 8",
+  "databases": [
+    "H2 2.2.224",
+    "MySQL 9.2.0 (disposable local server)"
+  ],
+  "backend_suite": {
+    "tests": 41,
+    "failures": 0,
+    "errors": 0
+  },
+  "access_control": {
+    "tests": 21,
+    "admin_routes_in_denial_matrix": 17,
+    "failures": 0,
+    "errors": 0
+  },
+  "mysql_suites": {
+    "access_control_tests": 21,
+    "reliability_tests": 13,
+    "failures": 0,
+    "errors": 0
+  },
+  "frontend": {
+    "production_build": "passed with existing Sass/bundle warnings",
+    "retry_tests": 5
+  },
+  "deployment": "Not deployed; requires APP_JWT_SECRET and frontend upload-header changes. Existing tokens must be replaced by signing in again."
+}

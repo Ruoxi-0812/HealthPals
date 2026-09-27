@@ -19,6 +19,8 @@ public interface HealthModelConfigMapper {
 
     List<HealthModelConfigVO> query(HealthModelConfigQueryDto healthModelConfigQueryDto);
 
+    List<HealthModelConfig> queryByIds(@Param("ids") List<Integer> ids);
+
     Integer queryCount(HealthModelConfigQueryDto healthModelConfigQueryDto);
 
 }

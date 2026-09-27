@@ -202,7 +202,7 @@
       <div class="hp-dialog__body admin-form-stack">
         <label class="hp-field">
           <span class="hp-field__label">Icon</span>
-          <el-upload class="hp-dialog__avatar-uploader avatar-uploader" action="/api/personal-heath/v1.0/file/upload" :show-file-list="false" :on-success="handleAvatarSuccess">
+          <el-upload class="hp-dialog__avatar-uploader avatar-uploader" action="/api/personal-heath/v1.0/file/upload" :headers="uploadHeaders()" :show-file-list="false" :on-success="handleAvatarSuccess">
             <img v-if="data.cover" :src="data.cover" class="admin-icon-preview" />
             <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
@@ -236,6 +236,7 @@
 </template>
 
 <script>
+import { getUploadHeaders as uploadHeaders } from "@/utils/storage";
 import AdminPageShell from "@/components/admin/AdminPageShell.vue";
 
 export default {
@@ -264,6 +265,7 @@ export default {
     this.fetchFreshData();
   },
   methods: {
+    uploadHeaders,
     handleAvatarSuccess(res, file) {
       this.$notify({
         duration: 2000,

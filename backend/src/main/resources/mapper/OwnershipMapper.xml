@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.kmbeast.mapper.OwnershipMapper">
+    <select id="lockOwners" resultType="java.lang.Integer">
+        <choose>
+            <when test="resource == 'HEALTH'">SELECT user_id FROM user_health</when>
+            <when test="resource == 'BOOKMARK'">SELECT user_id FROM news_save</when>
+            <when test="resource == 'MESSAGE'">SELECT receiver_id FROM message</when>
+            <when test="resource == 'MODEL'">SELECT CASE WHEN is_global = TRUE THEN NULL ELSE user_id END FROM health_model_config</when>
+            <when test="resource == 'COMMENT'">SELECT commenter_id FROM evaluations</when>
+            <otherwise>SELECT NULL FROM user_health</otherwise>
+        </choose>
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY id FOR UPDATE
+    </select>
+</mapper>

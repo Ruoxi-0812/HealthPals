@@ -7,7 +7,6 @@ import cn.kmbeast.pojo.api.ApiResult;
 import cn.kmbeast.pojo.api.PageResult;
 import cn.kmbeast.pojo.api.Result;
 import cn.kmbeast.pojo.dto.query.base.QueryDto;
-import cn.kmbeast.pojo.dto.query.extend.HealthModelConfigQueryDto;
 import cn.kmbeast.pojo.dto.query.extend.UserHealthQueryDto;
 import cn.kmbeast.pojo.em.IsReadEnum;
 import cn.kmbeast.pojo.em.MessageType;
@@ -15,18 +14,25 @@ import cn.kmbeast.pojo.entity.HealthModelConfig;
 import cn.kmbeast.pojo.entity.Message;
 import cn.kmbeast.pojo.entity.UserHealth;
 import cn.kmbeast.pojo.vo.ChartVO;
-import cn.kmbeast.pojo.vo.HealthModelConfigVO;
 import cn.kmbeast.pojo.vo.UserHealthVO;
 import cn.kmbeast.service.MessageService;
 import cn.kmbeast.service.UserHealthService;
 import cn.kmbeast.utils.DateUtil;
 import org.springframework.stereotype.Service;
+import cn.kmbeast.security.AccessPolicy;
+import cn.kmbeast.security.OwnershipGuard;
+import cn.kmbeast.security.OwnershipGuard.ResourceType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Collections;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +40,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class UserHealthServiceImpl implements UserHealthService {
+
+    @Resource
+    private OwnershipGuard ownershipGuard;
 
     @Resource
     private UserHealthMapper userHealthMapper;
@@ -46,7 +55,11 @@ public class UserHealthServiceImpl implements UserHealthService {
      * Added the user health record
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> save(List<UserHealth> userHealths) {
+        if (CollectionUtils.isEmpty(userHealths)) {
+            return ApiResult.success();
+        }
         dealMessage(userHealths);
         dealRole(userHealths);
         userHealthMapper.batchSave(userHealths);
@@ -66,15 +79,25 @@ public class UserHealthServiceImpl implements UserHealthService {
      * If there are abnormal indicators, this method forwards the notification
      */
     private void dealMessage(List<UserHealth> userHealths) {
+        // Fetch each referenced configuration once for this request, rather than once per record.
+        List<Integer> configIds = userHealths.stream()
+                .map(UserHealth::getHealthModelConfigId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<Integer, HealthModelConfig> configsById = configIds.isEmpty()
+                ? Collections.emptyMap()
+                : healthModelConfigMapper.queryByIds(configIds).stream()
+                        .collect(Collectors.toMap(HealthModelConfig::getId, Function.identity()));
         List<Message> messageList = new ArrayList<>();
         userHealths.forEach(userHealth -> {
             userHealth.setCreateTime(LocalDateTime.now());
-            Integer healthModelConfigId = userHealth.getHealthModelConfigId();
-            HealthModelConfigQueryDto queryDto = new HealthModelConfigQueryDto();
-            queryDto.setId(healthModelConfigId);
-            List<HealthModelConfigVO> healthModelConfigs = healthModelConfigMapper.query(queryDto);
-            if (!CollectionUtils.isEmpty(healthModelConfigs)) {
-                HealthModelConfig healthModelConfig = healthModelConfigs.get(0);
+            HealthModelConfig healthModelConfig = configsById.get(userHealth.getHealthModelConfigId());
+            if (healthModelConfig != null) {
+                if (!AccessPolicy.isAdmin() && !Boolean.TRUE.equals(healthModelConfig.getIsGlobal())
+                        && !Objects.equals(healthModelConfig.getUserId(), AccessPolicy.userId())) {
+                    AccessPolicy.forbidden();
+                }
                 String valueRange = healthModelConfig.getValueRange();
                 String[] values = valueRange.split(",");
                 int mixValue = Integer.parseInt(values[0]);
@@ -149,7 +172,9 @@ public class UserHealthServiceImpl implements UserHealthService {
      * The user health record is deleted.
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> batchDelete(List<Long> ids) {
+        ownershipGuard.requireOwned(ResourceType.HEALTH, ids);
         userHealthMapper.batchDelete(ids);
         return ApiResult.success();
     }
@@ -158,7 +183,9 @@ public class UserHealthServiceImpl implements UserHealthService {
      * Modifying a user health record
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> update(UserHealth userHealth) {
+        ownershipGuard.requireOwned(ResourceType.HEALTH, java.util.Collections.singletonList(userHealth.getId()));
         userHealthMapper.update(userHealth);
         return ApiResult.success();
     }
@@ -168,6 +195,7 @@ public class UserHealthServiceImpl implements UserHealthService {
      */
     @Override
     public Result<List<UserHealthVO>> query(UserHealthQueryDto userHealthQueryDto) {
+        if (!AccessPolicy.isAdmin()) userHealthQueryDto.setUserId(AccessPolicy.userId());
         List<UserHealthVO> userHealthVOS = userHealthMapper.query(userHealthQueryDto);
         Integer totalCount = userHealthMapper.queryCount(userHealthQueryDto);
         return PageResult.success(userHealthVOS, totalCount);
@@ -180,6 +208,7 @@ public class UserHealthServiceImpl implements UserHealthService {
     public Result<List<ChartVO>> daysQuery(Integer day) {
         QueryDto queryDto = DateUtil.startAndEndTime(day);
         UserHealthQueryDto userHealthQueryDto = new UserHealthQueryDto();
+        if (!AccessPolicy.isAdmin()) userHealthQueryDto.setUserId(AccessPolicy.userId());
         userHealthQueryDto.setStartTime(queryDto.getStartTime());
         userHealthQueryDto.setEndTime(queryDto.getEndTime());
         List<UserHealthVO> userHealthVOS = userHealthMapper.query(userHealthQueryDto);

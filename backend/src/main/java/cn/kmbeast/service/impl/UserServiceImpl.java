@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import cn.kmbeast.security.AccessPolicy;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -242,6 +243,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<UserVO> getById(Integer id) {
+        if (!AccessPolicy.isAdmin() && !Objects.equals(id, AccessPolicy.userId())) AccessPolicy.forbidden();
         User user = userMapper.getByActive(User.builder().id(id).build());
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);

@@ -34,7 +34,7 @@
             <div class="admin-settings-profile__summary-media">
               <el-upload
                 class="hp-dialog__avatar-uploader avatar-uploader admin-settings-profile__uploader"
-                action="/api/personal-heath/v1.0/file/upload"
+                action="/api/personal-heath/v1.0/file/upload" :headers="uploadHeaders()"
                 :show-file-list="false"
                 :on-success="handleAvatarSuccess"
               >
@@ -237,6 +237,7 @@
 </template>
 
 <script>
+import { getUploadHeaders as uploadHeaders } from "@/utils/storage";
 import { clearToken } from "@/utils/storage.js";
 import { formatDateShort } from "@/utils/data";
 import UserAvatar from "@/components/UserAvatar.vue";
@@ -279,6 +280,7 @@ export default {
     await this.loadProfile();
   },
   methods: {
+    uploadHeaders,
     goBack() {
       if (window.history.length > 1) {
         this.$router.go(-1);

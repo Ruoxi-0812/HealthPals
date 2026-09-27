@@ -183,7 +183,7 @@
       <div class="hp-dialog__body admin-form-stack">
         <label class="hp-field">
           <span class="hp-field__label">Cover</span>
-          <el-upload class="hp-dialog__avatar-uploader avatar-uploader" action="/api/personal-heath/v1.0/file/upload" :show-file-list="false" :on-success="handleAvatarSuccess">
+          <el-upload class="hp-dialog__avatar-uploader avatar-uploader" action="/api/personal-heath/v1.0/file/upload" :headers="uploadHeaders()" :show-file-list="false" :on-success="handleAvatarSuccess">
             <img
               v-if="data.cover"
               :src="newsCoverSrc(data.cover, data.id)"
@@ -222,6 +222,7 @@
 </template>
 
 <script>
+import { getUploadHeaders as uploadHeaders } from "@/utils/storage";
 import AdminPageShell from "@/components/admin/AdminPageShell.vue";
 
 import Editor from "@/components/Editor";
@@ -258,6 +259,7 @@ export default {
     this.loadAllTags();
   },
   methods: {
+    uploadHeaders,
     newsCoverSrc,
     onCoverImgError,
     formatDateTimeFull,

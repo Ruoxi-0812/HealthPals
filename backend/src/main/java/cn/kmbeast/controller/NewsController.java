@@ -1,5 +1,7 @@
 package cn.kmbeast.controller;
 
+import cn.kmbeast.aop.Protector;
+import cn.kmbeast.pojo.em.RoleEnum;
 import cn.kmbeast.aop.Pager;
 import cn.kmbeast.pojo.api.Result;
 import cn.kmbeast.pojo.dto.query.extend.NewsQueryDto;
@@ -24,6 +26,7 @@ public class NewsController {
     /**
      * Add health news
      */
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/save")
     public Result<Void> save(@RequestBody News news) {
         return newsService.save(news);
@@ -32,6 +35,7 @@ public class NewsController {
     /**
      * Delete health news in batch
      */
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/batchDelete")
     public Result<Void> batchDelete(@RequestBody List<Long> ids) {
         return newsService.batchDelete(ids);
@@ -40,6 +44,7 @@ public class NewsController {
     /**
      * Update health news
      */
+    @Protector(roles = RoleEnum.ADMIN)
     @PutMapping(value = "/update")
     public Result<Void> update(@RequestBody News news) {
         return newsService.update(news);

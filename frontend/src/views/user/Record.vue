@@ -215,7 +215,7 @@
         </div>
 
         <div v-if="selectedModel.length" class="record-page__footer">
-          <button type="button" class="record-page__btn-save" @click="toRecord">
+          <button type="button" class="record-page__btn-save" :disabled="savingReadings || readingsSaved" @click="toRecord">
             Save readings
             <i class="el-icon-right" aria-hidden="true" />
           </button>
@@ -242,7 +242,7 @@
         <el-row class="record-page__dialog-row">
           <el-upload
             class="avatar-uploader"
-            action="/api/personal-heath/v1.0/file/upload"
+            action="/api/personal-heath/v1.0/file/upload" :headers="uploadHeaders()"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
           >
@@ -308,6 +308,8 @@
 </template>
 
 <script>
+import { getUploadHeaders as uploadHeaders } from "@/utils/storage";
+import { submitHealthReadings } from "@/utils/healthSubmission";
 import { healthModelCoverSrc } from "@/utils/coverImage";
 
 export default {
@@ -324,6 +326,8 @@ export default {
       isOperation: false,
       userId: null,
       selectedModel: [],
+      savingReadings: false,
+      readingsSaved: false,
     };
   },
   created() {
@@ -409,6 +413,7 @@ export default {
     },
   },
   methods: {
+    uploadHeaders,
     modelCoverSrc(model) {
       return healthModelCoverSrc(model);
     },
@@ -521,7 +526,8 @@ export default {
     goBack() {
       this.$router.push("/user");
     },
-    toRecord() {
+    async toRecord() {
+      if (this.savingReadings || this.readingsSaved) return;
       const missing = this.selectedModel.some(
         (m) => m.value === undefined || String(m.value).trim() === "",
       );
@@ -533,19 +539,25 @@ export default {
         healthModelConfigId: entity.id,
         value: entity.value,
       }));
-      this.$axios.post("/user-health/save", userHealths).then((response) => {
-        const { data } = response;
+      this.savingReadings = true;
+      try {
+        const { data } = await submitHealthReadings(this.$axios, userHealths, this.userId);
         if (data.code === 200) {
+          this.readingsSaved = true;
           this.$notify({
             title: "Saved",
             message: "Your readings were stored.",
             type: "success",
           });
-          setTimeout(() => {
-            this.$router.push("/user");
-          }, 2000);
+          setTimeout(() => this.$router.push("/user"), 2000);
+        } else {
+          this.$message.error(data.msg || "Could not save. Please retry.");
         }
-      });
+      } catch (error) {
+        this.$message.error("Could not confirm your save. Retry the same readings safely.");
+      } finally {
+        this.savingReadings = false;
+      }
     },
     modelSelected(model) {
       const idx = this.selectedModel.findIndex((entity) => entity.id === model.id);

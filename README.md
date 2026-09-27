@@ -125,3 +125,20 @@ Uploaded media is stored on the ECS task filesystem for the current demo deploym
 - [Docker Compose](docker-compose.yml)
 - [GitHub Actions CI](.github/workflows/ci.yml)
 - [Publish Docker images to ECR](.github/workflows/publish-ecr.yml)
+
+### Reliable health-record submissions
+
+The health-record save endpoint requires an `Idempotency-Key` header. Before
+releasing this backend, apply `sql/migrations/20260922_health_submission.sql` and
+release the corresponding frontend changes. See
+[the reliability guide](docs/metrics/health-submission-reliability.md) for the API
+contract, concurrency and rollback results, deployment order, and test commands.
+
+
+### Authentication and permissions
+
+Configure `APP_JWT_SECRET` with a private random value of at least 32 bytes before
+starting the backend. There is no built-in signing key. This release requires
+users to log in again and includes frontend upload-header changes. See
+[the access-control guide](docs/security/access-control.md) for the endpoint
+policy, deployment requirements and authorization tests.

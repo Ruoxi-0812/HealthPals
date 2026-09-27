@@ -8,8 +8,21 @@ on:
 
 jobs:
   backend:
-    name: Backend (Maven package)
+    name: Backend (tests + Maven package)
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_ROOT_HOST: "%"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     steps:
       - uses: actions/checkout@v4
 
@@ -19,9 +32,13 @@ jobs:
           java-version: "8"
           cache: maven
 
-      - name: Package JAR
+      - name: Test and package JAR
         working-directory: backend
-        run: mvn -B -q package -DskipTests
+        run: mvn -B -q package
+
+      - name: Verify retries and rollback on MySQL
+        working-directory: backend
+        run: mvn -B -q -Dtest=HealthSubmissionReliabilityTest,AccessControlTest -Dhealth.test.mysqlUrl=jdbc:mysql://127.0.0.1:3306/ test
 
   frontend:
     name: Frontend (lint + build)
@@ -40,6 +57,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
+      - run: node --test tests/healthSubmission.test.mjs
       - run: npm run lint
       - run: npm run build
 
@@ -54,6 +72,7 @@ jobs:
 
       - name: Validate Compose file
         env:
+          APP_JWT_SECRET: ci-validation-only-not-a-production-signing-key
           MYSQL_ROOT_PASSWORD: ci-placeholder-password
           GOOGLE_OAUTH_CLIENT_ID: ci-placeholder.apps.googleusercontent.com
         run: docker compose config

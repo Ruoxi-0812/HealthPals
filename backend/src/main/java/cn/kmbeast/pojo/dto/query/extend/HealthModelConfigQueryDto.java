@@ -13,6 +13,8 @@ public class HealthModelConfigQueryDto extends QueryDto {
      */
     private Integer id;
 
+    private Integer visibleTo;
+
     /**
      * user ID
      */

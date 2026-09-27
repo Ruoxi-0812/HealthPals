@@ -1,5 +1,7 @@
 package cn.kmbeast.controller;
 
+import cn.kmbeast.aop.Protector;
+import cn.kmbeast.pojo.em.RoleEnum;
 import cn.kmbeast.aop.Pager;
 import cn.kmbeast.pojo.api.ApiResult;
 import cn.kmbeast.pojo.api.Result;
@@ -44,6 +46,7 @@ public class MessageController {
     /**
      * Broadcast system notifications to all users
      */
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/systemInfoUsersSave")
     public Result<Void> systemInfoUsersSave(@RequestBody Message message) {
         return messageService.systemInfoUsersSave(message);
@@ -52,6 +55,7 @@ public class MessageController {
     /**
      * Send message notifications
      */
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/systemInfoSave")
     public Result<Void> systemInfoSave(@RequestBody List<Message> messages) {
         messages.forEach(message -> {

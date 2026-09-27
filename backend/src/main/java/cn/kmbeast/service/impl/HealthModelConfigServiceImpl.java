@@ -10,6 +10,10 @@ import cn.kmbeast.pojo.entity.HealthModelConfig;
 import cn.kmbeast.pojo.vo.HealthModelConfigVO;
 import cn.kmbeast.service.HealthModelConfigService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import cn.kmbeast.security.AccessPolicy;
+import cn.kmbeast.security.OwnershipGuard;
+import cn.kmbeast.security.OwnershipGuard.ResourceType;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -22,6 +26,9 @@ import java.util.List;
 public class HealthModelConfigServiceImpl implements HealthModelConfigService {
 
     @Resource
+    private OwnershipGuard ownershipGuard;
+
+    @Resource
     private HealthModelConfigMapper healthModelConfigMapper;
 
     /**
@@ -29,6 +36,7 @@ public class HealthModelConfigServiceImpl implements HealthModelConfigService {
      */
     @Override
     public Result<Void> save(HealthModelConfig healthModelConfig) {
+        if (!AccessPolicy.isAdmin()) healthModelConfig.setIsGlobal(false);
         healthModelConfig.setUserId(LocalThreadHolder.getUserId());
         healthModelConfigMapper.save(healthModelConfig);
         return ApiResult.success();
@@ -38,7 +46,9 @@ public class HealthModelConfigServiceImpl implements HealthModelConfigService {
      * Health model delete
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> batchDelete(List<Long> ids) {
+        ownershipGuard.requireOwned(ResourceType.MODEL, ids);
         healthModelConfigMapper.batchDelete(ids);
         return ApiResult.success();
     }
@@ -47,7 +57,9 @@ public class HealthModelConfigServiceImpl implements HealthModelConfigService {
      * Health model update
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> update(HealthModelConfig healthModelConfig) {
+        ownershipGuard.requireOwned(ResourceType.MODEL, java.util.Collections.singletonList(healthModelConfig.getId()));
         healthModelConfigMapper.update(healthModelConfig);
         return ApiResult.success();
     }
@@ -58,6 +70,7 @@ public class HealthModelConfigServiceImpl implements HealthModelConfigService {
     @Override
     public Result<List<HealthModelConfigVO>> modelList() {
         HealthModelConfigQueryDto healthModelConfigQueryDto = new HealthModelConfigQueryDto();
+        if (!AccessPolicy.isAdmin()) healthModelConfigQueryDto.setVisibleTo(AccessPolicy.userId());
         healthModelConfigQueryDto.setUserId(LocalThreadHolder.getUserId());
         List<HealthModelConfigVO> modelConfigs = healthModelConfigMapper.query(healthModelConfigQueryDto);
         healthModelConfigQueryDto.setUserId(null);
@@ -74,6 +87,7 @@ public class HealthModelConfigServiceImpl implements HealthModelConfigService {
      */
     @Override
     public Result<List<HealthModelConfigVO>> query(HealthModelConfigQueryDto healthModelConfigQueryDto) {
+        healthModelConfigQueryDto.setVisibleTo(AccessPolicy.isAdmin() ? null : AccessPolicy.userId());
         List<HealthModelConfigVO> modelConfigs = healthModelConfigMapper.query(healthModelConfigQueryDto);
         Integer totalCount = healthModelConfigMapper.queryCount(healthModelConfigQueryDto);
         return PageResult.success(modelConfigs, totalCount);

@@ -10,6 +10,10 @@ import cn.kmbeast.pojo.entity.NewsSave;
 import cn.kmbeast.pojo.vo.NewsSaveVO;
 import cn.kmbeast.service.NewsSaveService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import cn.kmbeast.security.AccessPolicy;
+import cn.kmbeast.security.OwnershipGuard;
+import cn.kmbeast.security.OwnershipGuard.ResourceType;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -23,6 +27,9 @@ import java.util.List;
 public class NewsSaveServiceImpl implements NewsSaveService {
 
     @Resource
+    private OwnershipGuard ownershipGuard;
+
+    @Resource
     private NewsSaveMapper newsSaveMapper;
 
     /**
@@ -30,6 +37,7 @@ public class NewsSaveServiceImpl implements NewsSaveService {
      */
     @Override
     public Result<Void> save(NewsSave newsSave) {
+        newsSave.setUserId(AccessPolicy.userId());
         newsSave.setCreateTime(LocalDateTime.now());
         newsSaveMapper.save(newsSave);
         return ApiResult.success();
@@ -39,7 +47,9 @@ public class NewsSaveServiceImpl implements NewsSaveService {
      * Health information collection deleted
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> batchDelete(List<Long> ids) {
+        ownershipGuard.requireOwned(ResourceType.BOOKMARK, ids);
         newsSaveMapper.batchDelete(ids);
         return ApiResult.success();
     }
@@ -49,6 +59,7 @@ public class NewsSaveServiceImpl implements NewsSaveService {
      */
     @Override
     public Result<List<NewsSaveVO>> query(NewsSaveQueryDto newsSaveQueryDto) {
+        if (!AccessPolicy.isAdmin()) newsSaveQueryDto.setUserId(AccessPolicy.userId());
         List<NewsSaveVO> tagsList = newsSaveMapper.query(newsSaveQueryDto);
         Integer totalCount = newsSaveMapper.queryCount(newsSaveQueryDto);
         return PageResult.success(tagsList, totalCount);

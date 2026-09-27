@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-22",
+  "java": "Amazon Corretto 8 (1.8.0_442)",
+  "mysql": "9.2.0 (local disposable InnoDB server)",
+  "backend_tests": {
+    "query": 7,
+    "reliability_and_http": 13,
+    "failures": 0,
+    "errors": 0
+  },
+  "mysql_reliability_tests": {
+    "tests": 13,
+    "failures": 0,
+    "errors": 0
+  },
+  "frontend_retry_tests": {
+    "tests": 5,
+    "failures": 0
+  },
+  "concurrent_scenario": {
+    "attempts": 32,
+    "service_instances_in_one_jvm": 2,
+    "records_per_attempt": 10,
+    "persisted_records": 10,
+    "persisted_alerts": 10,
+    "completed_submissions": 1,
+    "configuration_selects": 1,
+    "total_prepared_statements": 68
+  },
+  "fault_injection": {
+    "points": [
+      "after_alert_insert",
+      "after_record_insert",
+      "after_completion_update"
+    ],
+    "residual_rows_after_each_rollback": 0,
+    "same_key_retry_succeeded": true
+  },
+  "scope": "Local integration tests, not production traffic or a throughput benchmark; CI MySQL 8 job configured but not run remotely."
+}

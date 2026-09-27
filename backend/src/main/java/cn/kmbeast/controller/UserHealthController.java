@@ -9,6 +9,7 @@ import cn.kmbeast.pojo.entity.UserHealth;
 import cn.kmbeast.pojo.vo.ChartVO;
 import cn.kmbeast.pojo.vo.UserHealthVO;
 import cn.kmbeast.service.UserHealthService;
+import cn.kmbeast.service.HealthSubmissionService;
 import cn.kmbeast.utils.DateUtil;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,13 +27,17 @@ public class UserHealthController {
     @Resource
     private UserHealthService userHealthService;
 
+    @Resource
+    private HealthSubmissionService healthSubmissionService;
+
 
     /**
      * Add user health records
      */
     @PostMapping(value = "/save")
-    public Result<Void> save(@RequestBody List<UserHealth> userHealths) {
-        return userHealthService.save(userHealths);
+    public Result<Void> save(@RequestHeader("Idempotency-Key") String requestKey,
+                             @RequestBody List<UserHealth> userHealths) {
+        return healthSubmissionService.submit(requestKey, userHealths);
     }
 
     /**

@@ -253,7 +253,7 @@
           <span class="hp-field__label">Avatar</span>
           <el-upload
             class="hp-dialog__avatar-uploader avatar-uploader"
-            action="/api/personal-heath/v1.0/file/upload"
+            action="/api/personal-heath/v1.0/file/upload" :headers="uploadHeaders()"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
           >
@@ -393,6 +393,7 @@
 </template>
 
 <script>
+import { getUploadHeaders as uploadHeaders } from "@/utils/storage";
 import AdminPageShell from "@/components/admin/AdminPageShell.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
 
@@ -430,6 +431,7 @@ export default {
     this.fetchFreshData();
   },
   methods: {
+    uploadHeaders,
     formatDateShort,
     formatTimeShort,
     formatDateTimeFull,

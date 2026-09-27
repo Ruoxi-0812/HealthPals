@@ -20,6 +20,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./sql/personal_health.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./sql/migrations/20260922_health_submission.sql:/docker-entrypoint-initdb.d/02-health-submission.sql:ro
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
       test:
@@ -54,6 +55,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/personal_health?characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?set APP_JWT_SECRET to a random secret of at least 32 bytes}
       APP_AI_API_KEY: ${APP_AI_API_KEY:-}
       APP_AI_MODEL: ${APP_AI_MODEL:-gpt-4o-mini}
       APP_AI_BASE_URL: ${APP_AI_BASE_URL:-https://api.openai.com/v1}

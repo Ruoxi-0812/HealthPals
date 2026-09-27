@@ -206,13 +206,13 @@
         <h2 class="hp-dialog__title">{{ !isOperation ? "Add record" : "Edit record" }}</h2>
       </div>
       <div class="hp-dialog__body admin-form-stack">
-        <label class="hp-field"><span class="hp-field__label">User ID</span><input v-model.number="data.userId" class="hp-field__input" type="number" placeholder="User id" /></label>
+        <label v-if="isOperation" class="hp-field"><span class="hp-field__label">User ID</span><input :value="data.userId" class="hp-field__input" type="number" readonly /></label>
         <label class="hp-field"><span class="hp-field__label">Health model ID</span><input v-model.number="data.healthModelConfigId" class="hp-field__input" type="number" placeholder="Model config id" /></label>
         <label class="hp-field"><span class="hp-field__label">Recorded value</span><input v-model="data.value" class="hp-field__input" type="text" placeholder="Measurement value" /></label>
       </div>
       <div slot="footer" class="hp-dialog__footer">
         <button type="button" class="hp-dialog__btn hp-dialog__btn--ghost" @click="closeDialog">Cancel</button>
-        <button v-if="!isOperation" type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="addOperation">Add</button>
+        <button v-if="!isOperation" type="button" class="hp-dialog__btn hp-dialog__btn--primary" :disabled="savingReadings" @click="addOperation">Add</button>
         <button v-else type="button" class="hp-dialog__btn hp-dialog__btn--primary" @click="updateOperation">Save</button>
       </div>
     </el-dialog>
@@ -220,6 +220,7 @@
 </template>
 
 <script>
+import { submitHealthReadings } from "@/utils/healthSubmission";
 import AdminPageShell from "@/components/admin/AdminPageShell.vue";
 
 import {
@@ -241,6 +242,7 @@ export default {
       isOperation: false, // Toggle - Indicates whether adding or modifying
       tableData: [],
       tableLoading: true,
+      savingReadings: false,
       searchTime: [],
       selectedRows: [],
       status: null,
@@ -377,9 +379,13 @@ const response = await this.$axios.put(
     },
     // Add new record
     async addOperation() {
+      if (this.savingReadings) return;
+      this.savingReadings = true;
       try {
-        // Convert range array to a comma-separated string
-const response = await this.$axios.post("/user-health/save", this.data);
+        const readings = [{ ...this.data }];
+        const { data: auth } = await this.$axios.get("/user/auth");
+        if (auth.code !== 200 || !auth.data) throw new Error("Login required");
+        const response = await submitHealthReadings(this.$axios, readings, auth.data.id);
         this.$message[response.data.code === 200 ? "success" : "error"](
           response.data.msg,
         );
@@ -391,6 +397,8 @@ const response = await this.$axios.post("/user-health/save", this.data);
       } catch (error) {
         console.error("Error submitting form:", error);
         this.$message.error("Submission failed, please try again later!");
+      } finally {
+        this.savingReadings = false;
       }
     },
     closeDialog() {

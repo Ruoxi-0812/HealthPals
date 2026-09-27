@@ -16,6 +16,10 @@ import cn.kmbeast.pojo.entity.User;
 import cn.kmbeast.pojo.vo.MessageVO;
 import cn.kmbeast.service.MessageService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import cn.kmbeast.security.AccessPolicy;
+import cn.kmbeast.security.OwnershipGuard;
+import cn.kmbeast.security.OwnershipGuard.ResourceType;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -28,6 +32,9 @@ import java.util.Objects;
  */
 @Service
 public class MessageServiceImpl implements MessageService {
+
+    @Resource
+    private OwnershipGuard ownershipGuard;
 
     @Resource
     private MessageMapper messageMapper;
@@ -92,7 +99,9 @@ public class MessageServiceImpl implements MessageService {
      * Message deletion
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> batchDelete(List<Long> ids) {
+        ownershipGuard.requireOwned(ResourceType.MESSAGE, ids);
         messageMapper.batchDelete(ids);
         return ApiResult.success();
     }
@@ -102,6 +111,7 @@ public class MessageServiceImpl implements MessageService {
      */
     @Override
     public Result<List<MessageVO>> query(MessageQueryDto messageQueryDto) {
+        if (!AccessPolicy.isAdmin()) messageQueryDto.setUserId(AccessPolicy.userId());
         List<MessageVO> tagsList = messageMapper.query(messageQueryDto);
         Integer totalCount = messageMapper.queryCount(messageQueryDto);
         return PageResult.success(tagsList, totalCount);

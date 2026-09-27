@@ -2,6 +2,7 @@ package cn.kmbeast.controller;
 
 import cn.kmbeast.aop.Pager;
 import cn.kmbeast.aop.Protector;
+import cn.kmbeast.pojo.em.RoleEnum;
 import cn.kmbeast.pojo.api.Result;
 import cn.kmbeast.pojo.dto.query.extend.UserQueryDto;
 import cn.kmbeast.pojo.dto.update.GoogleLoginDTO;
@@ -76,7 +77,7 @@ public class UserController {
     /**
      * Add new user (Admin only)
      */
-    @Protector(role = "admin")
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/insert")
     @ResponseBody
     public Result<String> insert(@RequestBody UserRegisterDTO userRegisterDTO) {
@@ -96,7 +97,7 @@ public class UserController {
     /**
      * Update user information (Admin only)
      */
-    @Protector(role = "admin")
+    @Protector(roles = RoleEnum.ADMIN)
     @PutMapping(value = "/backUpdate")
     @ResponseBody
     public Result<String> backUpdate(@RequestBody User user) {
@@ -115,7 +116,7 @@ public class UserController {
     /**
      * Batch delete users (Admin only)
      */
-    @Protector(role = "admin")
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/batchDelete")
     @ResponseBody
     public Result<String> batchDelete(@RequestBody List<Integer> ids) {
@@ -126,7 +127,7 @@ public class UserController {
      * Query user data (Admin only)
      */
     @Pager
-    @Protector(role = "admin")
+    @Protector(roles = RoleEnum.ADMIN)
     @PostMapping(value = "/query")
     @ResponseBody
     public Result<List<User>> query(@RequestBody UserQueryDto userQueryDto) {
@@ -136,6 +137,7 @@ public class UserController {
     /**
      * Retrieve user statistics for a specific number of days
      */
+    @Protector(roles = RoleEnum.ADMIN)
     @GetMapping(value = "/daysQuery/{day}")
     @ResponseBody
     public Result<List<ChartVO>> query(@PathVariable Integer day) {
