@@ -13,6 +13,7 @@ class CloudinaryStorageServiceTest {
         CloudinaryStorageService storage = new CloudinaryStorageService((bytes, options) -> {
             assertArrayEquals(file.getBytes(), bytes);
             assertEquals("image", options.get("resource_type"));
+            assertEquals("healthpals", options.get("asset_folder"));
             assertEquals(false, options.get("overwrite"));
             assertTrue(options.get("public_id").toString().startsWith("healthpals/"));
             return Collections.singletonMap("secure_url", "https://res.cloudinary.com/demo/image/upload/test.png");

@@ -60,6 +60,7 @@ public class CloudinaryStorageService {
         try {
             Map response = client.upload(file.getBytes(), ObjectUtils.asMap(
                     "resource_type", resourceType,
+                    "asset_folder", "healthpals",
                     "public_id", "healthpals/" + UUID.randomUUID(),
                     "overwrite", false,
                     "timeout", 60000));
