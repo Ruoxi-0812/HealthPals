@@ -31,9 +31,15 @@ google:
 # Health Q&A assistant (OpenAI-compatible Chat Completions). Set API key via environment—do not commit secrets.
 # Example: export APP_AI_API_KEY=sk-...
 app:
+  storage:
+    provider: ${APP_STORAGE_PROVIDER:local}
   upload-dir: ${APP_UPLOAD_DIR:./uploads}
   ai:
     api-key: ${APP_AI_API_KEY:}
     model: ${APP_AI_MODEL:gpt-4o-mini}
     base-url: ${APP_AI_BASE_URL:https://api.openai.com/v1}
 
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}

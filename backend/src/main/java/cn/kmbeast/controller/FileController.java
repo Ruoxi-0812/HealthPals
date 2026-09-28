@@ -1,6 +1,8 @@
 package cn.kmbeast.controller;
 
 import cn.kmbeast.utils.IdFactoryUtil;
+import cn.kmbeast.service.CloudinaryStorageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +29,9 @@ public class FileController {
     @Value("${app.upload-dir:./uploads}")
     private String uploadDir;
 
+    @Autowired
+    private CloudinaryStorageService cloudStorage;
+
     /**
      * File upload
      *
@@ -38,6 +43,11 @@ public class FileController {
         String fileName = buildStoredFileName(multipartFile);
         Map<String, Object> rep = new HashMap<>();
         try {
+            if (cloudStorage != null && cloudStorage.isEnabled()) {
+                rep.put("data", cloudStorage.upload(multipartFile, "image"));
+                rep.put("code", 200);
+                return rep;
+            }
             if (uploadFile(multipartFile, fileName)) {
                 rep.put("code", 200);
                 rep.put("data", API+ "/file/getFile?fileName=" + fileName);
@@ -65,6 +75,11 @@ public class FileController {
         Map<String, Object> rep = new HashMap<>();
 
         try {
+            if (cloudStorage != null && cloudStorage.isEnabled()) {
+                rep.put("data", cloudStorage.upload(multipartFile, "video"));
+                rep.put("code", 200);
+                return rep;
+            }
             if (uploadFile(multipartFile, fileName)) {
                 rep.put("code", 200);
                 rep.put("data", API+ "/file/getFile?fileName=" + fileName);
