@@ -122,9 +122,12 @@ export default {
       }
       this.submitting = true;
       try {
-        const { data } = await request.post("user/google-login", {
-          idToken: response.credential,
-        });
+        // Free hosting can take over a minute to wake up after inactivity.
+        const { data } = await request.post(
+          "user/google-login",
+          { idToken: response.credential },
+          { timeout: 120000 },
+        );
         if (data.code !== 200) {
           this.$message.error(
             data.msg ||
@@ -137,8 +140,13 @@ export default {
         setToken(data.data.token);
         this.navigateToRole(data.data.role);
       } catch (error) {
-        console.error("Google auth request error:", error);
-        this.$message.error("Google sign-in request failed");
+        // Axios errors include the request body, which contains the Google token.
+        const timedOut = error && error.code === "ECONNABORTED";
+        this.$message.error(
+          timedOut
+            ? "The server is taking longer to respond. Please try Google sign-in again."
+            : "Unable to reach the sign-in service. Please try again shortly.",
+        );
       } finally {
         this.submitting = false;
       }
