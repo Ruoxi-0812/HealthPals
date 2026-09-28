@@ -31,3 +31,13 @@ Validation: CloudinaryStorageServiceTest covers URL handling, provider failures,
 empty inputs, required configuration, and controller failure without local disk
 fallback. A real deployed upload and a post-restart fetch must also pass before
 claiming that production persistence is verified.
+
+## Folder permissions
+
+Uploads use the `healthpals` asset folder (dynamic folder mode). The dedicated API key has the Media Library User role plus Contributor access to this folder, assigned through the Cloudinary Admin API. No management credential is deployed to Render.
+
+## Production verification (2026-09-28)
+
+Deployment `0fcb27f` is live on Render. An isolated account successfully uploaded the project logo through the production Vercel API proxy and saved the returned Cloudinary URL as its avatar. The backend was manually restarted and the replacement instance started successfully. Automated tests: 46 passed, zero failures/errors.
+
+After the old instance shut down, a fresh authenticated request returned the same saved avatar URL and fetching that image returned HTTP 200.
