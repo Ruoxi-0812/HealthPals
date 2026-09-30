@@ -9,7 +9,23 @@
 
     <el-row :gutter="28" class="news-detail__row">
       <el-col :xs="24" :md="16" class="news-detail__main-wrap">
+        <div
+          v-if="articleLoading"
+          class="news-detail__article-skeleton nb-surface skeleton-pulse"
+        >
+          <div class="news-detail__skeleton-hero" />
+          <div
+            class="news-detail__skeleton-line news-detail__skeleton-line--title"
+          />
+          <div class="news-detail__skeleton-line" />
+          <div class="news-detail__skeleton-line" />
+          <div
+            class="news-detail__skeleton-line news-detail__skeleton-line--short"
+          />
+        </div>
+
         <article
+          v-else
           :key="'article-' + (newsInfo.id || 'loading')"
           class="news-detail__article nb-surface"
         >
@@ -28,11 +44,17 @@
           <div class="news-detail__header">
             <div class="news-detail__header-main">
               <div class="news-detail__meta">
-                <span class="news-detail__tag">{{ newsInfo.tagName || "Wellness" }}</span>
-                <time class="news-detail__time" :datetime="newsInfo.createTime">{{
-                  parseTime(newsInfo.createTime)
-                }}</time>
-                <span class="news-detail__read-time">{{ estimatedReadMinutes }} min read</span>
+                <span class="news-detail__tag">{{
+                  newsInfo.tagName || "Wellness"
+                }}</span>
+                <time
+                  class="news-detail__time"
+                  :datetime="newsInfo.createTime"
+                  >{{ parseTime(newsInfo.createTime) }}</time
+                >
+                <span class="news-detail__read-time"
+                  >{{ estimatedReadMinutes }} min read</span
+                >
               </div>
 
               <h1 class="news-detail__title">{{ newsInfo.name }}</h1>
@@ -43,7 +65,9 @@
               class="news-detail__save"
               :class="{ 'is-saved': saveFlag, 'is-loading': saveFlag === null }"
               :disabled="saveFlag === null"
-              :aria-label="saveFlag === null ? 'Checking save status' : saveButtonLabel"
+              :aria-label="
+                saveFlag === null ? 'Checking save status' : saveButtonLabel
+              "
               @click="saveNewsOperation"
             >
               {{ saveButtonLabel }}
@@ -55,7 +79,9 @@
             class="news-detail__body"
             v-html="newsInfo.content"
           ></div>
-          <p v-else class="news-detail__empty">This article has no body text yet.</p>
+          <p v-else class="news-detail__empty">
+            This article has no body text yet.
+          </p>
 
           <div class="news-detail__comments">
             <Evaluations
@@ -71,38 +97,54 @@
         <aside class="news-detail__aside nb-surface">
           <p class="news-detail__aside-eyebrow">Continue reading</p>
           <h2 class="news-detail__aside-title">Recommended</h2>
-          <p class="news-detail__aside-sub">
-            {{ newsTopList.length || 0 }} more picks from our editors.
-          </p>
-          <ul class="news-detail__rec-list">
-            <li
-              v-for="(news, index) in newsTopList"
-              :key="news.id || index"
-              class="news-detail__rec-item"
-              @click="newsItemClick(news)"
-            >
-              <div class="news-detail__rec-card">
-                <img
-                  class="news-detail__rec-img"
-                  :src="newsCoverSrc(news.cover, news.id)"
-                  :alt="news.name"
-                  :data-news-id="news.id"
-                  loading="lazy"
-                  referrerpolicy="no-referrer"
-                  @error="onCoverImgError"
-                />
-                <div class="news-detail__rec-body">
-                  <h3 class="news-detail__rec-title">{{ news.name }}</h3>
-                  <div class="news-detail__rec-foot">
-                    <span class="news-detail__rec-tag">{{ news.tagName }}</span>
-                    <span class="news-detail__rec-time">{{
-                      parseTime(news.createTime)
-                    }}</span>
+
+          <template v-if="asideLoading">
+            <ul class="news-detail__rec-list">
+              <li
+                v-for="n in 3"
+                :key="'rec-sk-' + n"
+                class="news-detail__rec-item"
+              >
+                <div class="news-detail__rec-skeleton skeleton-pulse" />
+              </li>
+            </ul>
+          </template>
+          <template v-else>
+            <p class="news-detail__aside-sub">
+              {{ newsTopList.length || 0 }} more picks from our editors.
+            </p>
+            <ul class="news-detail__rec-list">
+              <li
+                v-for="(news, index) in newsTopList"
+                :key="news.id || index"
+                class="news-detail__rec-item"
+                @click="newsItemClick(news)"
+              >
+                <div class="news-detail__rec-card">
+                  <img
+                    class="news-detail__rec-img"
+                    :src="newsCoverSrc(news.cover, news.id)"
+                    :alt="news.name"
+                    :data-news-id="news.id"
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                    @error="onCoverImgError"
+                  />
+                  <div class="news-detail__rec-body">
+                    <h3 class="news-detail__rec-title">{{ news.name }}</h3>
+                    <div class="news-detail__rec-foot">
+                      <span class="news-detail__rec-tag">{{
+                        news.tagName
+                      }}</span>
+                      <span class="news-detail__rec-time">{{
+                        parseTime(news.createTime)
+                      }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </li>
-          </ul>
+              </li>
+            </ul>
+          </template>
         </aside>
       </el-col>
     </el-row>
@@ -128,6 +170,8 @@ export default {
       newsTopList: [],
       saveFlag: null,
       newsSaveList: [],
+      articleLoading: true,
+      asideLoading: true,
     };
   },
   computed: {
@@ -139,7 +183,10 @@ export default {
     },
     articleHasContent() {
       const html = (this.newsInfo && this.newsInfo.content) || "";
-      const text = html.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim();
+      const text = html
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/gi, " ")
+        .trim();
       return text.length > 0;
     },
     articlePlainText() {
@@ -260,7 +307,8 @@ export default {
           const { data } = response;
           if (data.code === 200 && data.data && data.data.length) {
             const article =
-              data.data.find((n) => Number(n.id) === Number(id)) || data.data[0];
+              data.data.find((n) => Number(n.id) === Number(id)) ||
+              data.data[0];
             this.newsInfo = { ...article };
             sessionStorage.setItem("newsInfo", JSON.stringify(this.newsInfo));
             this.loadSaveStatus();
@@ -268,7 +316,10 @@ export default {
             this.scrollToTop();
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          this.articleLoading = false;
+        });
     },
     scrollToTop() {
       scrollPageToTop();
@@ -288,14 +339,20 @@ export default {
     },
     loadAllTopNews() {
       const newQueryDto = { isTop: true };
-      this.$axios.post("/news/query", newQueryDto).then((response) => {
-        const { data } = response;
-        if (data.code === 200) {
-          const currentId = this.newsInfo && this.newsInfo.id;
-          const list = (data.data || []).filter((n) => n.id !== currentId);
-          this.newsTopList = pickUniqueCoverNews(list, 3);
-        }
-      });
+      this.$axios
+        .post("/news/query", newQueryDto)
+        .then((response) => {
+          const { data } = response;
+          if (data.code === 200) {
+            const currentId = this.newsInfo && this.newsInfo.id;
+            const list = (data.data || []).filter((n) => n.id !== currentId);
+            this.newsTopList = pickUniqueCoverNews(list, 3);
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          this.asideLoading = false;
+        });
     },
   },
 };
@@ -356,6 +413,57 @@ export default {
   box-shadow: 0 18px 40px rgba(53, 92, 75, 0.1);
 }
 
+.news-detail__article-skeleton {
+  padding: clamp(22px, 3vw, 32px) clamp(22px, 3vw, 36px);
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(126, 197, 160, 0.22);
+  box-shadow: 0 18px 40px rgba(53, 92, 75, 0.1);
+}
+
+.news-detail__skeleton-hero {
+  height: clamp(180px, 28vw, 270px);
+  margin: clamp(-22px, -3vw, -32px) clamp(-22px, -3vw, -36px) 24px;
+  background: rgba(126, 197, 160, 0.16);
+}
+
+.news-detail__skeleton-line {
+  height: 16px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: rgba(126, 197, 160, 0.16);
+
+  &--title {
+    height: 30px;
+    width: 70%;
+    margin-bottom: 22px;
+  }
+
+  &--short {
+    width: 55%;
+  }
+}
+
+.news-detail__rec-skeleton {
+  height: 72px;
+  border-radius: 16px;
+  background: rgba(126, 197, 160, 0.16);
+}
+
+.skeleton-pulse {
+  animation: news-detail-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes news-detail-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .news-detail__hero {
   position: relative;
   height: clamp(180px, 28vw, 270px);
@@ -374,8 +482,16 @@ export default {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(12, 28, 20, 0.04) 0%, rgba(12, 28, 20, 0.4) 100%),
-    linear-gradient(120deg, rgba(42, 157, 111, 0.18) 0%, rgba(255, 255, 255, 0) 55%);
+    linear-gradient(
+      180deg,
+      rgba(12, 28, 20, 0.04) 0%,
+      rgba(12, 28, 20, 0.4) 100%
+    ),
+    linear-gradient(
+      120deg,
+      rgba(42, 157, 111, 0.18) 0%,
+      rgba(255, 255, 255, 0) 55%
+    );
 }
 
 .news-detail__header {
@@ -584,7 +700,11 @@ export default {
   padding: 22px;
   border: 1px solid rgba(126, 197, 160, 0.18);
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(249, 252, 250, 0.98) 0%, rgba(242, 248, 244, 0.9) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(249, 252, 250, 0.98) 0%,
+    rgba(242, 248, 244, 0.9) 100%
+  );
 }
 
 .news-detail__aside {
