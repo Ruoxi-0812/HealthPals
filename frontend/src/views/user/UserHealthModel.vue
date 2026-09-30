@@ -3,7 +3,9 @@
     <div class="health-data__toolbar nb-surface--sm">
       <div class="health-data__toolbar-fields">
         <div class="health-data__toolbar-metric">
-          <label class="health-data__label" for="metric-chart-select">Metric</label>
+          <label class="health-data__label" for="metric-chart-select"
+            >Metric</label
+          >
           <el-select
             id="metric-chart-select"
             v-model="userHealthQueryDto.healthModelConfigId"
@@ -22,7 +24,9 @@
           </el-select>
         </div>
         <div class="health-data__toolbar-range">
-          <label class="health-data__label" for="chart-time-range">Time range</label>
+          <label class="health-data__label" for="chart-time-range"
+            >Time range</label
+          >
           <el-select
             id="chart-time-range"
             v-model="userHealthQueryDto.time"
@@ -47,11 +51,11 @@
     </div>
 
     <section class="health-data__chart-panel nb-surface">
-      <div v-if="chartLoading" class="health-data__chart-skeleton skeleton-pulse" />
       <div
-        v-else-if="!chartHasData"
-        class="health-data__chart-empty"
-      >
+        v-if="chartLoading"
+        class="health-data__chart-skeleton skeleton-pulse"
+      />
+      <div v-else-if="!chartHasData" class="health-data__chart-empty">
         <div class="health-data__chart-empty-icon" aria-hidden="true">
           <i class="el-icon-data-line" />
         </div>
@@ -61,7 +65,11 @@
           <strong>{{ selectedMetricName }}</strong>
           or try a longer time range.
         </p>
-        <button type="button" class="health-data__chart-empty-btn" @click="toRecord">
+        <button
+          type="button"
+          class="health-data__chart-empty-btn"
+          @click="toRecord"
+        >
           Log a reading
         </button>
       </div>
@@ -151,9 +159,11 @@
           <template slot-scope="scope">
             <span class="health-data__value">
               <strong>{{ scope.row.value }}</strong>
-              <span v-if="displayUnit(scope.row.unit)" class="health-data__unit">{{
-                displayUnit(scope.row.unit)
-              }}</span>
+              <span
+                v-if="displayUnit(scope.row.unit)"
+                class="health-data__unit"
+                >{{ displayUnit(scope.row.unit) }}</span
+              >
             </span>
           </template>
         </el-table-column>
@@ -178,7 +188,9 @@
               content="Outside your usual range — worth a second look."
               placement="top"
             >
-              <span class="health-badge health-badge--warn health-badge--nowrap">
+              <span
+                class="health-badge health-badge--warn health-badge--nowrap"
+              >
                 <i class="el-icon-warning-outline" aria-hidden="true" />
                 Review
               </span>
@@ -274,7 +286,7 @@ export default {
       totalItems: 0,
       searchTime: [],
       healthModelConfigId: null,
-      chartLoading: false,
+      chartLoading: true,
       tableLoading: false,
       timeRanges: HEALTH_TIME_RANGES,
     };
@@ -357,7 +369,10 @@ export default {
       }
       try {
         const ids = this.selectedRows.map((entity) => entity.id);
-        const response = await this.$axios.post(`/user-health/batchDelete`, ids);
+        const response = await this.$axios.post(
+          `/user-health/batchDelete`,
+          ids,
+        );
         if (response.data.code === 200) {
           this.$swal.fire({
             title: "Deleted",
@@ -457,19 +472,27 @@ export default {
       this.loadUserModelHavaRecord();
     },
     loadHealthModelConfig() {
-      this.$axios.post("/health-model-config/modelList").then((response) => {
-        const { data } = response;
-        if (data.code === 200) {
-          this.usersHealthModelConfig = data.data || [];
-          this.defaultLoad();
-        }
-      });
+      this.$axios
+        .post("/health-model-config/modelList")
+        .then((response) => {
+          const { data } = response;
+          if (data.code === 200) {
+            this.usersHealthModelConfig = data.data || [];
+            this.defaultLoad();
+          } else {
+            this.chartLoading = false;
+          }
+        })
+        .catch(() => {
+          this.chartLoading = false;
+        });
     },
     defaultLoad() {
       if (!this.usersHealthModelConfig.length) {
         this.userHealthQueryDto = { time: 365 };
         this.values = [];
         this.dates = [];
+        this.chartLoading = false;
         return;
       }
       this.userHealthQueryDto.healthModelConfigId =

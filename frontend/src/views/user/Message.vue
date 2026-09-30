@@ -77,15 +77,21 @@
             </h2>
             <p class="messages-page__panel-meta">
               {{ filteredMessageList.length }}
-              {{
-                filteredMessageList.length === 1 ? "message" : "messages"
-              }}
+              {{ filteredMessageList.length === 1 ? "message" : "messages" }}
             </p>
           </div>
 
           <div class="messages-page__scroll">
+            <ul v-if="loading" class="messages-page__list">
+              <li
+                v-for="n in 4"
+                :key="'msg-sk-' + n"
+                class="messages-page__row-skeleton skeleton-pulse"
+              />
+            </ul>
+
             <div
-              v-if="filteredMessageList.length === 0"
+              v-else-if="filteredMessageList.length === 0"
               class="messages-page__empty"
             >
               <div class="messages-page__empty-art" aria-hidden="true">
@@ -103,7 +109,9 @@
               >
                 <div class="messages-page__row-avatar">
                   <img
-                    v-if="message.messageType === 1 || message.messageType === 2"
+                    v-if="
+                      message.messageType === 1 || message.messageType === 2
+                    "
                     class="messages-page__avatar-img"
                     :src="message.senderAvatar"
                     alt=""
@@ -139,7 +147,9 @@
                   </div>
                   <p class="messages-page__row-preview">
                     <template
-                      v-if="message.messageType === 3 && healthAlertParts(message)"
+                      v-if="
+                        message.messageType === 3 && healthAlertParts(message)
+                      "
                     >
                       <span class="messages-page__preview-alert">
                         {{ healthAlertParts(message).lead }}
@@ -197,6 +207,7 @@ export default {
       messageTypes: [],
       message: {},
       activeFilter: null,
+      loading: true,
     };
   },
   computed: {
@@ -402,12 +413,17 @@ export default {
       const userInfo = sessionStorage.getItem("userInfo");
       const entity = JSON.parse(userInfo);
       const query = { userId: entity.id };
-      this.$axios.post("/message/query", query).then((response) => {
-        const { data } = response;
-        if (data.code === 200) {
-          this.messageList = data.data || [];
-        }
-      });
+      this.$axios
+        .post("/message/query", query)
+        .then((response) => {
+          const { data } = response;
+          if (data.code === 200) {
+            this.messageList = data.data || [];
+          }
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     goBack() {
       this.$router.push("/user");
@@ -691,6 +707,27 @@ $warn: #d97706;
 .messages-page__empty {
   padding: 56px 24px;
   text-align: center;
+}
+
+.messages-page__row-skeleton {
+  height: 68px;
+  margin: 10px 18px;
+  border-radius: 12px;
+  background: rgba(126, 197, 160, 0.14);
+}
+
+.skeleton-pulse {
+  animation: messages-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes messages-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .messages-page__empty-art {
