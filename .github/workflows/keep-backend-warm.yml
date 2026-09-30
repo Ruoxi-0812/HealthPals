@@ -1,0 +1,19 @@
+name: Keep backend warm
+
+# Render's free plan spins the backend down after ~15 minutes with no
+# traffic, and waking it back up can take 30-60+ seconds on the next
+# real request (login, register, Google sign-in, ...). Ping the health
+# endpoint often enough that it never gets the chance to fall asleep.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render health endpoint
+        run: |
+          curl -fsS --max-time 45 https://healthpals-api.onrender.com/api/personal-heath/v1.0/health \
+            || echo "Ping failed or backend was cold-starting; not treated as a CI failure."
