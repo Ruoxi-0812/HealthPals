@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getToken } from "@/utils/storage.js";
+import { startRequest, endRequest } from "@/utils/loadingBar.js";
 
 const URL_API =
   process.env.VUE_APP_API_BASE_URL ||
@@ -12,6 +13,7 @@ const request = axios.create({
 
 request.interceptors.request.use(
   (config) => {
+    startRequest();
     const token = getToken();
     if (token !== null) {
       config.headers["token"] = token;
@@ -19,6 +21,18 @@ request.interceptors.request.use(
     return config;
   },
   (error) => {
+    endRequest();
+    return Promise.reject(error);
+  },
+);
+
+request.interceptors.response.use(
+  (response) => {
+    endRequest();
+    return response;
+  },
+  (error) => {
+    endRequest();
     return Promise.reject(error);
   },
 );

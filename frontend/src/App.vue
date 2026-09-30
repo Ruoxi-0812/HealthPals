@@ -1,8 +1,18 @@
 <template>
   <div id="app">
+    <GlobalLoadingBar />
     <router-view />
   </div>
 </template>
+
+<script>
+import GlobalLoadingBar from "@/components/GlobalLoadingBar.vue";
+
+export default {
+  name: "App",
+  components: { GlobalLoadingBar },
+};
+</script>
 
 <style lang="scss">
 #app {
