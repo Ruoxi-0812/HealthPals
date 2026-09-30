@@ -7,7 +7,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "start": "vue-cli-service serve",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint --ext .js,.jsx,.vue,.mjs"
   },
   "dependencies": {
     "@wangeditor/editor": "^5.1.23",
