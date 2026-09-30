@@ -18,6 +18,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         String method = request.getMethod();
         String path = request.getRequestURI().substring(request.getContextPath().length());
         if ("OPTIONS".equals(method)) return true;
+        // Spring Boot forwards uncaught exceptions from any handler to this internal path
+        // (same request, same method). Without this, every backend 500 gets masked as a
+        // generic 401 "Authentication required" here instead of surfacing the real error.
+        if ("/error".equals(path)) return true;
         if ("GET".equals(method) && ("/health".equals(path) || "/file/getFile".equals(path))) return true;
         if ("POST".equals(method) && ("/user/login".equals(path)
                 || "/user/google-login".equals(path) || "/user/register".equals(path))) return true;
