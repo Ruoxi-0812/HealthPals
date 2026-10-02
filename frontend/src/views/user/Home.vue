@@ -64,7 +64,20 @@
 
       <section class="home-hero hero--empty" v-else>
         <div class="empty-hero">
-          <el-empty description="No featured articles yet" :image-size="120" />
+          <el-empty
+            v-if="topLoadFailed"
+            description="Couldn't load featured articles"
+            :image-size="120"
+          >
+            <button type="button" class="retry-btn" @click="loadAllTopNews()">
+              Retry
+            </button>
+          </el-empty>
+          <el-empty
+            v-else
+            description="No featured articles yet"
+            :image-size="120"
+          />
         </div>
       </section>
 
@@ -75,7 +88,13 @@
           <h2 class="heading">Browse by category</h2>
         </header>
         <div class="tags-surface">
-          <TagLine :dataList="tagsList" @on-click="tagOnClick" />
+          <p v-if="tagsLoadFailed" class="tags-error">
+            Couldn't load categories.
+            <button type="button" class="retry-link" @click="loadAllTags">
+              Retry
+            </button>
+          </p>
+          <TagLine v-else :dataList="tagsList" @on-click="tagOnClick" />
         </div>
       </section>
 
@@ -100,7 +119,12 @@
         </div>
 
         <el-row v-else-if="displayNewsList.length === 0" class="feed-empty">
-          <el-empty description="No news available" />
+          <el-empty v-if="feedLoadFailed" description="Couldn't load articles">
+            <button type="button" class="retry-btn" @click="loadAllNews()">
+              Retry
+            </button>
+          </el-empty>
+          <el-empty v-else description="No news available" />
         </el-row>
 
         <div v-else class="feed-masonry">
@@ -156,6 +180,9 @@ export default {
       newQueryDto: { tagId: null },
       topLoading: true,
       feedLoading: true,
+      topLoadFailed: false,
+      feedLoadFailed: false,
+      tagsLoadFailed: false,
     };
   },
   computed: {
@@ -215,18 +242,25 @@ export default {
       this.loadAllNews();
     },
     loadAllTags() {
-      this.$axios.post("/tags/query", {}).then((response) => {
-        const { data } = response;
-        if (data.code === 200) {
-          this.tagsList = data.data;
-          this.tagsList.unshift({ name: "All", id: null });
-        }
-      });
+      this.tagsLoadFailed = false;
+      this.$axios
+        .post("/tags/query", {})
+        .then((response) => {
+          const { data } = response;
+          if (data.code === 200) {
+            this.tagsList = data.data;
+            this.tagsList.unshift({ name: "All", id: null });
+          }
+        })
+        .catch(() => {
+          this.tagsLoadFailed = true;
+        });
     },
     loadAllTopNews(opts = {}) {
       if (!opts.silent) {
         this.topLoading = true;
       }
+      this.topLoadFailed = false;
       const newQueryDto = { isTop: true };
       return this.$axios
         .post("/news/query", newQueryDto)
@@ -236,6 +270,9 @@ export default {
             this.newsTopList = data.data || [];
           }
         })
+        .catch(() => {
+          this.topLoadFailed = true;
+        })
         .finally(() => {
           this.topLoading = false;
         });
@@ -244,6 +281,7 @@ export default {
       if (!opts.silent) {
         this.feedLoading = true;
       }
+      this.feedLoadFailed = false;
       return this.$axios
         .post("/news/query", this.newQueryDto)
         .then((response) => {
@@ -251,6 +289,9 @@ export default {
           if (data.code === 200) {
             this.newsList = data.data || [];
           }
+        })
+        .catch(() => {
+          this.feedLoadFailed = true;
         })
         .finally(() => {
           this.feedLoading = false;
@@ -515,6 +556,46 @@ $shadow-hover: 0 20px 40px rgba(30, 47, 40, 0.12);
   box-shadow: $shadow;
 }
 
+.retry-btn {
+  appearance: none;
+  cursor: pointer;
+  padding: 9px 20px;
+  margin-top: 4px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  color: #fff;
+  background: #2a9d6f;
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(42, 157, 111, 0.28);
+
+  &:hover {
+    background: #248760;
+  }
+}
+
+.tags-error {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(53, 82, 71, 0.68);
+}
+
+.retry-link {
+  appearance: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 4px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  color: #2a8d66;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  background: none;
+  border: none;
+}
+
 .featured-card {
   height: 100%;
   background: #fff;
@@ -523,7 +604,9 @@ $shadow-hover: 0 20px 40px rgba(30, 47, 40, 0.12);
   box-shadow: $shadow;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.22s ease, box-shadow 0.22s ease,
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
     border-color 0.22s ease;
   display: flex;
   flex-direction: column;
@@ -644,7 +727,9 @@ $shadow-hover: 0 20px 40px rgba(30, 47, 40, 0.12);
   box-shadow: $shadow;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
 

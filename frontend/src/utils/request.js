@@ -8,7 +8,12 @@ const URL_API =
 
 const request = axios.create({
   baseURL: URL_API,
-  timeout: 8000,
+  // Render's free tier can still take a while to answer the very first
+  // request after a deploy or a gap in the keep-warm ping (see
+  // .github/workflows/keep-backend-warm.yml), even once mostly kept warm.
+  // 8s was tight enough that a single slow response silently failed page
+  // loads that have no retry UI (e.g. Home.vue's featured/latest articles).
+  timeout: 30000,
 });
 
 request.interceptors.request.use(

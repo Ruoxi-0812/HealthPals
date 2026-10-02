@@ -1,9 +1,16 @@
 name: Keep backend warm
 
-# Render's free plan spins the backend down after ~15 minutes with no
-# traffic, and waking it back up can take 30-60+ seconds on the next
-# real request (login, register, Google sign-in, ...). Ping the health
-# endpoint often enough that it never gets the chance to fall asleep.
+# Two separate things fall asleep from inactivity and need separate pings:
+#   1. Render's free web service spins down after ~15 minutes with no
+#      traffic; waking back up can take 30-60+ seconds on the next real
+#      request (login, register, Google sign-in, ...).
+#   2. Aiven's free MySQL plan auto-powers-off on its own inactivity
+#      timer (confirmed in the Aiven console: upgrading is advertised as
+#      a way to "prevent automatic power-offs during inactivity"). /health
+#      alone doesn't touch the database, so it can't prevent this.
+# /user/login with a nonexistent account still runs a real SELECT against
+# MySQL (it responds "Account does not exist") without creating any data,
+# so it doubles as a safe, side-effect-free database keep-alive.
 on:
   schedule:
     - cron: "*/10 * * * *"
@@ -16,4 +23,12 @@ jobs:
       - name: Ping Render health endpoint
         run: |
           curl -fsS --max-time 45 https://healthpals-api.onrender.com/api/personal-heath/v1.0/health \
+            || echo "Ping failed or backend was cold-starting; not treated as a CI failure."
+
+      - name: Touch the database (keeps Aiven MySQL from auto-powering-off)
+        run: |
+          curl -fsS --max-time 45 -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"userAccount":"__keepalive_ping__","userPwd":"__keepalive_ping__"}' \
+            https://healthpals-api.onrender.com/api/personal-heath/v1.0/user/login \
             || echo "Ping failed or backend was cold-starting; not treated as a CI failure."
