@@ -49,6 +49,8 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private UserMapper userMapper;
+
+    private final cn.kmbeast.security.PasswordStorage passwords = new cn.kmbeast.security.PasswordStorage();
     
     @Value("${google.oauth.client-id:}")
     private String googleClientId;
@@ -73,6 +75,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<String> register(UserRegisterDTO userRegisterDTO) {
+        if (userRegisterDTO == null || StringUtils.isBlank(userRegisterDTO.getUserAccount())
+                || !passwords.validCredential(userRegisterDTO.getUserPwd())) return ApiResult.error("Invalid registration details");
         User user = userMapper.getByActive(
                 User.builder().userName(userRegisterDTO.getUserName()).build()
         );
@@ -90,7 +94,7 @@ public class UserServiceImpl implements UserService {
                 .userName(userRegisterDTO.getUserName())
                 .userAccount(userRegisterDTO.getUserAccount())
                 .userAvatar(userRegisterDTO.getUserAvatar())
-                .userPwd(userRegisterDTO.getUserPwd())
+                .userPwd(passwords.encode(userRegisterDTO.getUserPwd()))
                 .userEmail(userRegisterDTO.getUserEmail())
                 .createTime(LocalDateTime.now())
                 .isLogin(LoginStatusEnum.USE.getFlag())
@@ -104,17 +108,23 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<Object> login(UserLoginDTO userLoginDTO) {
+        if (userLoginDTO == null || StringUtils.isBlank(userLoginDTO.getUserAccount())
+                || !passwords.validCredential(userLoginDTO.getUserPwd())) return ApiResult.error("Invalid account or password");
         User user = userMapper.getByActive(
                 User.builder().userAccount(userLoginDTO.getUserAccount()).build()
         );
         if (!Objects.nonNull(user)) {
-            return ApiResult.error("Account does not exist");
+            return ApiResult.error("Invalid account or password");
         }
-        if (!Objects.equals(userLoginDTO.getUserPwd(), user.getUserPwd())) {
-            return ApiResult.error("wrong password");
+        if (!passwords.matches(userLoginDTO.getUserPwd(), user.getUserPwd())) {
+            return ApiResult.error("Invalid account or password");
         }
-        if (user.getIsLogin()) {
+        if (Boolean.TRUE.equals(user.getIsLogin())) {
             return ApiResult.error("Abnormal login status");
+        }
+        if (passwords.isLegacy(user.getUserPwd())) {
+            int upgraded = userMapper.upgradePassword(user.getId(), user.getUserPwd(), passwords.encode(userLoginDTO.getUserPwd()));
+            if (upgraded == 0) return ApiResult.error("Account changed. Please sign in again.");
         }
         String token = JwtUtil.toToken(user.getId(), user.getUserRole());
         Map<String, Object> map = new HashMap<>();
@@ -137,12 +147,16 @@ public class UserServiceImpl implements UserService {
                 return ApiResult.error("Invalid Google credential");
             }
             GoogleIdToken.Payload payload = idToken.getPayload();
+            if (!Boolean.TRUE.equals(payload.getEmailVerified()) || StringUtils.isBlank(payload.getSubject())) {
+                return ApiResult.error("Google credential is not verified");
+            }
             String sub = payload.getSubject();
             String email = payload.getEmail();
             String name = (String) payload.get("name");
             String picture = (String) payload.get("picture");
             String account = "google_" + sub;
             User user = userMapper.getByActive(User.builder().userAccount(account).build());
+            if (user != null && Boolean.TRUE.equals(user.getIsLogin())) return ApiResult.error("Abnormal login status");
             if (user == null) {
                 String fallbackName = StringUtils.isNotBlank(name)
                         ? name
@@ -152,7 +166,7 @@ public class UserServiceImpl implements UserService {
                         .userName(fallbackName)
                         .userAccount(account)
                         .userAvatar(picture)
-                        .userPwd(UUID.randomUUID().toString().replace("-", ""))
+                        .userPwd(passwords.encode(UUID.randomUUID().toString().replace("-", "")))
                         .userEmail(email)
                         .createTime(LocalDateTime.now())
                         .isLogin(LoginStatusEnum.USE.getFlag())
@@ -206,6 +220,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Result<List<User>> query(UserQueryDto userQueryDto) {
         List<User> users = userMapper.query(userQueryDto);
+        users.forEach(item -> item.setUserPwd(null));
         Integer count = userMapper.queryCount(userQueryDto);
         return PageResult.success(users, count);
     }
@@ -217,6 +232,8 @@ public class UserServiceImpl implements UserService {
     public Result<String> update(UserUpdateDTO userUpdateDTO) {
         User updateEntity = User.builder().id(LocalThreadHolder.getUserId()).build();
         BeanUtils.copyProperties(userUpdateDTO, updateEntity);
+        // Password changes require verification through updatePwd.
+        updateEntity.setUserPwd(null);
         userMapper.update(updateEntity);
         return ApiResult.success();
     }
@@ -236,16 +253,20 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<String> updatePwd(Map<String, String> map) {
+        if (map == null || !passwords.validCredential(map.get("oldPwd")) || !passwords.validCredential(map.get("newPwd"))) {
+            return ApiResult.error("Invalid password details");
+        }
         String oldPwd = map.get("oldPwd");
         String newPwd = map.get("newPwd");
         User user = userMapper.getByActive(
                 User.builder().id(LocalThreadHolder.getUserId()).build()
         );
-        if (!user.getUserPwd().equals(oldPwd)) {
+        if (user == null || !passwords.matches(oldPwd, user.getUserPwd())) {
             return ApiResult.error("The original password authentication failed");
         }
-        user.setUserPwd(newPwd);
-        userMapper.update(user);
+        if (userMapper.upgradePassword(user.getId(), user.getUserPwd(), passwords.encode(newPwd)) == 0) {
+            return ApiResult.error("Account changed. Please retry.");
+        }
         return ApiResult.success();
     }
 
@@ -274,6 +295,10 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<String> backUpdate(User user) {
+        if (user.getUserPwd() != null) {
+            if (!passwords.validCredential(user.getUserPwd())) return ApiResult.error("Invalid password details");
+            user.setUserPwd(passwords.encode(user.getUserPwd()));
+        }
         userMapper.update(user);
         return ApiResult.success();
     }

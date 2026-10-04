@@ -136,7 +136,9 @@ export default {
         this.navigateToRole(data.data.role);
       } catch (error) {
         this.$message.error(
-          "Unable to sign in. The server may still be starting; please retry shortly.",
+          error.response && error.response.status === 429
+            ? "Too many sign-in attempts. Please wait a minute and retry."
+            : "Unable to sign in. The server may still be starting; please retry shortly.",
         );
       } finally {
         this.submitting = false;

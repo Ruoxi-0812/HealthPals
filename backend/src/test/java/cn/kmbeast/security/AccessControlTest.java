@@ -65,7 +65,7 @@ class AccessControlTest {
             try(Connection c=adminDb.getConnection();Statement stmt=c.createStatement()){stmt.execute("CREATE DATABASE "+database);}
             db=new org.springframework.jdbc.datasource.DriverManagerDataSource(mysql+database+options,"root","");
         }
-        sql("CREATE TABLE user (id INT PRIMARY KEY,user_account VARCHAR(50),user_name VARCHAR(50),user_pwd VARCHAR(50),user_avatar VARCHAR(50),user_email VARCHAR(50),user_role INT,is_login BOOLEAN,is_word BOOLEAN,create_time TIMESTAMP)");
+        sql("CREATE TABLE user (id INT AUTO_INCREMENT PRIMARY KEY,user_account VARCHAR(50),user_name VARCHAR(50),user_pwd VARCHAR(100),user_avatar VARCHAR(50),user_email VARCHAR(50),user_role INT,is_login BOOLEAN,is_word BOOLEAN,create_time TIMESTAMP)");
         sql("INSERT INTO user VALUES (7,'a','Alice','test',NULL,'a@example.invalid',2,FALSE,FALSE,CURRENT_TIMESTAMP),(8,'b','Bob','test',NULL,'b@example.invalid',2,FALSE,FALSE,CURRENT_TIMESTAMP),(1,'admin','Admin','test',NULL,NULL,1,FALSE,FALSE,CURRENT_TIMESTAMP)");
         sql("CREATE TABLE health_model_config (id INT AUTO_INCREMENT PRIMARY KEY,user_id INT,name VARCHAR(50),detail VARCHAR(50),cover VARCHAR(50),unit VARCHAR(30),symbol VARCHAR(30),value_range VARCHAR(50),is_global BOOLEAN)");
         sql("INSERT INTO health_model_config (id,user_id,name,unit,value_range,is_global) VALUES (1,1,'Global','unit','10,20',TRUE),(7,7,'Alice model','unit','10,20',FALSE),(8,8,'Bob model','unit','10,20',FALSE)");
@@ -271,6 +271,38 @@ class AccessControlTest {
         ok("POST","/user-health/query",other,"{}"); assertNull(LocalThreadHolder.getUserId());
         call("PUT","/user-health/update",user,"{\"id\":8,\"value\":\"99\"}"); assertNull(LocalThreadHolder.getUserId());
         assertEquals(401,call("POST","/user-health/query",null,"{}").getResponse().getStatus());
+    }
+    @Test void legacyLoginUpgradesStorageAndPasswordChangesRemainCompatible() throws Exception {
+        String old="0123456789abcdef0123456789abcdef", newer="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        sql("UPDATE user SET user_pwd='"+old+"' WHERE id=7");
+        assertEquals(400,body(call("POST","/user/login",null,"{\"userAccount\":\"a\",\"userPwd\":\""+newer+"\"}")).get("code").asInt());
+        assertEquals(1,scalar("SELECT COUNT(*) FROM user WHERE id=7 AND user_pwd='"+old+"'"));
+        String login="{\"userAccount\":\"a\",\"userPwd\":\""+old+"\"}";
+        assertEquals(200,body(call("POST","/user/login",null,login)).get("code").asInt());
+        assertEquals(60,scalar("SELECT LENGTH(user_pwd) FROM user WHERE id=7"));
+        assertEquals(200,body(call("POST","/user/login",null,login)).get("code").asInt());
+        // Profile edits cannot bypass verification.
+        call("PUT","/user/update",user,"{\"userName\":\"Alice\",\"userPwd\":\""+newer+"\"}");
+        assertEquals(200,body(call("POST","/user/login",null,login)).get("code").asInt());
+        assertEquals(200,body(call("PUT","/user/updatePwd",user,"{\"oldPwd\":\""+old+"\",\"newPwd\":\""+newer+"\"}")).get("code").asInt());
+        assertEquals(400,body(call("POST","/user/login",null,login)).get("code").asInt());
+        assertEquals(200,body(call("POST","/user/login",null,login.replace(old,newer))).get("code").asInt());
+    }
+    @Test void registrationAndAdminResetsHashCredentialsAndQueriesHideHashes() throws Exception {
+        String digest="0123456789abcdef0123456789abcdef";
+        assertEquals(200,body(call("POST","/user/register",null,"{\"userAccount\":\"newuser\",\"userName\":\"New User\",\"userPwd\":\""+digest+"\"}")).get("code").asInt());
+        assertEquals(60,scalar("SELECT LENGTH(user_pwd) FROM user WHERE user_account='newuser'"));
+        assertEquals(200,body(call("PUT","/user/backUpdate",admin,"{\"id\":7,\"userPwd\":\""+digest+"\"}")).get("code").asInt());
+        assertEquals(200,body(call("POST","/user/login",null,"{\"userAccount\":\"a\",\"userPwd\":\""+digest+"\"}")).get("code").asInt());
+        JsonNode rows=body(call("POST","/user/query",admin,"{}")).get("data");
+        for(JsonNode row:rows) assertTrue(!row.has("userPwd") || row.get("userPwd").isNull());
+    }
+    @Test void emptyLoginAndBlockedLegacyAccountCannotAuthenticateOrUpgrade() throws Exception {
+        assertEquals(400,body(call("POST","/user/login",null,"{}")).get("code").asInt());
+        String digest="0123456789abcdef0123456789abcdef";
+        sql("UPDATE user SET user_pwd='"+digest+"',is_login=TRUE WHERE id=7");
+        assertEquals(400,body(call("POST","/user/login",null,"{\"userAccount\":\"a\",\"userPwd\":\""+digest+"\"}")).get("code").asInt());
+        assertEquals(32,scalar("SELECT LENGTH(user_pwd) FROM user WHERE id=7"));
     }
     private MvcResult call(String method,String path,String token,String body) throws Exception {
         MockHttpServletRequestBuilder req=request(HttpMethod.valueOf(method),path);
