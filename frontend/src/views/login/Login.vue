@@ -27,8 +27,13 @@
           />
         </div>
 
-        <button class="auth-primary" type="button" @click="login">
-          Login Now
+        <button
+          class="auth-primary"
+          type="button"
+          @click="login"
+          :disabled="submitting"
+        >
+          {{ submitting ? "Signing in… Please wait" : "Login Now" }}
         </button>
 
         <div class="oauth-wrap">
@@ -56,6 +61,7 @@
 </template>
 
 <script>
+import { warmSignIn } from "@/utils/warmSignIn";
 const ADMIN_ROLE = 1;
 const USER_ROLE = 2;
 const DELAY_TIME = 1300;
@@ -71,10 +77,14 @@ export default {
   components: { Logo, GoogleSignInButton },
   data() {
     return {
+      submitting: false,
       act: "", // Account
       pwd: "", // Password
       colorLogo: "#2f4a40",
     };
+  },
+  mounted() {
+    warmSignIn();
   },
   methods: {
     safePush(target) {
@@ -93,6 +103,7 @@ export default {
       this.safePush("/register");
     },
     async login() {
+      if (this.submitting) return;
       if (!this.act || !this.pwd) {
         this.$swalToast({
           title: "Input Validation",
@@ -106,8 +117,11 @@ export default {
       const hashedPwd = md5(md5(this.pwd));
       const paramDTO = { userAccount: this.act, userPwd: hashedPwd };
 
+      this.submitting = true;
       try {
-        const { data } = await request.post(`user/login`, paramDTO);
+        const { data } = await request.post(`user/login`, paramDTO, {
+          timeout: 120000,
+        });
         if (data.code !== 200) {
           this.$swalToast({
             title: "Login Failed",
@@ -119,14 +133,13 @@ export default {
         }
         setToken(data.data.token);
 
-        // Delay before redirecting based on user role
-        setTimeout(() => {
-          const { role } = data.data;
-          this.navigateToRole(role);
-        }, DELAY_TIME);
+        this.navigateToRole(data.data.role);
       } catch (error) {
-        console.error("Login request error:", error);
-        this.$message.error("Login request failed, please try again!");
+        this.$message.error(
+          "Unable to sign in. The server may still be starting; please retry shortly.",
+        );
+      } finally {
+        this.submitting = false;
       }
     },
     navigateToRole(role) {

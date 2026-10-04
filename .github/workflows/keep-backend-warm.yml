@@ -1,34 +1,14 @@
 name: Keep backend warm
-
-# Two separate things fall asleep from inactivity and need separate pings:
-#   1. Render's free web service spins down after ~15 minutes with no
-#      traffic; waking back up can take 30-60+ seconds on the next real
-#      request (login, register, Google sign-in, ...).
-#   2. Aiven's free MySQL plan auto-powers-off on its own inactivity
-#      timer (confirmed in the Aiven console: upgrading is advertised as
-#      a way to "prevent automatic power-offs during inactivity"). /health
-#      alone doesn't touch the database, so it can't prevent this.
-# /user/login with a nonexistent account still runs a real SELECT against
-# MySQL (it responds "Account does not exist") without creating any data,
-# so it doubles as a safe, side-effect-free database keep-alive.
 on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch: {}
-
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Ping Render health endpoint
+      - name: Verify backend and database readiness
         run: |
-          curl -fsS --max-time 45 https://healthpals-api.onrender.com/api/personal-heath/v1.0/health \
-            || echo "Ping failed or backend was cold-starting; not treated as a CI failure."
-
-      - name: Touch the database (keeps Aiven MySQL from auto-powering-off)
-        run: |
-          curl -fsS --max-time 45 -X POST \
-            -H "Content-Type: application/json" \
-            -d '{"userAccount":"__keepalive_ping__","userPwd":"__keepalive_ping__"}' \
-            https://healthpals-api.onrender.com/api/personal-heath/v1.0/user/login \
-            || echo "Ping failed or backend was cold-starting; not treated as a CI failure."
+          curl --fail --silent --show-error --retry 2 --retry-delay 5 --retry-all-errors --connect-timeout 10 --max-time 75 https://healthpals-api.onrender.com/api/personal-heath/v1.0/health/ready --output readiness.json
+          python3 -c 'import json; data=json.load(open("readiness.json")); assert data.get("status") == "ready", "Backend/database not ready"'

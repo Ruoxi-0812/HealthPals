@@ -53,6 +53,21 @@ public class UserServiceImpl implements UserService {
     @Value("${google.oauth.client-id:}")
     private String googleClientId;
 
+    private volatile GoogleIdTokenVerifier googleVerifier;
+
+    private GoogleIdTokenVerifier googleVerifier() throws Exception {
+        if (googleVerifier == null) {
+            synchronized (this) {
+                if (googleVerifier == null) {
+                    googleVerifier = new GoogleIdTokenVerifier.Builder(
+                            GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance())
+                            .setAudience(java.util.Collections.singletonList(googleClientId)).build();
+                }
+            }
+        }
+        return googleVerifier;
+    }
+
     /**
      * user registration
      */
@@ -117,11 +132,7 @@ public class UserServiceImpl implements UserService {
             return ApiResult.error("Google OAuth client id is not configured on server");
         }
         try {
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                    GoogleNetHttpTransport.newTrustedTransport(),
-                    GsonFactory.getDefaultInstance()
-            ).setAudience(java.util.Collections.singletonList(googleClientId)).build();
-            GoogleIdToken idToken = verifier.verify(googleLoginDTO.getIdToken());
+            GoogleIdToken idToken = googleVerifier().verify(googleLoginDTO.getIdToken());
             if (idToken == null) {
                 return ApiResult.error("Invalid Google credential");
             }
