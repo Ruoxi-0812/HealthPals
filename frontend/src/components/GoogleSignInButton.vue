@@ -7,25 +7,28 @@
       :class="{ 'is-submitting': submitting }"
     >
       <button type="button" class="google-signin__shell" :disabled="submitting">
-        {{ submitting ? "Verifying your Google account..." : "Continue with Google" }}
+        {{
+          submitting
+            ? "Verifying your Google account..."
+            : "Continue with Google"
+        }}
       </button>
       <div ref="googleButtonMount" class="google-signin__host-overlay" />
     </div>
-    <button
-      v-else
-      type="button"
-      class="google-signin__fallback"
-      disabled
-    >
+    <button v-else type="button" class="google-signin__fallback" disabled>
       Continue with Google
     </button>
-    <div v-if="loadError" class="google-signin__note google-signin__note--error">
+    <div
+      v-if="loadError"
+      class="google-signin__note google-signin__note--error"
+    >
       {{ loadError }}
     </div>
   </div>
 </template>
 
 <script>
+import { warmSignIn } from "@/utils/warmSignIn";
 import request from "@/utils/request.js";
 import { setToken } from "@/utils/storage.js";
 
@@ -55,6 +58,7 @@ export default {
     },
   },
   async mounted() {
+    warmSignIn();
     if (!this.googleConfigured) {
       return;
     }
@@ -94,7 +98,9 @@ export default {
         }
         this.buttonWidth = Math.max(
           240,
-          Math.round(this.$refs.googleShell.getBoundingClientRect().width || 360),
+          Math.round(
+            this.$refs.googleShell.getBoundingClientRect().width || 360,
+          ),
         );
         this.$refs.googleButtonMount.innerHTML = "";
         window.google.accounts.id.initialize({
@@ -116,6 +122,7 @@ export default {
       }
     },
     async handleGoogleCredential(response) {
+      if (this.submitting) return;
       if (!response || !response.credential) {
         this.$message.error("Google authentication failed");
         return;
@@ -152,7 +159,11 @@ export default {
       }
     },
     ensureGoogleScript() {
-      if (window.google && window.google.accounts && window.google.accounts.id) {
+      if (
+        window.google &&
+        window.google.accounts &&
+        window.google.accounts.id
+      ) {
         return Promise.resolve();
       }
       if (this.googleScriptLoading) {
