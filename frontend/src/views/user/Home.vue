@@ -243,10 +243,11 @@ export default {
     },
     loadAllTags() {
       this.tagsLoadFailed = false;
-      this.$axios
+      return this.$axios
         .post("/tags/query", {})
         .then((response) => {
           const { data } = response;
+          if (data.code !== 200) throw new Error("Request failed");
           if (data.code === 200) {
             this.tagsList = data.data;
             this.tagsList.unshift({ name: "All", id: null });
@@ -266,6 +267,7 @@ export default {
         .post("/news/query", newQueryDto)
         .then((response) => {
           const { data } = response;
+          if (data.code !== 200) throw new Error("Request failed");
           if (data.code === 200) {
             this.newsTopList = data.data || [];
           }
@@ -286,6 +288,7 @@ export default {
         .post("/news/query", this.newQueryDto)
         .then((response) => {
           const { data } = response;
+          if (data.code !== 200) throw new Error("Request failed");
           if (data.code === 200) {
             this.newsList = data.data || [];
           }

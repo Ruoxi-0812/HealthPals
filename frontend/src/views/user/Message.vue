@@ -91,6 +91,14 @@
             </ul>
 
             <div
+              v-else-if="loadFailed"
+              class="messages-page__empty"
+              role="alert"
+            >
+              <p>Unable to load messages.</p>
+              <button type="button" @click="loadAllUsersMessage">Retry</button>
+            </div>
+            <div
               v-else-if="filteredMessageList.length === 0"
               class="messages-page__empty"
             >
@@ -208,6 +216,8 @@ export default {
       message: {},
       activeFilter: null,
       loading: true,
+      loadFailed: false,
+      messageRequest: 0,
     };
   },
   computed: {
@@ -399,31 +409,38 @@ export default {
       this.userInfo = JSON.parse(userInfo);
     },
     loadAllMessageType() {
-      this.$axios.get("/message/types").then((response) => {
-        const { data } = response;
-        if (data.code === 200) {
-          this.messageTypes = data.data;
-          const messageType = { type: null, detail: "All Messages" };
-          this.messageTypes.unshift(messageType);
-          this.activeFilter = null;
-        }
-      });
-    },
-    loadAllUsersMessage() {
-      const userInfo = sessionStorage.getItem("userInfo");
-      const entity = JSON.parse(userInfo);
-      const query = { userId: entity.id };
       this.$axios
-        .post("/message/query", query)
+        .get("/message/types")
         .then((response) => {
           const { data } = response;
+          if (data.code !== 200) throw new Error("Message filters failed");
           if (data.code === 200) {
-            this.messageList = data.data || [];
+            this.messageTypes = data.data;
+            const messageType = { type: null, detail: "All Messages" };
+            this.messageTypes.unshift(messageType);
+            this.activeFilter = null;
           }
         })
-        .finally(() => {
-          this.loading = false;
+        .catch(() => {
+          this.$message.error(
+            "Unable to load message filters. Please refresh to retry.",
+          );
         });
+    },
+    async loadAllUsersMessage() {
+      const sequence = ++this.messageRequest;
+      this.loadFailed = false;
+      this.loading = this.messageList.length === 0;
+      try {
+        const { data } = await this.$axios.post("/message/query", {});
+        if (sequence !== this.messageRequest) return;
+        if (data.code !== 200) throw new Error("Messages failed");
+        this.messageList = data.data || [];
+      } catch {
+        if (sequence === this.messageRequest) this.loadFailed = true;
+      } finally {
+        if (sequence === this.messageRequest) this.loading = false;
+      }
     },
     goBack() {
       this.$router.push("/user");

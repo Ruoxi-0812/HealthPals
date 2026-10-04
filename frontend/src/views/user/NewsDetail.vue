@@ -24,6 +24,14 @@
           />
         </div>
 
+        <div
+          v-else-if="articleError"
+          class="news-detail__article nb-surface"
+          role="alert"
+        >
+          <p>{{ articleError }}</p>
+          <button type="button" @click="bootstrapArticle">Retry</button>
+        </div>
         <article
           v-else
           :key="'article-' + (newsInfo.id || 'loading')"
@@ -109,6 +117,10 @@
               </li>
             </ul>
           </template>
+          <div v-else-if="asideFailed" role="alert">
+            <p>Unable to load recommendations.</p>
+            <button type="button" @click="loadAllTopNews">Retry</button>
+          </div>
           <template v-else>
             <p class="news-detail__aside-sub">
               {{ newsTopList.length || 0 }} more picks from our editors.
@@ -171,6 +183,10 @@ export default {
       saveFlag: null,
       newsSaveList: [],
       articleLoading: true,
+      articleError: "",
+      articleRequest: 0,
+      asideRequest: 0,
+      asideFailed: false,
       asideLoading: true,
     };
   },
@@ -206,10 +222,8 @@ export default {
   },
   watch: {
     "$route.query.id"(id) {
-      if (id != null && id !== "") {
-        this.scrollToTop();
-        this.fetchArticleById(Number(id));
-      }
+      this.scrollToTop();
+      this.fetchArticleById(Number(id));
     },
   },
   created() {
@@ -235,6 +249,7 @@ export default {
       if (this.newsInfo == null || this.newsInfo.id == null) {
         return;
       }
+      const sequence = this.articleRequest;
       this.saveFlag = null;
       const newsSaveQueryDto = {
         newsId: this.newsInfo.id,
@@ -242,13 +257,14 @@ export default {
       this.$axios
         .post("/news-save/queryUser", newsSaveQueryDto)
         .then((response) => {
+          if (sequence !== this.articleRequest) return;
           const { data } = response;
           if (data.code === 200) {
             this.saveFlag = data.data.length !== 0;
           }
         })
         .catch(() => {
-          this.saveFlag = false;
+          if (sequence === this.articleRequest) this.saveFlag = false;
         });
     },
     saveNewsOperation() {
@@ -296,30 +312,41 @@ export default {
             })
             .catch(() => {});
         }
+      } else {
+        this.fetchArticleById(null);
       }
     },
-    fetchArticleById(id) {
-      if (!id || Number.isNaN(id)) return;
+    async fetchArticleById(id) {
+      const sequence = ++this.articleRequest;
+      this.articleError = "";
       this.saveFlag = null;
-      this.$axios
-        .post("/news/query", { id })
-        .then((response) => {
-          const { data } = response;
-          if (data.code === 200 && data.data && data.data.length) {
-            const article =
-              data.data.find((n) => Number(n.id) === Number(id)) ||
-              data.data[0];
-            this.newsInfo = { ...article };
-            sessionStorage.setItem("newsInfo", JSON.stringify(this.newsInfo));
-            this.loadSaveStatus();
-            this.loadAllTopNews();
-            this.scrollToTop();
-          }
-        })
-        .catch(() => {})
-        .finally(() => {
-          this.articleLoading = false;
-        });
+      this.newsInfo = {};
+      if (!Number.isSafeInteger(id) || id <= 0) {
+        this.articleLoading = false;
+        this.articleError = "Please select a valid article from the news page.";
+        return;
+      }
+      this.articleLoading = true;
+      try {
+        const { data } = await this.$axios.post("/news/query", { id });
+        if (sequence !== this.articleRequest) return;
+        if (data.code !== 200) throw new Error("Article request failed");
+        const article = (data.data || []).find((n) => Number(n.id) === id);
+        if (!article) {
+          this.articleError = "This article is no longer available.";
+          return;
+        }
+        this.newsInfo = { ...article };
+        sessionStorage.setItem("newsInfo", JSON.stringify(this.newsInfo));
+        this.loadSaveStatus();
+        this.loadAllTopNews();
+        this.scrollToTop();
+      } catch {
+        if (sequence === this.articleRequest)
+          this.articleError = "Unable to load this article. Please retry.";
+      } finally {
+        if (sequence === this.articleRequest) this.articleLoading = false;
+      }
     },
     scrollToTop() {
       scrollPageToTop();
@@ -337,22 +364,23 @@ export default {
         }
       }
     },
-    loadAllTopNews() {
-      const newQueryDto = { isTop: true };
-      this.$axios
-        .post("/news/query", newQueryDto)
-        .then((response) => {
-          const { data } = response;
-          if (data.code === 200) {
-            const currentId = this.newsInfo && this.newsInfo.id;
-            const list = (data.data || []).filter((n) => n.id !== currentId);
-            this.newsTopList = pickUniqueCoverNews(list, 3);
-          }
-        })
-        .catch(() => {})
-        .finally(() => {
-          this.asideLoading = false;
-        });
+    async loadAllTopNews() {
+      const sequence = ++this.asideRequest;
+      this.asideLoading = true;
+      this.asideFailed = false;
+      try {
+        const { data } = await this.$axios.post("/news/query", { isTop: true });
+        if (sequence !== this.asideRequest) return;
+        if (data.code !== 200) throw new Error("Recommendations failed");
+        const list = (data.data || []).filter(
+          (n) => Number(n.id) !== Number(this.newsInfo.id),
+        );
+        this.newsTopList = pickUniqueCoverNews(list, 3);
+      } catch {
+        if (sequence === this.asideRequest) this.asideFailed = true;
+      } finally {
+        if (sequence === this.asideRequest) this.asideLoading = false;
+      }
     },
   },
 };
