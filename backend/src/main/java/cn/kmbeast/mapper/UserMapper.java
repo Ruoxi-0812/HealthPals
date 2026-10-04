@@ -43,6 +43,9 @@ public interface UserMapper {
      */
     int update(User user);
 
+    int upgradePassword(@Param("id") Integer id, @Param("previous") String previous,
+                        @Param("replacement") String replacement);
+
     /**
      * Batch delete users
      *

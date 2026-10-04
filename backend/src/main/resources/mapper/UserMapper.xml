@@ -53,6 +53,10 @@
 
     </update>
 
+    <update id="upgradePassword">
+        UPDATE user SET user_pwd = #{replacement}
+        WHERE id = #{id} AND user_pwd = #{previous}
+    </update>
     <delete id="batchDelete" parameterType="list">
         DELETE FROM user WHERE id IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
