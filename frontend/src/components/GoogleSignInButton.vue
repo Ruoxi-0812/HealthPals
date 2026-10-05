@@ -150,9 +150,11 @@ export default {
         // Axios errors include the request body, which contains the Google token.
         const timedOut = error && error.code === "ECONNABORTED";
         this.$message.error(
-          timedOut
-            ? "The server is taking longer to respond. Please try Google sign-in again."
-            : "Unable to reach the sign-in service. Please try again shortly.",
+          error.response && error.response.status === 429
+            ? "Too many sign-in attempts. Please wait a minute and retry."
+            : timedOut
+              ? "The server is taking longer to respond. Please try Google sign-in again."
+              : "Unable to reach the sign-in service. Please try again shortly.",
         );
       } finally {
         this.submitting = false;
